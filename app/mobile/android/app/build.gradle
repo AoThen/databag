@@ -121,10 +121,10 @@ compileOptions {
     }
     signingConfigs {
       release {
-            storeFile = file(System.getenv("SIGN_STORE_FILE") ?: "default-path/keystore.jks")
-            storePassword = System.getenv("SIGN_STORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("SIGN_KEY_ALIAS") ?: ""
-            keyPassword = System.getenv("SIGN_KEY_PASSWORD") ?: ""
+            storeFile file(System.getenv("SIGN_STORE_FILE")
+            storePassword System.getenv("SIGN_STORE_PASSWORD")
+            keyAlias System.getenv("SIGN_KEY_ALIAS")
+            keyPassword System.getenv("SIGN_KEY_PASSWORD")
         // storeFile file('balzack.keystore')
         // storePassword 'balzack'
         // keyAlias 'balzack'
