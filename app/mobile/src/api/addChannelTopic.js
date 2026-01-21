@@ -1,8 +1,8 @@
 import { checkResponse, fetchWithTimeout } from './fetchUtil';
 
 export async function addChannelTopic(server, token, channelId, messageType, message, assets ): string {
-  const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(server);
-  const protocol = insecure ? 'http' : 'https';
+  const insecure = false;
+  const protocol = 'https';
 
   if (message == null && (assets == null || assets.length === 0)) {
     let topic = await fetchWithTimeout(`${protocol}://${server}/content/channels/${channelId}/topics?agent=${token}`,

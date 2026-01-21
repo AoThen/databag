@@ -2,8 +2,8 @@ import { checkResponse, fetchWithCustomTimeout } from './fetchUtil';
 import base64 from 'react-native-base64'
 
 export async function addAccount(server, username, password, token) {
-  const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(server);
-  const protocol = insecure ? 'http' : 'https';
+  const insecure = false;
+  const protocol = 'https';
   let access = "";
   if (token) {
     access = `?token=${token}`

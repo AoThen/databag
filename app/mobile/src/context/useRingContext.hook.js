@@ -7,6 +7,7 @@ import { keepCall } from 'api/keepCall';
 import { removeCall } from 'api/removeCall';
 import { removeContactCall } from 'api/removeContactCall';
 import InCallManager from 'react-native-incall-manager';
+import { Logger } from '../utils/logger';
 
 import {
 	ScreenCapturePickerView,
@@ -104,7 +105,7 @@ export function useRingContext() {
         }
       }
       catch (err) {
-        console.log(err);
+        Logger.error('WebRTC operation failed');
         //Alert.alert('webrtc error', err.toString());
       }
     }
@@ -154,7 +155,7 @@ export function useRingContext() {
           }
         }
         catch (err) {
-          console.log(err);
+          Logger.error('WebRTC operation failed');
           //Alert.alert('webrtc error', err.toString());
         }
       }
@@ -166,16 +167,16 @@ export function useRingContext() {
 
     pc.current = new RTCPeerConnection({ iceServers: ice });
     pc.current.addEventListener( 'connectionstatechange', event => {
-      console.log("CONNECTION STATE", event);
+      Logger.debug('WebRTC connection state:', event);
     } );
     pc.current.addEventListener( 'icecandidate', event => {
       ws.current.send(JSON.stringify({ candidate: event.candidate }));
     } );
     pc.current.addEventListener( 'icecandidateerror', event => {
-      console.log("ICE ERROR");
+      Logger.warn('ICE error');
     } );
     pc.current.addEventListener( 'iceconnectionstatechange', event => {
-      console.log("ICE STATE CHANGE", event);
+      Logger.debug('ICE state change:', event);
     } );
     pc.current.addEventListener( 'negotiationneeded', async (ev) => {
       offers.current.push(null);
@@ -187,7 +188,7 @@ export function useRingContext() {
       }
     } );
     pc.current.addEventListener( 'signalingstatechange', event => {
-      console.log("ICE SIGNALING", event);
+      Logger.debug('ICE signaling:', event);
     } );
     pc.current.addEventListener( 'track', event => {
       if (stream.current == null) {
@@ -224,13 +225,12 @@ export function useRingContext() {
       }
     }
     catch (err) {
-      console.log(err);
+      Logger.error('Track cleanup error');
     }
   }
 
   const connect = async (policy, node, token, clearRing, clearAlive, ice) => {
 
-    // connect signal socket
     connected.current = false;
     candidates.current = [];
     pc.current = null;
@@ -239,9 +239,7 @@ export function useRingContext() {
     videoTrack.current = false;
     audioTrack.current = false;
 
-    const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(node);
-    const protocol = insecure ? 'ws' : 'wss';
-    ws.current = createWebsocket(`${protocol}://${node}/signal`);
+    ws.current = createWebsocket(`wss://${node}/signal`);
     ws.current.onmessage = async (ev) => {
       // handle messages [impolite]
       try {
@@ -279,11 +277,10 @@ export function useRingContext() {
         }
       }
       catch (err) {
-        console.log(err);
+        Logger.error('WebRTC signal parse error');
       }
     }
     ws.current.onclose = (e) => {
-      // update state to disconnected
       if (pc.current) {
         pc.current.close();
       }
@@ -312,7 +309,7 @@ export function useRingContext() {
       }
     }
     ws.current.error = (e) => {
-      console.log(e)
+      Logger.error('WebSocket error');
       ws.current.close();
     }
   }
@@ -361,7 +358,7 @@ export function useRingContext() {
           await removeContactCall(contactNode, contactToken, callId);
         }
         catch (err) {
-          console.log(err);
+          Logger.error('WebRTC operation failed');
         }
       }
     },
@@ -394,7 +391,7 @@ export function useRingContext() {
           }
         }
         catch (err) {
-          console.log(err);
+          Logger.error('WebRTC operation failed');
         }
         if (ws.current) {
           ws.current.close();
@@ -426,14 +423,14 @@ export function useRingContext() {
         await addContactRing(contactNode, contactToken, { index, callId: id, calleeToken, ice, iceUrl, iceUsername, icePassword });
       }
       catch (err) {
-        console.log(err);
+        Logger.error('WebRTC operation failed');
       }
       const aliveInterval = setInterval(async () => {
         try {
           await keepCall(server, token, id);
         }
         catch (err) {
-          console.log(err);
+          Logger.error('WebRTC operation failed');
         }
       }, keepAlive * 1000);
       let index = 0;
@@ -450,7 +447,7 @@ export function useRingContext() {
           }
         }
         catch (err) {
-          console.log(err);
+          Logger.error('WebRTC operation failed');
         }
       }, RING);
 
@@ -492,7 +489,7 @@ export function useRingContext() {
           }
         }
         catch (err) {
-          console.log(err);
+          Logger.error('WebRTC operation failed');
         }
       }
       else {

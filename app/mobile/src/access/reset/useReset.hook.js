@@ -3,6 +3,7 @@ import { useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from 'context/AppContext';
 import { getLanguageStrings } from 'constants/Strings';
+import { Logger } from '../../utils/logger';
 
 export function useReset() {
 
@@ -68,7 +69,7 @@ export function useReset() {
           updateState({ busy: false });
         }
         catch (err) {
-          console.log(err);
+          Logger.error('Reset access failed');
           updateState({ busy: false });
           throw new Error("access failed");
         }

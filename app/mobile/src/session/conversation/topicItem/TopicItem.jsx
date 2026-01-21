@@ -17,8 +17,10 @@ import { BinaryAsset } from './binaryAsset/BinaryAsset';
 import Carousel from 'react-native-reanimated-carousel';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import React from 'react';
+import { Logger } from '../../../utils/logger';
 
-export function TopicItem({ item, focused, focus, hosting, remove, update, block, report, contentKey }) {
+function TopicItemComponent({ item, focused, focus, hosting, remove, update, block, report, contentKey }) {
   const { state, actions } = useTopicItem(item, hosting, remove, contentKey);
 
 
@@ -27,7 +29,7 @@ export function TopicItem({ item, focused, focus, hosting, remove, update, block
       await actions.shareMessage();
     }
     catch(err) {
-      console.log(err);
+      Logger.error('Share message error');
       Alert.alert(
         state.strings.error,
         state.strings.tryAgain,
@@ -148,7 +150,7 @@ export function TopicItem({ item, focused, focus, hosting, remove, update, block
                 data={state.assets}
                 defaultIndex={state.carouselIndex}
                 scrollAnimationDuration={1000}
-                onSnapToItem={(index) => console.log('current index:', index)}
+                onSnapToItem={(index) => Logger.debug('Carousel index:', index)}
                 renderItem={({ index }) => (
                   <View style={styles.frame}>
                     { state.assets[index].type === 'image' && (
@@ -165,10 +167,20 @@ export function TopicItem({ item, focused, focus, hosting, remove, update, block
                     )}
                   </View>
                 )} />
-              </GestureHandlerRootView>
+            </GestureHandlerRootView>
           </SafeAreaView>
         </SafeAreaProvider>
-      </Modal> 
+      </Modal>
     </View>
   );
 }
+
+function areEqual(prevProps, nextProps) {
+  if (prevProps.item.topicId !== nextProps.item.topicId) return false;
+  if (prevProps.item.revision !== nextProps.item.revision) return false;
+  if (prevProps.focused !== nextProps.focused) return false;
+  if (prevProps.contentKey !== nextProps.contentKey) return false;
+  return true;
+}
+
+export const TopicItem = React.memo(TopicItemComponent, areEqual);

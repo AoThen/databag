@@ -5,6 +5,7 @@ import { AppContext } from 'context/AppContext';
 import { getAvailable } from 'api/getAvailable';
 import { getUsername } from 'api/getUsername';
 import { getLanguageStrings } from 'constants/Strings';
+import { Logger } from '../../utils/logger';
 
 export function useCreate() {
 
@@ -202,7 +203,7 @@ export function useCreate() {
           updateState({ busy: false });
         }
         catch (err) {
-          console.log(err);
+          Logger.error('Create account failed');
           updateState({ busy: false });
           throw new Error('create failed');
         }

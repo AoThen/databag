@@ -13,6 +13,7 @@ import { getContactChannelDetail } from 'api/getContactChannelDetail';
 import { getContactChannelSummary } from 'api/getContactChannelSummary';
 import { getCardImageUrl } from 'api/getCardImageUrl';
 import { addCard } from 'api/addCard';
+import { Logger } from '../utils/logger';
 import { removeCard } from 'api/removeCard';
 import { setCardConnecting, setCardConnected, setCardConfirmed } from 'api/setCardStatus';
 import { getCardOpenMessage } from 'api/getCardOpenMessage';
@@ -41,6 +42,8 @@ export function useCardContext() {
   const curRevision = useRef(null);
   const cards = useRef(new Map());
   const syncing = useRef(false);
+  const syncDepth = useRef(0);
+  const MAX_SYNC_DEPTH = 10;
   const store = useContext(StoreContext);
 
   const updateState = (value) => {
@@ -118,7 +121,7 @@ export function useCardContext() {
         }
       }
       catch(err) {
-        console.log(err);
+        Logger.error('Card operation failed');
       }
       syncing.current = false;
       await sync();
@@ -126,8 +129,16 @@ export function useCardContext() {
   }
 
   const sync = async () => {
+    if (syncDepth.current >= MAX_SYNC_DEPTH) {
+      Logger.warn('Card sync max depth reached, stopping recursion');
+      syncing.current = false;
+      syncDepth.current = 0;
+      return;
+    }
+
     if (access.current && !syncing.current && setRevision.current !== curRevision.current) {
       syncing.current = true;
+      syncDepth.current++;
       try {
         const { server, token, guid } = access.current || {};
         const revision = curRevision.current;
@@ -185,7 +196,7 @@ export function useCardContext() {
                 await syncCard(server, token, guid, entry, cardRevision);
               }
               catch (err) {
-                console.log(err);
+                Logger.error('Card operation failed');
                 entry.card.offsync = true;
                 await store.actions.setCardItemOffsync(guid, card.id);
               }
@@ -211,13 +222,15 @@ export function useCardContext() {
         updateState({ offsync: false, cards: cards.current });
       }
       catch (err) {
-        console.log(err);
+        Logger.error('Card operation failed');
         syncing.current = false;
+        syncDepth.current = 0;
         updateState({ offsync: true });
         return;
       }
 
       syncing.current = false;
+      syncDepth.current--;
       await sync();
     }
   };
@@ -303,10 +316,18 @@ export function useCardContext() {
       access.current = session;
       cards.current = new Map();
       const cardItems = await store.actions.getCardItems(session.guid);
-      for(card of cardItems) {
+      const allCardChannelItems = await store.actions.getAllCardChannels(session.guid);
+      const channelsByCardId = new Map();
+      for (const item of allCardChannelItems) {
+        if (!channelsByCardId.has(item.cardId)) {
+          channelsByCardId.set(item.cardId, []);
+        }
+        channelsByCardId.get(item.cardId).push(item);
+      }
+      for (const card of cardItems) {
         const entry = { card, channels: new Map() };
-        const cardChannelItems = await store.actions.getCardChannelItems(session.guid, card.cardId);
-        for (cardChannel of cardChannelItems) {
+        const cardChannelItems = channelsByCardId.get(card.cardId) || [];
+        for (const cardChannel of cardChannelItems) {
           entry.channels.set(cardChannel.channelId, cardChannel);
         }
         cards.current.set(card.cardId, entry);
@@ -384,7 +405,7 @@ export function useCardContext() {
             await removeContactChannelTopic(node, cardToken, channelId, topicId);
           }
           catch (err) {
-            console.log(err);
+            Logger.error('Card operation failed');
           }
         }, cardId);
       }

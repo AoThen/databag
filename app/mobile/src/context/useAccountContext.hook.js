@@ -8,6 +8,7 @@ import { setAccountLogin } from 'api/setAccountLogin';
 import { addAccountMFA } from 'api/addAccountMFA';
 import { setAccountMFA } from 'api/setAccountMFA';
 import { removeAccountMFA } from 'api/removeAccountMFA';
+import { Logger } from '../utils/logger';
 
 export function useAccountContext() {
   const [state, setState] = useState({
@@ -20,14 +21,24 @@ export function useAccountContext() {
   const curRevision = useRef(null);
   const setRevision = useRef(null);
   const syncing = useRef(false);
+  const syncDepth = useRef(0);
+  const MAX_SYNC_DEPTH = 10;
 
   const updateState = (value) => {
     setState((s) => ({ ...s, ...value }))
   }
 
   const sync = async () => {
+    if (syncDepth.current >= MAX_SYNC_DEPTH) {
+      Logger.warn('Account sync max depth reached, stopping recursion');
+      syncing.current = false;
+      syncDepth.current = 0;
+      return;
+    }
+
     if (access.current && !syncing.current && setRevision.current !== curRevision.current) {
       syncing.current = true;
+      syncDepth.current++;
       try {
         const revision = curRevision.current;
         const { server, token, guid } = access.current || {};
@@ -38,12 +49,14 @@ export function useAccountContext() {
         setRevision.current = revision;
       }
       catch(err) {
-        console.log(err);
+        Logger.error('Account sync failed');
         syncing.current = false;
+        syncDepth.current = 0;
         return;
       }
 
       syncing.current = false;
+      syncDepth.current--;
       sync();
     }
   };

@@ -3,6 +3,7 @@ import { useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from 'context/AppContext';
 import { getLanguageStrings } from 'constants/Strings';
+import { Logger } from '../../utils/logger';
 
 export function useLogin() {
 
@@ -80,12 +81,11 @@ export function useLogin() {
           await app.actions.login(state.login.trim(), state.password, state.mfaCode);
         }
         catch (err) {
-console.log(err);
+          Logger.error('Login failed', err.message);
           if (err.message == '405' || err.message == '403' || err.message == '429') {
             updateState({ mfaModal: true, mfaError: err.message });
           }
           else {
-            console.log(err.message);
             updateState({ busy: false, showAlert: true });
             throw new Error('login failed');
           }

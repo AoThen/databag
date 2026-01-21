@@ -2,6 +2,9 @@ import CryptoJS from 'crypto-js';
 import { RSA } from 'react-native-rsa-native';
 import { JSEncrypt } from 'jsencrypt'
 
+const PBKDF2_ITERATIONS_NEW = 600000;
+const PBKDF2_ITERATIONS_LEGACY = 1024;
+
 export function getChannelSeals(subject) {
   const { seals } = JSON.parse(subject);
   return seals;
@@ -130,30 +133,27 @@ function convertPem(pem) {
 
 export async function generateSeal(password) {
 
-  // generate key to encrypt private key
   const salt = CryptoJS.lib.WordArray.random(128 / 8);
   const aes = CryptoJS.PBKDF2(password, salt, {
     keySize: 256 / 32,
-    iterations: 1024,
+    iterations: PBKDF2_ITERATIONS_NEW,
   });
 
-  // generate rsa key for sealing channel, delay for activity indicators
   await new Promise(r => setTimeout(r, 1000));
   const crypto = new JSEncrypt({ default_key_size: 2048 });
   crypto.getKey();
 
-  // encrypt private key
   const iv = CryptoJS.lib.WordArray.random(128 / 8);
   const privateKey = convertPem(crypto.getPrivateKey());
   const enc = CryptoJS.AES.encrypt(privateKey, aes, { iv: iv });
   const publicKey = convertPem(crypto.getPublicKey());
 
-  // update account
   const seal = {
     passwordSalt: salt.toString(),
     privateKeyIv: iv.toString(),
     privateKeyEncrypted: enc.ciphertext.toString(CryptoJS.enc.Base64),
     publicKey: publicKey,
+    iterations: PBKDF2_ITERATIONS_NEW,
   }
   const sealKey = {
     public: publicKey,
@@ -165,14 +165,14 @@ export async function generateSeal(password) {
 
 export function unlockSeal(seal, password) {
 
-  // generate key to encrypt private key
   const salt = CryptoJS.enc.Hex.parse(seal.passwordSalt);
+  const iterations = seal.iterations || PBKDF2_ITERATIONS_LEGACY;
+
   const aes = CryptoJS.PBKDF2(password, salt, {
     keySize: 256 / 32,
-    iterations: 1024,
+    iterations: iterations,
   });
 
-  // decrypt private key
   const iv = CryptoJS.enc.Hex.parse(seal.privateKeyIv);
   const enc = CryptoJS.enc.Base64.parse(seal.privateKeyEncrypted)
 
@@ -183,7 +183,6 @@ export function unlockSeal(seal, password) {
   const dec = CryptoJS.AES.decrypt(cipherParams, aes, { iv: iv });
   const privateKey = dec.toString(CryptoJS.enc.Utf8)
 
-  // store ke
   const sealKey = {
     public: seal.publicKey,
     private: privateKey,
@@ -194,23 +193,21 @@ export function unlockSeal(seal, password) {
 
 export function updateSeal(seal, sealKey, password) {
 
-  // generate key to encrypt private key
   const salt = CryptoJS.lib.WordArray.random(128 / 8);
   const aes = CryptoJS.PBKDF2(password, salt, {
     keySize: 256 / 32,
-    iterations: 1024,
+    iterations: PBKDF2_ITERATIONS_NEW,
   });
 
-  // encrypt private key
   const iv = CryptoJS.lib.WordArray.random(128 / 8);
   const enc = CryptoJS.AES.encrypt(sealKey.private, aes, { iv: iv });
 
-  // update account
   const updated = {
     passwordSalt: salt.toString(),
     privateKeyIv: iv.toString(),
     privateKeyEncrypted: enc.ciphertext.toString(CryptoJS.enc.Base64),
     publicKey: seal.publicKey,
+    iterations: PBKDF2_ITERATIONS_NEW,
   }
 
   return { seal: updated, sealKey };

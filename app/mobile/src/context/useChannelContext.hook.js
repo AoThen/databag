@@ -18,6 +18,7 @@ import { clearChannelCard } from 'api/clearChannelCard';
 import { addFlag } from 'api/addFlag';
 import { setChannelNotifications } from 'api/setChannelNotifications';
 import { getChannelNotifications } from 'api/getChannelNotifications';
+import { Logger } from '../utils/logger';
 
 export function useChannelContext() {
   const [state, setState] = useState({
@@ -30,6 +31,8 @@ export function useChannelContext() {
   const curRevision = useRef(null);
   const channels = useRef(new Map());
   const syncing = useRef(false);
+  const syncDepth = useRef(0);
+  const MAX_SYNC_DEPTH = 10;
   const store = useContext(StoreContext);
 
   const updateState = (value) => {
@@ -58,9 +61,16 @@ export function useChannelContext() {
   };
 
   const sync = async () => {
-  
+    if (syncDepth.current >= MAX_SYNC_DEPTH) {
+      Logger.warn('Channel sync max depth reached, stopping recursion');
+      syncing.current = false;
+      syncDepth.current = 0;
+      return;
+    }
+
     if (access.current && !syncing.current && setRevision.current !== curRevision.current) {
       syncing.current = true;
+      syncDepth.current++;
       try {
         const revision = curRevision.current;
         const { server, token, guid } = access.current;
@@ -106,13 +116,15 @@ export function useChannelContext() {
         updateState({ offsync: false, channels: channels.current });
       }
       catch(err) {
-        console.log(err);
+        Logger.error('Channel sync failed');
         updateState({ offsync: true });
         syncing.current = false;
+        syncDepth.current = 0;
         return;
       }
 
       syncing.current = false;
+      syncDepth.current--;
       sync();
     }
   };
@@ -173,7 +185,7 @@ export function useChannelContext() {
             await removeChannelTopic(server, token, channelId, topicId);
           }
           catch (err) {
-            console.log(err);
+            Logger.error('Failed to remove channel topic');
           }
         });
       }

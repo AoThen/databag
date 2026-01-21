@@ -5,11 +5,12 @@ import MatIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from 'constants/Colors';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import { getLanguageStrings } from 'constants/Strings';
+import React from 'react';
 
-export function CardItem({ item, openContact, enableIce, call, message, canMessage }) {
+function CardItemComponent({ item, openContact, enableIce, call, message, canMessage }) {
 
   const strings = getLanguageStrings();
-  
+
   const select = () => {
     const { guid, name, handle, node, location, description, imageSet } = item;
     const contact = { guid, name, handle, node, location, description, imageSet };
@@ -80,4 +81,20 @@ export function CardItem({ item, openContact, enableIce, call, message, canMessa
     </View>
   );
 }
+
+function areEqual(prevProps, nextProps) {
+  if (prevProps.item.cardId !== nextProps.item.cardId) return false;
+  if (prevProps.item.revision !== nextProps.item.revision) return false;
+  if (prevProps.item.name !== nextProps.item.name) return false;
+  if (prevProps.item.username !== nextProps.item.username) return false;
+  if (prevProps.item.status !== nextProps.item.status) return false;
+  if (prevProps.item.offsync !== nextProps.item.offsync) return false;
+  if (prevProps.item.logo !== nextProps.item.logo) return false;
+  if (prevProps.item.imageSet !== nextProps.item.imageSet) return false;
+  if (prevProps.canMessage !== nextProps.canMessage) return false;
+  if (prevProps.enableIce !== nextProps.enableIce) return false;
+  return true;
+}
+
+export const CardItem = React.memo(CardItemComponent, areEqual);
 

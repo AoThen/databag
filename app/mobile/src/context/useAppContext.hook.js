@@ -15,6 +15,7 @@ import { RingContext } from 'context/RingContext';
 import { getVersion, getApplicationName, getDeviceId } from 'react-native-device-info'
 import messaging from '@react-native-firebase/messaging';
 import { DeviceEventEmitter } from 'react-native';
+import { Logger } from '../utils/logger';
 
 export function useAppContext() {
   const [state, setState] = useState({
@@ -54,16 +55,15 @@ export function useAppContext() {
         deviceToken.current = token;
         pushType.current = "fcm";
       }
-      catch(err) {
-        console.log(err);
-      }
+        catch(err) {
+          Logger.warn('Failed to get device token');
+        }
     }
   }
 
   useEffect(() => {
 
-    // select the unified token if available
-    DeviceEventEmitter.addListener('unifiedPushURL', (e) => {
+    const unifiedPushListener = DeviceEventEmitter.addListener('unifiedPushURL', (e) => {
       deviceToken.current = e.endpoint;
       pushType.current = "up";
     });
@@ -79,9 +79,17 @@ export function useAppContext() {
       }
       init.current = true;
     })();
+
+    return () => {
+      unifiedPushListener.remove();
+      clearWebsocket();
+    };
   }, []);
 
   const setSession = async () => {
+    if (!access.current) {
+      return;
+    }
     const { loginTimestamp, guid } = access.current;
     updateState({ session: true, loginTimestamp, status: 'connecting' });
     await store.actions.updateDb(guid);
@@ -172,7 +180,7 @@ export function useAppContext() {
         await clearLogin(server, token);
       }
       catch (err) {
-        console.log(err);
+        Logger.error('Logout failed');
       }
       await clearSession();
       access.current = null;
@@ -192,9 +200,7 @@ export function useAppContext() {
   }
 
   const setWebsocket = (session) => {
-    const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(session.server);
-    const protocol = insecure ? 'ws' : 'wss';
-    ws.current = createWebsocket(`${protocol}://${session.server}/status?mode=ring`);
+    ws.current = createWebsocket(`wss://${session.server}/status?mode=ring`);
     ws.current.onmessage = (ev) => {
       if (ev.data == '') {
         actions.logout();
@@ -226,7 +232,7 @@ export function useAppContext() {
         }
       }
       catch (err) {
-        console.log(err);
+        Logger.error('WebSocket message parse error');
         ws.current.close();
       }
     }
@@ -236,21 +242,25 @@ export function useAppContext() {
       }
     }
     ws.current.onclose = (e) => {
-      console.log(e)
+      Logger.debug('WebSocket disconnected');
       updateState({ status: 'disconnected' });
+      const maxDelay = 30000;
+      const baseDelay = 1000;
+      const jitter = Math.random() * baseDelay * 0.5;
+      const attemptDelay = Math.min(maxDelay, baseDelay * Math.pow(2, Math.min(delay.current, 10)) + jitter);
+      delay.current = Math.min(delay.current + 1, 11);
       setTimeout(() => {
         if (ws.current != null) {
           ws.current.onmessage = () => {}
           ws.current.onclose = () => {}
           ws.current.onopen = () => {}
           ws.current.onerror = () => {}
-          delay.current = 1;
           setWebsocket(session);
         }
-      }, 1000 * delay.current)
+      }, attemptDelay)
     }
     ws.current.error = (e) => {
-      console.log(e);
+      Logger.error('WebSocket error');
       ws.current.close();
     }
   }

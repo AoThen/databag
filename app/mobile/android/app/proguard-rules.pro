@@ -9,4 +9,39 @@
 
 # Add any project specific keep options here:
 
+# WebRTC
 -keep class org.webrtc.** { *; }
+
+# Remove logging in release builds
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+# Obfuscate API endpoints
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# React Native
+-keep class com.facebook.react.** { *; }
+-dontwarn com.facebook.react.**
+
+# CryptoJS
+-keep class org.crypto-js.** { *; }
+-dontwarn org.crypto-js.**
+
+# Firebase
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+
+# SQLite
+-keep class org.pgsql.** { *; }
+-dontwarn org.pgsql.**
+
+# Obfuscate sensitive class names
+-keep class com.databag.context.** { *; }
+-keep class com.databag.api.** { *; }

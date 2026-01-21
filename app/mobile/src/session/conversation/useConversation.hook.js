@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, useRef } from 'react';
+import { useEffect, useState, useContext, useRef, useMemo, useCallback } from 'react';
 import { ProfileContext } from 'context/ProfileContext';
 import { CardContext } from 'context/CardContext';
 import { AccountContext } from 'context/AccountContext';
@@ -38,11 +38,7 @@ export function useConversation() {
   const contentKey = useRef();
   const keyId = useRef();
 
-  useEffect(() => {
-    setContentKey();
-  }, [conversation.state, account.state]);
-
-  const setContentKey = async () => {
+  const setContentKey = useCallback(async () => {
     const type = conversation.state.channel?.detail?.dataType;
     if (type === 'sealed') {
       const cardId = conversation.state.card?.card?.cardId;
@@ -69,16 +65,20 @@ export function useConversation() {
       keyId.current = null;
       updateState({ contentKey: null });
     }
-  };
+  }, [conversation.state.channel, account.state.sealKey]);
 
   useEffect(() => {
+    setContentKey();
+  }, [setContentKey]);
+
+  const processedData = useMemo(() => {
     const loaded = conversation.state.loaded;
     const cardId = conversation.state.card?.card?.cardId;
     const profileGuid = profile.state.identity?.guid;
     const channel = conversation.state.channel;
     const hosted = conversation.state.card == null;
     const cards = card.state.cards;
-    cardImageUrl = card.actions.getCardImageUrl;
+    const cardImageUrl = card.actions.getCardImageUrl;
     const { logo, subject } = getChannelSubjectLogo(cardId, profileGuid, channel, cards, cardImageUrl, state.strings);
 
     if (channel?.topicRevision && channel.readRevision !== channel.topicRevision) {
@@ -99,13 +99,16 @@ export function useConversation() {
     });
     const filtered = sorted.filter(item => !(item.blocked));
 
-    updateState({ hosted, loaded, logo, subject, topics: filtered, delayed: false });
-  
-    setTimeout(() => {
+    return { hosted, loaded, logo, subject, topics: filtered };
+  }, [conversation.state, profile.state, card.state, state.strings]);
+
+  useEffect(() => {
+    updateState({ ...processedData, delayed: false });
+    const timer = setTimeout(() => {
       updateState({ delayed: true });
     }, 100);
-
-  }, [conversation.state, profile.state]);
+    return () => clearTimeout(timer);
+  }, [processedData]);
 
   const actions = {
     setFocus: (focus) => {

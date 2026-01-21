@@ -5,6 +5,7 @@ import { setProfileImage } from 'api/setProfileImage';
 import { getProfileImageUrl } from 'api/getProfileImageUrl';
 import { getHandle } from 'api/getHandle';
 import { StoreContext } from 'context/StoreContext';
+import { Logger } from '../utils/logger';
 
 export function useProfileContext() {
   const [state, setState] = useState({
@@ -24,14 +25,24 @@ export function useProfileContext() {
   const curRevision = useRef(null);
   const setRevision = useRef(null);
   const syncing = useRef(false);
+  const syncDepth = useRef(0);
+  const MAX_SYNC_DEPTH = 10;
 
   const updateState = (value) => {
     setState((s) => ({ ...s, ...value }))
   }
 
   const sync = async () => {
+    if (syncDepth.current >= MAX_SYNC_DEPTH) {
+      Logger.warn('Profile sync max depth reached, stopping recursion');
+      syncing.current = false;
+      syncDepth.current = 0;
+      return;
+    }
+
     if (access.current && !syncing.current && setRevision.current !== curRevision.current) {
       syncing.current = true;
+      syncDepth.current++;
 
       try {
         const revision = curRevision.current;
@@ -44,13 +55,15 @@ export function useProfileContext() {
         setRevision.current = revision;
       }
       catch(err) {
-        console.log(err);
+        Logger.error('Profile sync failed');
         updateState({ offsync: true });
         syncing.current = false;
+        syncDepth.current = 0;
         return;
       }
 
       syncing.current = false;
+      syncDepth.current--;
       sync();
     }
   };

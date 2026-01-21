@@ -1,7 +1,15 @@
 import { useEffect, useState, useRef, useContext } from 'react';
+import { Platform } from 'react-native';
 import SQLite from "react-native-sqlite-storage";
+import { encryptSession, decryptSession } from '../utils/sessionCrypto';
 
-const DATABAG_DB = 'db_v135.db';
+const DATABAG_DB = 'databag.db';
+
+const GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isValidGuid(guid) {
+  return GUID_REGEX.test(guid);
+}
 
 export function useStoreContext() {
   const [state, setState] = useState({});
@@ -12,14 +20,27 @@ export function useStoreContext() {
   }
 
   const initSession = async (guid) => {
+    if (!isValidGuid(guid)) {
+      throw new Error('Invalid GUID format');
+    }
     await db.current.executeSql(`CREATE TABLE IF NOT EXISTS channel_${guid} (channel_id text, revision integer, detail_revision integer, topic_revision integer, topic_marker integer, blocked integer, sync_revision integer, detail text, unsealed_detail text, summary text, unsealed_summary text, offsync integer, read_revision integer, unique(channel_id))`);
     await db.current.executeSql(`CREATE TABLE IF NOT EXISTS channel_topic_${guid} (channel_id text, topic_id text, revision integer, created integer, detail_revision integer, blocked integer, detail text, unsealed_detail text, unique(channel_id, topic_id))`);
     await db.current.executeSql(`CREATE TABLE IF NOT EXISTS card_${guid} (card_id text, revision integer, detail_revision integer, profile_revision integer, detail text, profile text, notified_view integer, notified_article integer, notified_profile integer, notified_channel integer, offsync integer, blocked integer, unique(card_id))`);
     await db.current.executeSql(`CREATE TABLE IF NOT EXISTS card_channel_${guid} (card_id text, channel_id text, revision integer, detail_revision integer, topic_revision integer, topic_marker integer, sync_revision integer, detail text, unsealed_detail text, summary text, unsealed_summary text, offsync integer, blocked integer, read_revision integer, unique(card_id, channel_id))`);
     await db.current.executeSql(`CREATE TABLE IF NOT EXISTS card_channel_topic_${guid} (card_id text, channel_id text, topic_id text, revision integer, created integer, detail_revision integer, blocked integer, detail text, unsealed_detail text, unique(card_id, channel_id, topic_id))`);
+
+    await db.current.executeSql(`CREATE INDEX IF NOT EXISTS idx_channel_topic_${guid}_channel ON channel_topic_${guid}(channel_id);`);
+    await db.current.executeSql(`CREATE INDEX IF NOT EXISTS idx_card_channel_${guid}_card ON card_channel_${guid}(card_id);`);
+    await db.current.executeSql(`CREATE INDEX IF NOT EXISTS idx_card_channel_topic_${guid}_card ON card_channel_topic_${guid}(card_id);`);
+    await db.current.executeSql(`CREATE INDEX IF NOT EXISTS idx_card_channel_topic_${guid}_card_channel ON card_channel_topic_${guid}(card_id, channel_id);`);
+    await db.current.executeSql(`CREATE INDEX IF NOT EXISTS idx_card_${guid}_revision ON card_${guid}(revision);`);
+    await db.current.executeSql(`CREATE INDEX IF NOT EXISTS idx_channel_${guid}_revision ON channel_${guid}(revision);`);
   }
 
   const hasColumn = async (table, column) => {
+    if (!isValidGuid(table.replace('channel_topic_', '').replace('card_channel_topic_', '').replace('card_channel_', '').replace('channel_', '').replace('card_', ''))) {
+      return false;
+    }
     const pragma = await db.current.executeSql(`PRAGMA table_info(${table})`);
     if (pragma?.length === 1) {
       for (let i = 0; i < pragma[0].rows.length; i++) {
@@ -36,10 +57,12 @@ export function useStoreContext() {
     init: async () => {
       SQLite.DEBUG(false);
       SQLite.enablePromise(true);
-      db.current = await SQLite.openDatabase({ name: DATABAG_DB, location: "default" });
+      const location = Platform.OS === 'ios' ? 'Library' : 'noBackupDirectory';
+      db.current = await SQLite.openDatabase({ name: DATABAG_DB, location: location });
       await db.current.executeSql("CREATE TABLE IF NOT EXISTS app (key text, value text, unique(key));");
       await db.current.executeSql("INSERT OR IGNORE INTO app (key, value) values ('session', null);");
-      return await getAppValue(db.current, 'session');
+      const encryptedSession = await getAppValue(db.current, 'session');
+      return decryptSession(encryptedSession);
     },
     updateDb: async (guid) => {
       const hasChannel = await hasColumn(`channel_topic_${guid}`, 'created');
@@ -53,7 +76,8 @@ export function useStoreContext() {
     },
     setSession: async (access) => {
       await initSession(access.guid);
-      await db.current.executeSql("UPDATE app SET value=? WHERE key='session';", [encodeObject(access)]);
+      const encrypted = encryptSession(access);
+      await db.current.executeSql("UPDATE app SET value=? WHERE key='session';", [encrypted]);
     },
     clearSession: async () => {
       await db.current.executeSql("UPDATE app set value=? WHERE key='session';", [null]);
@@ -356,8 +380,27 @@ export function useStoreContext() {
       await db.current.executeSql(`UPDATE card_channel_${guid} set unsealed_summary=? where topic_revision=? AND card_id=? AND channel_id=?`, [encodeObject(unsealed), revision, cardId, channelId]);
     },
     getCardChannelItems: async (guid, cardId) => {
-      const values = await getAppValues(db.current, `SELECT channel_id, read_revision, sync_revision, revision, blocked, detail_revision, topic_revision, topic_marker, detail, unsealed_detail, summary, unsealed_summary FROM card_channel_${guid} where card_id=?`, [cardId]);
+      const values = await getAppValues(db.current, `SELECT card_id, channel_id, read_revision, sync_revision, revision, blocked, detail_revision, topic_revision, topic_marker, detail, unsealed_detail, summary, unsealed_summary FROM card_channel_${guid} where card_id=?`, [cardId]);
       return values.map(channel => ({
+        cardId: channel.card_id,
+        channelId: channel.channel_id,
+        revision: channel.revision,
+        readRevision: channel.read_revision,
+        detailRevision: channel.detail_revision,
+        topicRevision: channel.topic_revision,
+        topicMarker: channel.topic_marker,
+        syncRevision: channel.sync_revision,
+        detail: decodeObject(channel.detail),
+        unsealedDetail: decodeObject(channel.unsealed_detail),
+        summary: decodeObject(channel.summary),
+        unsealedSummary: decodeObject(channel.unsealed_summary),
+        blocked: channel.blocked === 1,
+      }));
+    },
+    getAllCardChannels: async (guid) => {
+      const values = await getAppValues(db.current, `SELECT card_id, channel_id, read_revision, sync_revision, revision, blocked, detail_revision, topic_revision, topic_marker, detail, unsealed_detail, summary, unsealed_summary FROM card_channel_${guid}`, []);
+      return values.map(channel => ({
+        cardId: channel.card_id,
         channelId: channel.channel_id,
         revision: channel.revision,
         readRevision: channel.read_revision,
@@ -465,7 +508,7 @@ function executeSql(sql: SQLite.SQLiteDatabase, query, params, uset) {
 }
 
 async function getAppValue(sql: SQLite.SQLiteDatabase, id: string, unset) {
-  const res = await sql.executeSql(`SELECT * FROM app WHERE key='${id}';`);
+  const res = await sql.executeSql('SELECT * FROM app WHERE key=?', [id]);
   if (hasResult(res)) {
     return decodeObject(res[0].rows.item(0).value);
   }

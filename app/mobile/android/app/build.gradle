@@ -121,15 +121,16 @@ compileOptions {
     }
     signingConfigs {
       release {
-            storeFile file(System.getenv("SIGN_STORE_FILE")
-            storePassword System.getenv("SIGN_STORE_PASSWORD")
-            keyAlias System.getenv("SIGN_KEY_ALIAS")
-            keyPassword System.getenv("SIGN_KEY_PASSWORD")
-        // storeFile file('balzack.keystore')
-        // storePassword 'balzack'
-        // keyAlias 'balzack'
-        // keyPassword 'balzack'
+        if (System.getenv("SIGN_STORE_FILE") && System.getenv("SIGN_STORE_PASSWORD")) {
+          storeFile = file(System.getenv("SIGN_STORE_FILE"))
+          storePassword = System.getenv("SIGN_STORE_PASSWORD")
+          keyAlias = System.getenv("SIGN_KEY_ALIAS")
+          keyPassword = System.getenv("SIGN_KEY_PASSWORD")
+        } else {
+          throw new GradleException("Signing environment variables not configured. Required: SIGN_STORE_FILE, SIGN_STORE_PASSWORD, SIGN_KEY_ALIAS, SIGN_KEY_PASSWORD")
+        }
       }
+    }
     }
     buildTypes {
         debug {

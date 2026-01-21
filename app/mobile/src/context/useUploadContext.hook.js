@@ -3,6 +3,7 @@ import axios from 'axios';
 import { createThumbnail } from "react-native-create-thumbnail";
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import RNFS from 'react-native-fs';
+import { Logger } from '../utils/logger';
 
 const ENCRYPTED_BLOCK_SIZE = (256 * 1024);
 const SCALE_SIZE = (128 * 1024);
@@ -66,8 +67,7 @@ export function useUploadContext() {
 
   const actions = {
     addTopic: (node, token, channelId, topicId, files, success, failure, cardId) => {
-      const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(node);
-      const protocol = insecure ? 'http' : 'https';
+      const protocol = 'https';
       const key = cardId ? `${cardId}:${channelId}` : `:${channelId}`; 
       const controller = new AbortController();
       const entry = {
@@ -154,7 +154,7 @@ async function upload(entry, update, complete) {
       complete();
     }
     catch (err) {
-      console.log(err);
+      Logger.error('Upload failed');
       entry.failure();
       entry.error = true;
       update();
@@ -277,7 +277,7 @@ async function upload(entry, update, complete) {
       upload(entry, update, complete);
     }
     catch (err) {
-      console.log(err);
+      Logger.error('Upload failed');
       entry.failure();
       entry.error = true;
       update();

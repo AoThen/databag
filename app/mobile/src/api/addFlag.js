@@ -1,8 +1,8 @@
 import { checkResponse, fetchWithTimeout } from './fetchUtil';
 
 export async function addFlag(server, guid, channel, topic) {
-  const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(server);
-  const protocol = insecure ? 'http' : 'https';
+  const insecure = false;
+  const protocol = 'https';
   if (channel) {
     const param = topic ? `&topic=${topic}` : '';
     const flag = await fetchWithTimeout(`${protocol}://${server}/account/flag/${guid}?channel=${channel}${param}`, { method: 'POST' } );

@@ -4,8 +4,9 @@ import { Logo } from 'utils/Logo';
 import { styles } from './ChannelItem.styled';
 import Colors from 'constants/Colors';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import React from 'react';
 
-export function ChannelItem({ cardId, channelId, item, openConversation }) {
+function ChannelItemComponent({ cardId, channelId, item, openConversation }) {
 
   const container = (cardId === item.cardId && channelId === item.channelId) ? styles.active : styles.container;
 
@@ -30,3 +31,17 @@ export function ChannelItem({ cardId, channelId, item, openConversation }) {
     </TouchableOpacity>
   )
 }
+
+function areEqual(prevProps, nextProps) {
+  if (prevProps.item.revision !== nextProps.item.revision) return false;
+  if (prevProps.item.subject !== nextProps.item.subject) return false;
+  if (prevProps.item.message !== nextProps.item.message) return false;
+  if (prevProps.item.updated !== nextProps.item.updated) return false;
+  if (prevProps.item.unlocked !== nextProps.item.unlocked) return false;
+  if (prevProps.item.logo !== nextProps.item.logo) return false;
+  if (prevProps.cardId !== nextProps.cardId) return false;
+  if (prevProps.channelId !== nextProps.channelId) return false;
+  return true;
+}
+
+export const ChannelItem = React.memo(ChannelItemComponent, areEqual);

@@ -7,6 +7,7 @@ import { setNodeStatus } from 'api/setNodeStatus';
 import { setNodeAccess } from 'api/setNodeAccess';
 import { getNodeConfig } from 'api/getNodeConfig';
 import { getLanguageStrings } from 'constants/Strings';
+import { Logger } from '../../utils/logger';
 
 export function useAdmin() {
 
@@ -42,7 +43,7 @@ export function useAdmin() {
       updateState({ unclaimed: status });
     }
     catch (err) {
-      console.log("failed to check node status");
+      Logger.warn('Failed to check node status');
     }
   };
 
@@ -105,7 +106,7 @@ export function useAdmin() {
                 navigate('/dashboard', { state: { server: node, token: state.token, mfa: false }});
               }
               catch (err) {
-                console.log(err.message);
+                Logger.error('Node config check failed', err.message);
                 updateState({ busy: false, showAlert: true });
                 throw new Error('login failed');
               }
@@ -113,7 +114,7 @@ export function useAdmin() {
           }
         }
         catch (err) {
-          console.log(err);
+          Logger.error('Admin access failed');
           updateState({ busy: false });
           throw new Error("access failed");
         }

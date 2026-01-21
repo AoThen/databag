@@ -1,4 +1,5 @@
 import { getCardByGuid } from 'context/cardUtil';
+import { Logger } from '../utils/logger';
 
 export function getChannelSubjectLogo(cardId, profileGuid, channel, cards, cardImageUrl, strings) {
 
@@ -12,7 +13,7 @@ export function getChannelSubjectLogo(cardId, profileGuid, channel, cards, cardI
     }
   }
   catch(err) {
-    console.log(err);
+    Logger.error('Failed to parse channel subject');
   }
 
   const contacts = [];

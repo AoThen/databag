@@ -5,6 +5,7 @@ import { CardContext } from 'context/CardContext';
 import { ChannelContext } from 'context/ChannelContext';
 import { ProfileContext } from 'context/ProfileContext';
 import CryptoJS from 'crypto-js';
+import { Logger } from '../utils/logger';
 
 export function useConversationContext() {
   const COUNT = 32;
@@ -98,7 +99,7 @@ export function useConversationContext() {
           }
         }
         else {
-          console.log("failed to load conversation");
+          Logger.warn('Failed to load conversation');
           syncing.current = false;
           return;
         }
@@ -151,10 +152,10 @@ export function useConversationContext() {
           }
         }
         catch(err) {
-          console.log(err);
-          updateState({ loaded: true, offysnc: true });
+          Logger.error('Conversation sync failed');
+          updateState({ loaded: true, offsync: true });
           syncing.current = false;
-          return
+          return;
         }
       }
 
@@ -287,7 +288,7 @@ export function useConversationContext() {
     },
     clearChannelFlag: async () => {
       const { cardId, channelId } = conversationId.current || {};
-      if (cardid) {
+      if (cardId) {
         await card.actions.clearChannelFlag(cardId, channelId);
       }
       else if (channelId) {
