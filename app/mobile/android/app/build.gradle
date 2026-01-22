@@ -131,7 +131,6 @@ compileOptions {
         }
       }
     }
-    }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
