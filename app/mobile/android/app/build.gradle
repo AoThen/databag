@@ -166,6 +166,14 @@ compileOptions {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'com.github.jiangdongguo.AndroidUSBCamera:libausbc:3.2.10'
+        force 'com.github.jiangdongguo.AndroidUSBCamera:libnative:3.2.10'
+        force 'com.github.jiangdongguo.AndroidUSBCamera:libuvc:3.2.10'
+    }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
