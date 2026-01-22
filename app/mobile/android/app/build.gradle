@@ -121,14 +121,19 @@ compileOptions {
     }
     signingConfigs {
       release {
-        if (System.getenv("SIGN_STORE_FILE") && System.getenv("SIGN_STORE_PASSWORD")) {
-          storeFile = file(System.getenv("SIGN_STORE_FILE"))
-          storePassword = System.getenv("SIGN_STORE_PASSWORD")
-          keyAlias = System.getenv("SIGN_KEY_ALIAS")
-          keyPassword = System.getenv("SIGN_KEY_PASSWORD")
-        } else {
-          throw new GradleException("Signing environment variables not configured. Required: SIGN_STORE_FILE, SIGN_STORE_PASSWORD, SIGN_KEY_ALIAS, SIGN_KEY_PASSWORD")
-        }
+        // if (System.getenv("SIGN_STORE_FILE") && System.getenv("SIGN_STORE_PASSWORD")) {
+        //   storeFile = file(System.getenv("SIGN_STORE_FILE"))
+        //   storePassword = System.getenv("SIGN_STORE_PASSWORD")
+        //   keyAlias = System.getenv("SIGN_KEY_ALIAS")
+        //   keyPassword = System.getenv("SIGN_KEY_PASSWORD")
+        // } else {
+        //   throw new GradleException("Signing environment variables not configured. Required: SIGN_STORE_FILE, SIGN_STORE_PASSWORD, SIGN_KEY_ALIAS, SIGN_KEY_PASSWORD")
+        // }
+            storeFile = file(System.getenv("SIGN_STORE_FILE") ?: "debug.keystore")
+            storePassword = System.getenv("SIGN_STORE_PASSWORD") ?: "android"
+            keyAlias = System.getenv("SIGN_KEY_ALIAS") ?: "androiddebugkey"
+            keyPassword = System.getenv("SIGN_KEY_PASSWORD") ?: "android"
+
       }
     }
     buildTypes {
