@@ -2,22 +2,24 @@ package databag
 
 import (
 	"bytes"
+	"context"
 	"databag/internal/store"
 	"encoding/json"
 	"errors"
 	"gorm.io/gorm"
 	"net/http"
+	"time"
 )
 
 var notify = make(chan *store.Notification, APPNotifyBuffer)
 var notifyExit = make(chan bool)
 
-//ExitNotifications stop forwarding notifications
+// ExitNotifications stop forwarding notifications
 func ExitNotifications() {
 	notifyExit <- true
 }
 
-//SendNotifications forward notifcations to contacts
+// SendNotifications forward notifcations to contacts
 func SendNotifications() {
 
 	// queue all saved notifications
@@ -77,8 +79,8 @@ func sendLocalNotification(notification *store.Notification) {
 		if err := NotifyViewRevision(&card, notification.Revision); err != nil {
 			ErrMsg(err)
 		}
-  } else if notification.Module == APPPushNotify {
-    SendPushEvent(card.Account, notification.Event)
+	} else if notification.Module == APPPushNotify {
+		SendPushEvent(card.Account, notification.Event)
 	} else {
 		LogMsg("unknown notification type")
 	}
@@ -95,59 +97,69 @@ func sendRemoteNotification(notification *store.Notification) {
 		module = "channel/revision"
 	} else if notification.Module == APPNotifyView {
 		module = "view/revision"
-  } else if notification.Module == APPPushNotify {
-    module = "notification"
+	} else if notification.Module == APPPushNotify {
+		module = "notification"
 	} else {
 		LogMsg("unknown notification type")
 		return
 	}
 
-  if module == "notification" {
-    body, err := json.Marshal(notification.Event)
-    if err != nil {
-      ErrMsg(err)
-      return
-    }
-    url := "https://" + notification.Node + "/contact/" + module + "?contact=" + notification.GUID + "." + notification.Token
-    req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
-    if err != nil {
-      ErrMsg(err)
-      return
-    }
-    req.Header.Set("Content-Type", "application/json; charset=utf-8")
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-      ErrMsg(err)
-    }
-    if resp == nil ||  resp.StatusCode != 200 {
-      LogMsg("failed to notify contact")
-    }
-  } else {
-    body, err := json.Marshal(notification.Revision)
-    if err != nil {
-      ErrMsg(err)
-      return
-    }
-    url := "https://" + notification.Node + "/contact/" + module + "?contact=" + notification.GUID + "." + notification.Token
-    req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(body))
-    if err != nil {
-      ErrMsg(err)
-      return
-    }
-    req.Header.Set("Content-Type", "application/json; charset=utf-8")
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-      ErrMsg(err)
-    }
-    if resp == nil || resp.StatusCode != 200 {
-      LogMsg("failed to notify contact")
-    }
-  }
+	if module == "notification" {
+		body, err := json.Marshal(notification.Event)
+		if err != nil {
+			ErrMsg(err)
+			return
+		}
+		url := "https://" + notification.Node + "/contact/" + module + "?contact=" + notification.GUID + "." + notification.Token
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+		if err != nil {
+			ErrMsg(err)
+			return
+		}
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		req = req.WithContext(ctx)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			ErrMsg(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp == nil || resp.StatusCode != 200 {
+			LogMsg("failed to notify contact")
+		}
+	} else {
+		body, err := json.Marshal(notification.Revision)
+		if err != nil {
+			ErrMsg(err)
+			return
+		}
+		url := "https://" + notification.Node + "/contact/" + module + "?contact=" + notification.GUID + "." + notification.Token
+		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(body))
+		if err != nil {
+			ErrMsg(err)
+			return
+		}
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		req = req.WithContext(ctx)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			ErrMsg(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp == nil || resp.StatusCode != 200 {
+			LogMsg("failed to notify contact")
+		}
+	}
 }
 
-//SetProfileNotification notifies all connected contacts of profile changes
+// SetProfileNotification notifies all connected contacts of profile changes
 func SetProfileNotification(account *store.Account) {
 
 	// select all connected cards
@@ -179,7 +191,7 @@ func SetProfileNotification(account *store.Account) {
 	}
 }
 
-//SetContactArticleNotification notifies all connected contacts of article changes
+// SetContactArticleNotification notifies all connected contacts of article changes
 // notify single card of article change:
 // for each card of groups in updated article data
 // for each card of group set or cleared from article (does not update data)
@@ -205,7 +217,7 @@ func SetContactArticleNotification(account *store.Account, card *store.Card) {
 	}
 }
 
-//SetContactViewNotification notifies all connected contacts of view change
+// SetContactViewNotification notifies all connected contacts of view change
 // notify single card of view change:
 // card set or cleared from a group
 // for each card in deleted group
@@ -231,7 +243,7 @@ func SetContactViewNotification(account *store.Account, card *store.Card) {
 	}
 }
 
-//SetContactChannelNotification notifies all connected contacts of channel changes
+// SetContactChannelNotification notifies all connected contacts of channel changes
 // notify single card of channel change:
 // for each card in updated channel data
 func SetContactChannelNotification(account *store.Account, card *store.Card) {
@@ -256,27 +268,26 @@ func SetContactChannelNotification(account *store.Account, card *store.Card) {
 	}
 }
 
-//SetContactPushNotification notifies contacts of push event
+// SetContactPushNotification notifies contacts of push event
 func SetContactPushNotification(card *store.Card, event string) {
 
-  if card.Status != APPCardConnected {
-    return
-  }
+	if card.Status != APPCardConnected {
+		return
+	}
 
-  // add new notification for card
-  notification := &store.Notification{
-    Node:       card.Node,
-    Module:     APPPushNotify,
-    GUID:       card.GUID,
-    Token:      card.OutToken,
-    Revision:   0,
-    Event:      event,
-  };
+	// add new notification for card
+	notification := &store.Notification{
+		Node:     card.Node,
+		Module:   APPPushNotify,
+		GUID:     card.GUID,
+		Token:    card.OutToken,
+		Revision: 0,
+		Event:    event,
+	}
 
-  if res := store.DB.Save(notification).Error; res != nil {
-    ErrMsg(res)
-  } else {
-    notify <- notification
-  }
+	if res := store.DB.Save(notification).Error; res != nil {
+		ErrMsg(res)
+	} else {
+		notify <- notification
+	}
 }
-

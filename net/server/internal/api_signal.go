@@ -1,18 +1,21 @@
 package databag
 
 import (
-	"github.com/gorilla/websocket"
-  "encoding/json"
+	"encoding/json"
+	"errors"
 	"net/http"
-  "errors"
+
+	"github.com/gorilla/websocket"
 )
 
 var relayUpgrader = websocket.Upgrader{}
 
-//Status handler for websocket connection
+// Status handler for websocket connection
 func Signal(w http.ResponseWriter, r *http.Request) {
 
-  relayUpgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	relayUpgrader.CheckOrigin = func(r *http.Request) bool {
+		return isAllowedOrigin(r.Header.Get("Origin"))
+	}
 
 	// accept websocket connection
 	conn, err := relayUpgrader.Upgrade(w, r, nil)
@@ -39,23 +42,22 @@ func Signal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  // bind connection to bridge
-  bridgeRelay.SetConnection(conn, a.AppToken);
+	// bind connection to bridge
+	bridgeRelay.SetConnection(conn, a.AppToken)
 
-  for true {
-    t, m, res := conn.ReadMessage()
-    if res != nil {
-      ErrMsg(res)
-      break
-    }
-    if t != websocket.TextMessage {
-      ErrMsg(errors.New("invalid websocket message type"))
-      break
-    }
-    bridgeRelay.RelayMessage(conn, m);
+	for {
+		t, m, res := conn.ReadMessage()
+		if res != nil {
+			ErrMsg(res)
+			break
+		}
+		if t != websocket.TextMessage {
+			ErrMsg(errors.New("invalid websocket message type"))
+			break
+		}
+		bridgeRelay.RelayMessage(conn, m)
 	}
 
-  // release connection from bridge
-  bridgeRelay.ClearConnection(conn);
+	// release connection from bridge
+	bridgeRelay.ClearConnection(conn)
 }
-

@@ -8,21 +8,21 @@ import (
 	"errors"
 )
 
-//GenerateRsaKeyPair creates a public/private key for a new account
+// GenerateRsaKeyPair creates a public/private key for a new account
 func GenerateRsaKeyPair() (*rsa.PrivateKey, *rsa.PublicKey, string, error) {
-  keyType := getStrConfigValue(CNFKeyType, "RSA2048");
+	keyType := getStrConfigValue(CNFKeyType, "RSA2048")
 	if keyType == "RSA2048" {
 		privkey, _ := rsa.GenerateKey(rand.Reader, 2048)
 		return privkey, &privkey.PublicKey, "RSA2048", nil
 	} else if keyType == "RSA4096" {
 		privkey, _ := rsa.GenerateKey(rand.Reader, 4096)
-		return privkey, &privkey.PublicKey, "RSA2048", nil
+		return privkey, &privkey.PublicKey, "RSA4096", nil
 	} else {
 		return nil, nil, "", errors.New("invalid key setting")
 	}
 }
 
-//ExportRsaPrivateKeyAsPemStr exports account private key
+// ExportRsaPrivateKeyAsPemStr exports account private key
 func ExportRsaPrivateKeyAsPemStr(privkey *rsa.PrivateKey) string {
 	privkeyBytes := x509.MarshalPKCS1PrivateKey(privkey)
 	privkeyPEM := pem.EncodeToMemory(
@@ -34,7 +34,7 @@ func ExportRsaPrivateKeyAsPemStr(privkey *rsa.PrivateKey) string {
 	return string(privkeyPEM)
 }
 
-//ParseRsaPrivateKeyFromPemStr loads account private key
+// ParseRsaPrivateKeyFromPemStr loads account private key
 func ParseRsaPrivateKeyFromPemStr(privPEM string) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode([]byte(privPEM))
 	if block == nil {
@@ -49,7 +49,7 @@ func ParseRsaPrivateKeyFromPemStr(privPEM string) (*rsa.PrivateKey, error) {
 	return priv, nil
 }
 
-//ExportRsaPublicKeyAsPemStr exports account public key
+// ExportRsaPublicKeyAsPemStr exports account public key
 func ExportRsaPublicKeyAsPemStr(pubkey *rsa.PublicKey) (string, error) {
 	pubkeyBytes, err := x509.MarshalPKIXPublicKey(pubkey)
 	if err != nil {
@@ -65,7 +65,7 @@ func ExportRsaPublicKeyAsPemStr(pubkey *rsa.PublicKey) (string, error) {
 	return string(pubkeyPEM), nil
 }
 
-//ParseRsaPublicKeyFromPemStr loads account public key
+// ParseRsaPublicKeyFromPemStr loads account public key
 func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode([]byte(pubPEM))
 	if block == nil {

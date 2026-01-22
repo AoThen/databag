@@ -1,0 +1,79 @@
+name: databag
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: databag
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7000:7000"
+    volumes:
+      - databag_data:/var/lib/databag
+    environment:
+      # ========== 必需配置 ==========
+      # 设置管理员密码（首次访问时用于登录管理界面）
+      - ADMIN=your-secure-password-here
+
+      # ========== 可选配置 ==========
+      # 运行模式: 0=生产模式, 1=开发模式
+      - DEV=0
+
+      # 服务端口（默认7000）
+      - DATABAG_PORT=7000
+
+      # ========== 安全配置 ==========
+      # 允许跨域的域名列表（逗号分隔，留空则允许所有）
+      # 示例: https://example.com,https://www.example.com
+      # - DATABAG_ALLOWED_ORIGINS=
+
+      # ========== WebSocket 安全配置 ==========
+      # 严格模式: 0=禁用源验证(仅开发环境使用), 1=启用(生产环境必须)
+      # 生产环境建议保持启用(1)，开发环境可临时禁用(0)进行调试
+      - DATABAG_WS_ORIGIN_STRICT=1
+
+      # WebSocket 允许的来源列表（逗号分隔，优先级高于数据库配置）
+      # 留空则使用数据库中的 CNFDomain 配置
+      # 示例: https://example.com,https://www.example.com
+      # - DATABAG_WS_ALLOWED_ORIGINS=
+
+      # 速率限制（每分钟请求数，默认100）
+      # - DATABAG_RATE_LIMIT=100
+
+      # ========== 日志级别 ==========
+      # 可选: debug, info, warn, error
+      # - LOG_LEVEL=info
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - databag_network
+
+  # Nginx 反向代理（可选，如果使用外部Nginx可删除此服务）
+  nginx:
+    image: nginx:alpine
+    container_name: databag-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - databag_network
+
+networks:
+  databag_network:
+    driver: bridge
+
+volumes:
+  databag_data:
+    driver: local

@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-//AddChannelTopicAsset adds an asset to a topic and queues it for appropriate transform
+// AddChannelTopicAsset adds an asset to a topic and queues it for appropriate transform
 func AddChannelTopicAsset(w http.ResponseWriter, r *http.Request) {
 
 	// scan parameters
@@ -72,6 +72,7 @@ func AddChannelTopicAsset(w http.ResponseWriter, r *http.Request) {
 	// save new file
 	id := uuid.New().String()
 	path := getStrConfigValue(CNFAssetPath, APPDefaultPath) + "/" + channelSlot.Account.GUID + "/" + id
+	r.Body = http.MaxBytesReader(w, r.Body, APPBodyLimit)
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		ErrResponse(w, http.StatusBadRequest, err)
 		return
@@ -179,7 +180,7 @@ func isStorageFull(act *store.Account) (full bool, err error) {
 
 func saveAsset(src io.Reader, path string) (crc uint32, size int64, err error) {
 
-	output, res := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
+	output, res := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
 	if res != nil {
 		err = res
 		return
@@ -193,10 +194,10 @@ func saveAsset(src io.Reader, path string) (crc uint32, size int64, err error) {
 	data := make([]byte, 4096)
 	for {
 		n, res := src.Read(data)
-    if n > 0 {
-      crc = crc32.Update(crc, table, data[:n])
-      output.Write(data[:n])
-    }
+		if n > 0 {
+			crc = crc32.Update(crc, table, data[:n])
+			output.Write(data[:n])
+		}
 		if res != nil {
 			if res == io.EOF {
 				break

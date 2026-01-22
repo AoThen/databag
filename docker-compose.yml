@@ -17,6 +17,9 @@ services:
       - database:/var/lib/databag
     environment:
       - ADMIN=password
+      # ========== WebSocket 安全配置 ==========
+      # 严格模式: 0=禁用源验证(仅开发环境使用), 1=启用(生产环境必须)
+      - DATABAG_WS_ORIGIN_STRICT=0
 
 volumes:
   database:

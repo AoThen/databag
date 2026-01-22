@@ -6,9 +6,11 @@ import (
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 	"net/http"
+	"path/filepath"
+	"strings"
 )
 
-//GetChannelTopicAsset retrieves asset added to specified topic
+// GetChannelTopicAsset retrieves asset added to specified topic
 func GetChannelTopicAsset(w http.ResponseWriter, r *http.Request) {
 
 	// scan parameters
@@ -42,7 +44,15 @@ func GetChannelTopicAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// construct file path
-	path := getStrConfigValue(CNFAssetPath, APPDefaultPath) + "/" + act.GUID + "/" + asset.AssetID
-	http.ServeFile(w, r, path)
+	// construct file path with path traversal protection
+	basePath := getStrConfigValue(CNFAssetPath, APPDefaultPath)
+	expectedPath := filepath.Clean(basePath + "/" + act.GUID + "/" + asset.AssetID)
+
+	// verify path is within expected directory
+	if !strings.HasPrefix(expectedPath, filepath.Clean(basePath)) {
+		ErrResponse(w, http.StatusForbidden, errors.New("invalid path"))
+		return
+	}
+
+	http.ServeFile(w, r, expectedPath)
 }
