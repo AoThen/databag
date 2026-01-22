@@ -33,7 +33,7 @@ jobs:
 
       - name: Install npm dependencies
         working-directory: ./app/mobile
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build Android Release
         working-directory: ./app/mobile/android
