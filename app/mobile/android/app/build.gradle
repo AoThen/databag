@@ -94,10 +94,10 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-compileOptions {
-	sourceCompatibility JavaVersion.VERSION_1_8
-	targetCompatibility JavaVersion.VERSION_1_8
-}
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 
     namespace "com.databag"
     defaultConfig {
@@ -114,9 +114,9 @@ compileOptions {
     splits {
         abi {
             reset()
-            enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
-            include (*reactNativeArchitectures())
+            enable false
+            universalApk false
+            include "arm64-v8a"
         }
     }
     signingConfigs {
@@ -163,14 +163,6 @@ compileOptions {
             }
 
         }
-    }
-}
-
-configurations.all {
-    resolutionStrategy {
-        force 'com.github.jiangdongguo.AndroidUSBCamera:libausbc:3.2.8'
-        force 'com.github.jiangdongguo.AndroidUSBCamera:libnative:3.2.8'
-        force 'com.github.jiangdongguo.AndroidUSBCamera:libuvc:3.2.8'
     }
 }
 
