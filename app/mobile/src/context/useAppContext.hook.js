@@ -48,7 +48,10 @@ export function useAppContext() {
   const setDeviceToken = async () => {
     if (!deviceToken.current) {
       try {
-        const token = await messaging().getToken();
+        const token = await Promise.race([
+          messaging().getToken(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('FCM timeout')), 5000))
+        ]);
         if (!token) {
           throw new Error('null push token');
         }
@@ -56,7 +59,7 @@ export function useAppContext() {
         pushType.current = "fcm";
       }
         catch(err) {
-          Logger.warn('Failed to get device token');
+          Logger.warn('Failed to get device token: ' + err.message);
         }
     }
   }
@@ -68,21 +71,39 @@ export function useAppContext() {
       pushType.current = "up";
     });
 
-    (async () => {
-      await setDeviceToken();
-      access.current = await store.actions.init();
-      if (access.current) {
-        await setSession();
+    const initTimeout = setTimeout(() => {
+      if (!init.current) {
+        Logger.warn('Init timeout, setting session to false');
+        updateState({ session: false });
+        init.current = true;
       }
-      else {
+    }, 10000);
+
+    (async () => {
+      try {
+        await setDeviceToken();
+        access.current = await store.actions.init();
+        if (access.current) {
+          await setSession();
+        }
+        else {
+          updateState({ session: false });
+        }
+      }
+      catch (err) {
+        Logger.error('Init failed: ' + err.message);
         updateState({ session: false });
       }
-      init.current = true;
+      finally {
+        init.current = true;
+        clearTimeout(initTimeout);
+      }
     })();
 
     return () => {
       unifiedPushListener.remove();
       clearWebsocket();
+      clearTimeout(initTimeout);
     };
   }, []);
 
@@ -242,8 +263,15 @@ export function useAppContext() {
       }
     }
     ws.current.onclose = (e) => {
-      Logger.debug('WebSocket disconnected');
+      Logger.debug('WebSocket disconnected, attempt: ' + delay.current);
       updateState({ status: 'disconnected' });
+      
+      if (delay.current >= 10) {
+        Logger.warn('WebSocket reconnection failed after 10 attempts, logging out');
+        actions.logout();
+        return;
+      }
+      
       const maxDelay = 30000;
       const baseDelay = 1000;
       const jitter = Math.random() * baseDelay * 0.5;

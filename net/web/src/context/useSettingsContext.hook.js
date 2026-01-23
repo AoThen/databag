@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LightTheme, DarkTheme } from 'constants/Colors';
-import { en, fr, sp, pt, de, ru } from 'constants/Strings';
+import { en, fr, sp, pt, de, ru, zh } from 'constants/Strings';
 
 export function useSettingsContext() {
 
@@ -13,7 +13,7 @@ export function useSettingsContext() {
     scheme: null,
     colors: {},
     menuStyle: {},
-    languages: [{ value: 'en', label: 'English' }, { value: 'fr', label: 'Français' }, { value: 'sp', label: 'Español' }, { value: 'pt', label: 'Português' }, { value: 'de', label: 'Deutsch' }, { value: 'ru', label: 'Русский' }],
+    languages: [{ value: 'en', label: 'English' }, { value: 'fr', label: 'Français' }, { value: 'sp', label: 'Español' }, { value: 'pt', label: 'Português' }, { value: 'de', label: 'Deutsch' }, { value: 'ru', label: 'Русский' }, { value: 'zh', label: '中文' }],
     language: null,
     strings: en,
     dateFormat: 'mm/dd',
@@ -141,6 +141,9 @@ export function useSettingsContext() {
     else if (language && language.startsWith('ru')) {
       updateState({ language: 'ru', strings: ru, themes: [{ value: 'dark', label: ru.dark }, { value: 'light', label: ru.light }]});
     }
+    else if (language && language.startsWith('zh')) {
+      updateState({ language: 'zh', strings: zh, themes: [{ value: 'dark', label: zh.dark }, { value: 'light', label: zh.light }]});
+    }
     else {
       const browser = navigator.language;
       if (browser && browser.startsWith('fr')) {
@@ -157,6 +160,9 @@ export function useSettingsContext() {
       }
       else if (browser && browser.startsWith('ru')) {
         updateState({ language: null, strings: ru, themes: [{ value: 'dark', label: ru.dark }, { value: 'light', label: ru.light }]});
+      }
+      else if (browser && browser.startsWith('zh')) {
+        updateState({ language: null, strings: zh, themes: [{ value: 'dark', label: zh.dark }, { value: 'light', label: zh.light }]});
       }
       else {
         updateState({ language: null, strings: en, themes: [{ value: 'dark', label: en.dark }, { value: 'light', label: en.light }]});
@@ -219,6 +225,10 @@ export function useSettingsContext() {
         localStorage.setItem('language', 'ru');
         updateState({ language: 'ru', strings: ru, themes: [{ value: 'dark', label: ru.dark }, { value: 'light', label: ru.light }]});
       }
+      else if (code && code.startsWith('zh')) {
+        localStorage.setItem('language', 'zh');
+        updateState({ language: 'zh', strings: zh, themes: [{ value: 'dark', label: zh.dark }, { value: 'light', label: zh.light }]});
+      }
       else {
         localStorage.removeItem('language');
         const browser = navigator.language;
@@ -236,6 +246,9 @@ export function useSettingsContext() {
         }
         else if (browser && browser.startsWith('ru')) {
           updateState({ language: null, strings: ru, themes: [{ value: 'dark', label: ru.dark }, { value: 'light', label: ru.light }]});
+        }
+        else if (browser && browser.startsWith('zh')) {
+          updateState({ language: null, strings: zh, themes: [{ value: 'dark', label: zh.dark }, { value: 'light', label: zh.light }]});
         }
         else {
           updateState({ language: null, strings: en, themes: [{ value: 'dark', label: en.dark }, { value: 'light', label: en.light }]});

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 export function useRoot() {
 
-  const [state, setState] = useState({});
+  const [state, setState] = useState({ loading: true });
   const app = useContext(AppContext);
   const navigate = useNavigate();
 
@@ -14,9 +14,11 @@ export function useRoot() {
 
   useEffect(() => {
     if (app.state.session === true) {
+      updateState({ loading: false, session: true });
       navigate('/session');
     }
     if (app.state.session === false) {
+      updateState({ loading: false, session: false });
       navigate('/login');
     }
   }, [app.state]);

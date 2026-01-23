@@ -53,17 +53,22 @@ export function useStoreContext() {
     return false
   }
 
-  const actions = {
-    init: async () => {
-      SQLite.DEBUG(false);
-      SQLite.enablePromise(true);
-      const location = Platform.OS === 'ios' ? 'Library' : 'noBackupDirectory';
-      db.current = await SQLite.openDatabase({ name: DATABAG_DB, location: location });
-      await db.current.executeSql("CREATE TABLE IF NOT EXISTS app (key text, value text, unique(key));");
-      await db.current.executeSql("INSERT OR IGNORE INTO app (key, value) values ('session', null);");
-      const encryptedSession = await getAppValue(db.current, 'session');
-      return decryptSession(encryptedSession);
-    },
+    const actions = {
+      init: async () => {
+        SQLite.DEBUG(false);
+        SQLite.enablePromise(true);
+        const location = Platform.OS === 'ios' ? 'Library' : 'noBackupDirectory';
+        db.current = await SQLite.openDatabase({ name: DATABAG_DB, location: location });
+        await db.current.executeSql("CREATE TABLE IF NOT EXISTS app (key text, value text, unique(key));");
+        await db.current.executeSql("INSERT OR IGNORE INTO app (key, value) values ('session', null);");
+        try {
+          const encryptedSession = await getAppValue(db.current, 'session');
+          return decryptSession(encryptedSession);
+        } catch (err) {
+          await db.current.executeSql("UPDATE app SET value=? WHERE key='session';", [null]);
+          return null;
+        }
+      },
     updateDb: async (guid) => {
       const hasChannel = await hasColumn(`channel_topic_${guid}`, 'created');
       if (!hasChannel) {

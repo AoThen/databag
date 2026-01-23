@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-//SetAccountAuthentication resets account credentials
+// SetAccountAuthentication resets account credentials
 func SetAccountAuthentication(w http.ResponseWriter, r *http.Request) {
 
 	token, res := BearerAccountToken(r)
@@ -24,6 +24,11 @@ func SetAccountAuthentication(w http.ResponseWriter, r *http.Request) {
 	username, password, ret := BasicCredentials(r)
 	if ret != nil || username == "" || password == nil || len(password) == 0 {
 		ErrResponse(w, http.StatusBadRequest, errors.New("invalid credentials"))
+		return
+	}
+
+	if err := validatePasswordStrength(string(password)); err != nil {
+		ErrResponse(w, http.StatusBadRequest, err)
 		return
 	}
 

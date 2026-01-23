@@ -41,6 +41,28 @@ services:
       # 速率限制（每分钟请求数，默认100）
       # - DATABAG_RATE_LIMIT=100
 
+      # ========== 登录安全配置 ==========
+      # 登录失败锁定时间窗口（秒），默认 300 秒（5分钟）
+      # - DATABAG_LOGIN_FAIL_PERIOD=300
+      # 登录失败次数阈值，默认 5 次
+      # - DATABAG_LOGIN_FAIL_COUNT=5
+      # 登录失败响应延迟基础时间（秒），默认 1 秒
+      # - DATABAG_LOGIN_ALLOW_WAIT=1
+
+      # ========== 密码强度要求 ==========
+      # 密码最小长度，默认 8 字符
+      # - DATABAG_PASSWORD_MIN_LENGTH=8
+      # 密码最大长度，默认 128 字符
+      # - DATABAG_PASSWORD_MAX_LENGTH=128
+      # 要求大写字母，设置为 true 启用
+      # - DATABAG_PASSWORD_REQUIRE_UPPER=true
+      # 要求小写字母，设置为 true 启用
+      # - DATABAG_PASSWORD_REQUIRE_LOWER=true
+      # 要求数字，设置为 true 启用
+      # - DATABAG_PASSWORD_REQUIRE_NUMBER=true
+      # 要求特殊字符，设置为 true 启用
+      # - DATABAG_PASSWORD_REQUIRE_SPECIAL=true
+
       # ========== 日志级别 ==========
       # 可选: debug, info, warn, error
       # - LOG_LEVEL=info

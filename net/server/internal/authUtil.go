@@ -26,9 +26,29 @@ func AccountLogin(r *http.Request) (*store.Account, error) {
 		return nil, errors.New("invalid login")
 	}
 
+	// check account lockout
+	curTime := time.Now().Unix()
+	failPeriod := getLoginFailPeriod()
+	failCount := getLoginFailCount()
+	if account.LoginFailedTime+failPeriod > curTime && account.LoginFailedCount > uint(failCount) {
+		return nil, errors.New("account temporarily locked")
+	}
+
 	// compare password
 	if bcrypt.CompareHashAndPassword(account.Password, []byte(password)) != nil {
+		if err := incrementLoginFailure(account.ID); err != nil {
+			LogMsg("failed to increment login failure count")
+		}
+
+		applyProgressiveDelay(account.LoginFailedCount)
 		return nil, errors.New("invalid password")
+	}
+
+	// reset login failures on successful login
+	if account.LoginFailedCount > 0 {
+		if err := resetLoginFailures(account.ID); err != nil {
+			LogMsg("failed to reset login failures")
+		}
 	}
 
 	return account, nil
@@ -371,4 +391,50 @@ func BasicCredentials(r *http.Request) (string, []byte, error) {
 	}
 
 	return username, password, nil
+}
+
+func incrementLoginFailure(accountID uint) error {
+	curTime := time.Now().Unix()
+	failPeriod := getLoginFailPeriod()
+
+	return store.DB.Transaction(func(tx *gorm.DB) error {
+		var account store.Account
+		if err := tx.First(&account, accountID).Error; err != nil {
+			return err
+		}
+
+		if account.LoginFailedTime+failPeriod > curTime {
+			account.LoginFailedCount += 1
+		} else {
+			account.LoginFailedTime = curTime
+			account.LoginFailedCount = 1
+		}
+
+		return tx.Model(&account).Updates(map[string]interface{}{
+			"login_failed_time":  account.LoginFailedTime,
+			"login_failed_count": account.LoginFailedCount,
+		}).Error
+	})
+}
+
+func resetLoginFailures(accountID uint) error {
+	return store.DB.Model(&store.Account{}).Where("id = ?", accountID).Updates(map[string]interface{}{
+		"login_failed_time":  0,
+		"login_failed_count": 0,
+	}).Error
+}
+
+func applyProgressiveDelay(failureCount uint) {
+	baseDelay := getLoginAllowWait()
+	exponentialDelay := int64(1) << failureCount
+	if exponentialDelay > 8 {
+		exponentialDelay = 8
+	}
+
+	delaySeconds := baseDelay * exponentialDelay
+	if delaySeconds > 30 {
+		delaySeconds = 30
+	}
+
+	time.Sleep(time.Duration(delaySeconds) * time.Second)
 }

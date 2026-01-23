@@ -5,14 +5,14 @@ import (
 	"databag/internal/store"
 	"encoding/hex"
 	"errors"
-  "time"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
-//AddAccount if available, create account with specified username and password
+// AddAccount if available, create account with specified username and password
 func AddAccount(w http.ResponseWriter, r *http.Request) {
 	var token *store.AccountToken
 	var res error
@@ -20,7 +20,7 @@ func AddAccount(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("token") != "" {
 		token, _, res = AccessToken(r)
 		if res != nil || token.TokenType != APPTokenCreate {
-      time.Sleep(APPUsernameWait * time.Millisecond);
+			time.Sleep(APPUsernameWait * time.Millisecond)
 			ErrResponse(w, http.StatusUnauthorized, res)
 			return
 		}
@@ -42,6 +42,11 @@ func AddAccount(w http.ResponseWriter, r *http.Request) {
 
 	if strings.Contains(username, " ") || strings.Contains(username, "\t") {
 		ErrResponse(w, http.StatusConflict, errors.New("username has whitespace"))
+		return
+	}
+
+	if err := validatePasswordStrength(string(password)); err != nil {
+		ErrResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -82,11 +87,11 @@ func AddAccount(w http.ResponseWriter, r *http.Request) {
 
 	// create new account
 	account := store.Account{
-		Username: username,
+		Username:   username,
 		Searchable: true,
-		Handle:   strings.ToLower(username),
-		Password: password,
-		GUID:     fingerprint,
+		Handle:     strings.ToLower(username),
+		Password:   password,
+		GUID:       fingerprint,
 	}
 	detail := store.AccountDetail{
 		PublicKey:  publicPem,

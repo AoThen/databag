@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//SetAccountLogin resets account login with agent token
+// SetAccountLogin resets account login with agent token
 func SetAccountLogin(w http.ResponseWriter, r *http.Request) {
 
 	account, code, err := ParamAgentToken(r, true)
@@ -19,6 +19,11 @@ func SetAccountLogin(w http.ResponseWriter, r *http.Request) {
 	username, password, ret := BasicCredentials(r)
 	if ret != nil {
 		ErrResponse(w, http.StatusUnauthorized, ret)
+		return
+	}
+
+	if err := validatePasswordStrength(string(password)); err != nil {
+		ErrResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
