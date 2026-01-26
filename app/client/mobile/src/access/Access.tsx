@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useAnimatedValue, Platform, Animated, Modal, ScrollView, View, Image, SafeAreaView} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {useAccess} from './useAccess.hook';
@@ -17,8 +17,76 @@ export function Access() {
   const [alert, setAlert] = useState(false);
   const [otp, setOtp] = useState(false);
   const [terms, setTerms] = useState(false);
+  const [alertParams, setAlertParams] = useState({
+    title: '',
+    prompt: '',
+    cancel: { label: '', action: () => {} },
+  });
   const theme = useTheme();
   const switching = useAnimatedValue(1);
+
+  const getErrorMessage = (error: Error): { title: string; prompt: string } => {
+    const message = error.message;
+
+    if (message.includes('failed') || message.includes('Network') || message.includes('network')) {
+      return {
+        title: state.strings.operationFailed,
+        prompt: state.strings.errorNetworkFailed
+      };
+    }
+
+    if (message.includes('timeout')) {
+      return {
+        title: state.strings.operationFailed,
+        prompt: state.strings.errorTimeout
+      };
+    }
+
+    switch (message) {
+      case '400':
+        return {
+          title: state.strings.loginError,
+          prompt: state.strings.createMessage
+        };
+      case '401':
+        return {
+          title: state.strings.loginError,
+          prompt: state.strings.errorUnauthorized
+        };
+      case '403':
+        return {
+          title: state.strings.adminError,
+          prompt: state.strings.errorForbidden
+        };
+      case '404':
+        return {
+          title: state.strings.operationFailed,
+          prompt: state.strings.errorNotFound
+        };
+      case '409':
+        return {
+          title: state.strings.createError,
+          prompt: state.strings.errorConflict
+        };
+      case '429':
+        return {
+          title: state.strings.operationFailed,
+          prompt: state.strings.errorTooManyRequests
+        };
+      case '500':
+      case '502':
+      case '503':
+        return {
+          title: state.strings.operationFailed,
+          prompt: state.strings.errorServerUnavailable
+        };
+      default:
+        return {
+          title: state.strings.operationFailed,
+          prompt: `${state.strings.errorUnknown} (${message})`
+        };
+    }
+  };
 
   const fadeIn = (mode: string) => {
     actions.setMode(mode);
@@ -46,16 +114,18 @@ export function Access() {
     }
   };
 
-  const alertParams = {
-    title: state.strings.operationFailed,
-    prompt: state.strings.tryAgain,
-    cancel: {
-      label: state.strings.close,
-      action: () => {
-        setAlert(false);
+  useEffect(() => {
+    setAlertParams({
+      title: state.strings.operationFailed,
+      prompt: state.strings.tryAgain,
+      cancel: {
+        label: state.strings.close,
+        action: () => {
+          setAlert(false);
+        },
       },
-    },
-  };
+    });
+  }, [state.strings]);
 
   const login = async () => {
     if (!state.loading) {
@@ -71,12 +141,23 @@ export function Access() {
           await actions.adminLogin();
         }
         setOtp(false);
-      } catch (err) {
-        console.log(err.message);
+      } catch (err: any) {
+        console.log('Login error:', err.message);
+
         if (err.message === '405' || err.message === '429' || (err.message === '403' && state.mode === 'admin')) {
           setOtp(true);
         } else {
-          console.log(err);
+          const errorInfo = getErrorMessage(err);
+          setAlertParams({
+            title: errorInfo.title,
+            prompt: errorInfo.prompt,
+            cancel: {
+              label: state.strings.close,
+              action: () => {
+                setAlert(false);
+              },
+            },
+          });
           setAlert(true);
         }
       }

@@ -213,6 +213,15 @@ export const en = {
 
   operationFailed: 'Operation Failed',
   tryAgain: 'Please try again.',
+  errorNetworkFailed: 'Network connection failed. Please check your internet.',
+  errorServerUnavailable: 'Server is unavailable. Please try again later.',
+  errorUnauthorized: 'Invalid username or password.',
+  errorForbidden: 'Access denied. Please check your credentials.',
+  errorNotFound: 'Account not found on this server.',
+  errorConflict: 'Username already exists.',
+  errorTooManyRequests: 'Too many attempts. Please wait before retrying.',
+  errorTimeout: 'Connection timed out. Please try again.',
+  errorUnknown: 'An unexpected error occurred.',
 
   sealRequired: 'E2EE key not set and required by your admin',
 
