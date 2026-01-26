@@ -215,7 +215,7 @@ export const MFAModal = styled.div`
     color: ${props => props.theme.alertText};
   }
 
-  .controls {
+    .controls {
     width: 100%;
     display: flex;
     justify-content: flex-end;
@@ -236,5 +236,68 @@ export const MFAModal = styled.div`
         color: ${props => props.theme.activeText};
       }
     }
+  }
+`
+
+export const IPBlockLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .header {
+    display: flex;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .section {
+    .section-title {
+      font-weight: bold;
+      padding-bottom: 8px;
+      border-bottom: 1px solid ${props => props.theme.headerBorder};
+      margin-bottom: 8px;
+    }
+  }
+
+  .block-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    input {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    input[type="number"] {
+      width: 100px;
+    }
+
+    button {
+      white-space: nowrap;
+    }
+  }
+
+  .whitelist-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    input {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    button {
+      white-space: nowrap;
+    }
+  }
+
+  .control {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    gap: 16px;
   }
 `

@@ -1,6 +1,6 @@
-import { AlertIcon, MFAModal, DashboardWrapper, SettingsButton, AddButton, SettingsLayout, CreateLayout } from './Dashboard.styled';
-import { Tooltip, Switch, Select, Button, Space, Modal, Input, InputNumber, List } from 'antd';
-import { ExclamationCircleOutlined, SettingOutlined, UserAddOutlined, LogoutOutlined, ReloadOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { AlertIcon, MFAModal, DashboardWrapper, SettingsButton, AddButton, SettingsLayout, CreateLayout, IPBlockLayout } from './Dashboard.styled';
+import { Tooltip, Switch, Select, Button, Space, Modal, Input, InputNumber, List, Table } from 'antd';
+import { ExclamationCircleOutlined, SettingOutlined, UserAddOutlined, LogoutOutlined, ReloadOutlined, LockOutlined, UnlockOutlined, SafetyCertificateOutlined, DeleteOutlined } from '@ant-design/icons';
 import { ThemeProvider } from "styled-components";
 import { useDashboard } from './useDashboard.hook';
 import { AccountItem } from './accountItem/AccountItem';
@@ -96,15 +96,21 @@ export function Dashboard() {
                 { (state.mfAuthSet && state.mfaAuthEnabled) && (
                   <div className="settings">
                       <SettingsButton type="text" size="small" icon={<UnlockOutlined />}
-                        onClick={confirmDisableMFA}></SettingsButton> 
+                          onClick={confirmDisableMFA}></SettingsButton>
                   </div>
                 )}
                 { (state.mfAuthSet && !state.mfaAuthEnabled) && (
                   <div className="settings">
                       <SettingsButton type="text" size="small" icon={<LockOutlined />}
-                        onClick={enableMFA}></SettingsButton> 
+                          onClick={enableMFA}></SettingsButton>
                   </div>
                 )}
+                <div className="settings">
+                  <Tooltip placement="topRight" title="IP Block Management">
+                    <SettingsButton type="text" size="small" icon={<SafetyCertificateOutlined />}
+                        onClick={() => { actions.setShowIPBlocks(true); actions.reloadIPBlocks(); }}></SettingsButton>
+                  </Tooltip>
+                </div>
                 <div className="settings">
                     <SettingsButton type="text" size="small" icon={<LogoutOutlined />}
                         onClick={() => actions.logout()}></SettingsButton>
@@ -343,7 +349,73 @@ export function Dashboard() {
                   disabled={!state.mfaCode} loading={state.busy}>{state.strings.mfaConfirm}</Button>
             </div>
           </MFAModal>
-        </Modal>    
+        </Modal>
+        <Modal bodyStyle={{ borderRadius: 8, padding: 16, ...state.menuStyle }} closable={false} visible={state.showIPBlocks} centered width={800}
+            footer={null} onCancel={() => actions.setShowIPBlocks(false)}>
+          <IPBlockLayout direction="vertical">
+            <div className="header">IP Block Management</div>
+
+            <div className="section">
+              <div className="section-title">Block IP</div>
+              <div className="block-form">
+                <Input placeholder="IP Address" value={state.blockIP} onChange={(e) => actions.setBlockIP(e.target.value)} />
+                <Input placeholder="Reason (optional)" value={state.blockReason} onChange={(e) => actions.setBlockReason(e.target.value)} />
+                <InputNumber placeholder="Hours" min={1} max={720} value={state.blockDuration} onChange={(e) => actions.setBlockDuration(e)} />
+                <Button type="primary" onClick={actions.addBlock} disabled={!state.blockIP} loading={state.busy}>Block</Button>
+              </div>
+            </div>
+
+            <div className="section">
+              <div className="section-title">Whitelist IP</div>
+              <div className="whitelist-form">
+                <Input placeholder="IP Address" value={state.whitelistIP} onChange={(e) => actions.setWhitelistIP(e.target.value)} />
+                <Input placeholder="Note (optional)" value={state.whitelistNote} onChange={(e) => actions.setWhitelistNote(e.target.value)} />
+                <Button type="primary" onClick={actions.addWhitelist} disabled={!state.whitelistIP} loading={state.busy}>Add</Button>
+              </div>
+            </div>
+
+            <div className="section">
+              <div className="section-title">Blocked IPs</div>
+              <Table
+                size="small"
+                pagination={{ pageSize: 5 }}
+                dataSource={state.blocks}
+                columns={[
+                  { title: 'IP', dataIndex: 'ip', key: 'ip' },
+                  { title: 'Reason', dataIndex: 'reason', key: 'reason' },
+                  { title: 'Blocked', dataIndex: 'blockedAt', key: 'blockedAt', render: (ts) => new Date(ts * 1000).toLocaleString() },
+                  { title: 'Expires', dataIndex: 'expiresAt', key: 'expiresAt', render: (ts) => new Date(ts * 1000).toLocaleString() },
+                  { title: 'Action', key: 'action', render: (_, record) => (
+                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => actions.removeBlock(record.ip)} />
+                  )},
+                ]}
+                rowKey="ip"
+              />
+            </div>
+
+            <div className="section">
+              <div className="section-title">Whitelisted IPs</div>
+              <Table
+                size="small"
+                pagination={{ pageSize: 5 }}
+                dataSource={state.whitelist}
+                columns={[
+                  { title: 'IP', dataIndex: 'ip', key: 'ip' },
+                  { title: 'Note', dataIndex: 'note', key: 'note' },
+                  { title: 'Added', dataIndex: 'createdAt', key: 'createdAt', render: (ts) => new Date(ts * 1000).toLocaleString() },
+                  { title: 'Action', key: 'action', render: (_, record) => (
+                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => actions.removeWhitelist(record.ip)} />
+                  )},
+                ]}
+                rowKey="ip"
+              />
+            </div>
+
+            <div className="control">
+              <Button type="primary" onClick={() => actions.setShowIPBlocks(false)}>Close</Button>
+            </div>
+          </IPBlockLayout>
+        </Modal>
       </DashboardWrapper>
     </ThemeProvider>
   );
