@@ -35,52 +35,63 @@ func RecordIPAuthFailure(ip string) {
 	}
 
 	now := time.Now()
+	nowUnix := now.Unix()
+	failPeriod := getLoginFailPeriod()
 	threshold := int(getIPBlockThreshold())
+	blockDuration := getIPBlockDuration()
+	maxDuration := getIPBlockMaxDuration()
 
 	var block store.IPBlock
 	err := store.DB.Where("ip = ?", ip).First(&block).Error
 
-	// 首次失败或已过期，重置计数
-	if errors.Is(err, gorm.ErrRecordNotFound) || now.After(block.ExpiresAt) {
+	// 首次失败或时间窗口已过
+	if errors.Is(err, gorm.ErrRecordNotFound) || nowUnix-block.LastFailTime > failPeriod {
+		// 时间窗口已过，重置计数
+		if nowUnix-block.LastFailTime > failPeriod && !errors.Is(err, gorm.ErrRecordNotFound) {
+			LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure window expired, count reset", ip))
+		}
 		block = store.IPBlock{
-			IP:        ip,
-			Reason:    "too many authentication failures",
-			BlockedAt: now,
-			ExpiresAt: now.Add(time.Duration(getIPBlockDuration()) * time.Hour),
-			FailCount: 1,
+			IP:           ip,
+			Reason:       "too many authentication failures",
+			BlockedAt:    now,
+			ExpiresAt:    now.Add(time.Duration(blockDuration) * time.Hour),
+			FailCount:    1,
+			LastFailTime: nowUnix,
 		}
 		LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure count: 1/%d", ip, threshold))
-
-		// 未达到阈值时只记录内存计数，不创建数据库记录
-		if block.FailCount >= threshold {
-			store.DB.Create(&block)
-			LogMsg(fmt.Sprintf("[IPBlock] IP %s blocked after %d auth failures", ip, block.FailCount))
-		}
+		store.DB.Create(&block)
 	} else {
-		// 累计失败次数
+		// 时间窗口内，累计失败次数
 		block.FailCount++
+		block.LastFailTime = nowUnix
 
 		LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure count: %d/%d", ip, block.FailCount, threshold))
 
-		// 计算新的封禁时长（指数增长）
-		duration := getIPBlockDuration()
-		for i := 1; i < block.FailCount && int64(i) < duration; i++ {
-			duration *= 2
+		// 计算封禁时长（指数增长）
+		duration := blockDuration
+		if block.FailCount > 1 {
+			for i := 1; i < block.FailCount-1; i++ {
+				duration *= 2
+			}
 		}
-		if duration > getIPBlockMaxDuration() {
-			duration = getIPBlockMaxDuration()
+		if duration > maxDuration {
+			duration = maxDuration
 		}
 		block.ExpiresAt = now.Add(time.Duration(duration) * time.Hour)
+		block.Reason = "blocked: too many auth failures"
 
 		store.DB.Model(&block).Updates(map[string]interface{}{
-			"fail_count": block.FailCount,
-			"expires_at": block.ExpiresAt,
+			"fail_count":     block.FailCount,
+			"last_fail_time": block.LastFailTime,
+			"blocked_at":     block.BlockedAt,
+			"expires_at":     block.ExpiresAt,
+			"reason":         block.Reason,
 		})
 
-		// 如果达到阈值，更新Reason为已封禁
+		// 达到阈值，封禁
 		if block.FailCount >= threshold {
-			store.DB.Model(&block).Update("reason", "blocked: too many auth failures")
-			LogMsg(fmt.Sprintf("[IPBlock] IP %s blocked after %d auth failures", ip, block.FailCount))
+			LogMsg(fmt.Sprintf("[IPBlock] IP %s blocked for %d hours after %d auth failures (window: %d seconds)",
+				ip, duration, block.FailCount, failPeriod))
 		}
 	}
 }
@@ -93,19 +104,22 @@ func ResetIPAuthFailure(ip string) {
 }
 
 func BlockIP(ip string, reason string, durationHours int) error {
-	expiresAt := time.Now().Add(time.Duration(durationHours) * time.Hour)
+	now := time.Now()
+	expiresAt := now.Add(time.Duration(durationHours) * time.Hour)
 	err := store.DB.Model(&store.IPBlock{}).Where("ip = ?", ip).Assign(map[string]interface{}{
-		"ip":         ip,
-		"reason":     reason,
-		"blocked_at": time.Now(),
-		"expires_at": expiresAt,
-		"fail_count": 0,
+		"ip":             ip,
+		"reason":         reason,
+		"blocked_at":     now,
+		"expires_at":     expiresAt,
+		"fail_count":     0,
+		"last_fail_time": now.Unix(),
 	}).FirstOrCreate(&store.IPBlock{}, store.IPBlock{
-		IP:        ip,
-		Reason:    reason,
-		BlockedAt: time.Now(),
-		ExpiresAt: expiresAt,
-		FailCount: 0,
+		IP:           ip,
+		Reason:       reason,
+		BlockedAt:    now,
+		ExpiresAt:    expiresAt,
+		FailCount:    0,
+		LastFailTime: now.Unix(),
 	}).Error
 	if err == nil {
 		LogMsg(fmt.Sprintf("[IPBlock] IP %s manually blocked, reason: %s, duration: %d hours", ip, reason, durationHours))

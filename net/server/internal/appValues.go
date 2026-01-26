@@ -166,7 +166,7 @@ const APPMFASHA1 = "sha1"
 const APPLoginFailPeriod = 300
 
 // APPLoginFailCount limit of login failures in period
-const APPLoginFailCount = 5
+const APPLoginFailCount = 10
 
 // APPLoginAllowWait seconds to delay response
 const APPLoginAllowWait = 1
