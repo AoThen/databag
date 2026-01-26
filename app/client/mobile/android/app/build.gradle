@@ -116,6 +116,16 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                def fileName = "Databag-v${versionName}-${variant.buildType.name}.apk"
+                output.outputFileName = fileName
+            }
+        }
+    }
 }
 
 dependencies {
