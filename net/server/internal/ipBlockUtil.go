@@ -32,13 +32,14 @@ func RecordIPAuthFailure(ip string) {
 		return
 	}
 
-	var block store.IPBlock
-	err := store.DB.Where("ip = ?", ip).First(&block).Error
-
 	now := time.Now()
 	threshold := int(getIPBlockThreshold())
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	var block store.IPBlock
+	err := store.DB.Where("ip = ?", ip).First(&block).Error
+
+	// 首次失败或已过期，重置计数
+	if errors.Is(err, gorm.ErrRecordNotFound) || now.After(block.ExpiresAt) {
 		block = store.IPBlock{
 			IP:        ip,
 			Reason:    "too many authentication failures",
@@ -46,32 +47,30 @@ func RecordIPAuthFailure(ip string) {
 			ExpiresAt: now.Add(time.Duration(getIPBlockDuration()) * time.Hour),
 			FailCount: 1,
 		}
-		if block.FailCount >= threshold {
-			store.DB.Create(&block)
-		}
+		store.DB.Create(&block)
 	} else {
-		if now.After(block.ExpiresAt) {
-			block.BlockedAt = now
-			block.ExpiresAt = now.Add(time.Duration(getIPBlockDuration()) * time.Hour)
-			block.FailCount = 1
-		} else {
-			block.FailCount++
-			duration := getIPBlockDuration()
-			for i := 1; i < block.FailCount && int64(i) < duration; i++ {
-				duration *= 2
-			}
-			if duration > getIPBlockMaxDuration() {
-				duration = getIPBlockMaxDuration()
-			}
-			block.ExpiresAt = now.Add(time.Duration(duration) * time.Hour)
+		// 累计失败次数
+		block.FailCount++
+
+		// 计算新的封禁时长（指数增长）
+		duration := getIPBlockDuration()
+		for i := 1; i < block.FailCount && int64(i) < duration; i++ {
+			duration *= 2
 		}
-		if block.FailCount >= threshold {
-			store.DB.Model(&block).Updates(map[string]interface{}{
-				"blocked_at": block.BlockedAt,
-				"expires_at": block.ExpiresAt,
-				"fail_count": block.FailCount,
-			})
+		if duration > getIPBlockMaxDuration() {
+			duration = getIPBlockMaxDuration()
 		}
+		block.ExpiresAt = now.Add(time.Duration(duration) * time.Hour)
+
+		store.DB.Model(&block).Updates(map[string]interface{}{
+			"fail_count": block.FailCount,
+			"expires_at": block.ExpiresAt,
+		})
+	}
+
+	// 如果达到阈值，更新Reason为已封禁
+	if block.FailCount >= threshold {
+		store.DB.Model(&block).Update("reason", "blocked: too many auth failures")
 	}
 }
 
