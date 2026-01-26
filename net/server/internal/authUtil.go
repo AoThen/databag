@@ -41,6 +41,10 @@ func AccountLogin(r *http.Request) (*store.Account, error) {
 		}
 
 		applyProgressiveDelay(account.LoginFailedCount)
+
+		clientIP := getClientIP(r)
+		RecordIPAuthFailure(clientIP)
+
 		return nil, errors.New("invalid password")
 	}
 
@@ -109,6 +113,8 @@ func ParamAdminToken(r *http.Request) (int, error) {
 	// compare password
 	value := getStrConfigValue(CNFToken, "")
 	if value != token {
+		clientIP := getClientIP(r)
+		RecordIPAuthFailure(clientIP)
 		return http.StatusUnauthorized, errors.New("invalid admin token")
 	}
 
@@ -437,4 +443,12 @@ func applyProgressiveDelay(failureCount uint) {
 	}
 
 	time.Sleep(time.Duration(delaySeconds) * time.Second)
+}
+
+func getClientIP(r *http.Request) string {
+	clientIP := r.RemoteAddr
+	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+		clientIP = strings.Split(forwarded, ",")[0]
+	}
+	return strings.TrimSpace(clientIP)
 }

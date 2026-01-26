@@ -15,7 +15,7 @@ type route struct {
 
 type routes []route
 
-//NewRouter allocate router for databag API
+// NewRouter allocate router for databag API
 func NewRouter(path string) *mux.Router {
 
 	go SendNotifications()
@@ -33,7 +33,7 @@ func NewRouter(path string) *mux.Router {
 			Handler(handler)
 	}
 
-	fs := http.FileServer(http.Dir(path));
+	fs := http.FileServer(http.Dir(path))
 	router.PathPrefix("/").Handler(http.StripPrefix("/", fs))
 
 	return router
@@ -139,12 +139,12 @@ var endpoints = routes{
 		RemoveAccountApp,
 	},
 
-  route{
-    "RemoveAgentToken",
-    strings.ToUpper("Delete"),
-    "/account/apps",
-    RemoveAgentToken,
-  },
+	route{
+		"RemoveAgentToken",
+		strings.ToUpper("Delete"),
+		"/account/apps",
+		RemoveAgentToken,
+	},
 
 	route{
 		"SetAccountAccess",
@@ -202,26 +202,26 @@ var endpoints = routes{
 		SetAccountSearchable,
 	},
 
-  route{
-    "AddMultiFactorAuth",
-    strings.ToUpper("Post"),
-    "/account/mfauth",
-    AddMultiFactorAuth,
-  },
+	route{
+		"AddMultiFactorAuth",
+		strings.ToUpper("Post"),
+		"/account/mfauth",
+		AddMultiFactorAuth,
+	},
 
-  route{
-    "SetMultiFactorAuth",
-    strings.ToUpper("Put"),
-    "/account/mfauth",
-    SetMultiFactorAuth,
-  },
+	route{
+		"SetMultiFactorAuth",
+		strings.ToUpper("Put"),
+		"/account/mfauth",
+		SetMultiFactorAuth,
+	},
 
-  route{
-    "RemoveMultiFactorAuth",
-    strings.ToUpper("Delete"),
-    "/account/mfauth",
-    RemoveMultiFactorAuth,
-  },
+	route{
+		"RemoveMultiFactorAuth",
+		strings.ToUpper("Delete"),
+		"/account/mfauth",
+		RemoveMultiFactorAuth,
+	},
 
 	route{
 		"AddNodeAccount",
@@ -279,40 +279,82 @@ var endpoints = routes{
 		ImportAccount,
 	},
 
-  route{
-    "SetAdminAccess",
-    strings.ToUpper("Put"),
-    "/admin/access",
-    SetAdminAccess,
-  },
+	route{
+		"SetAdminAccess",
+		strings.ToUpper("Put"),
+		"/admin/access",
+		SetAdminAccess,
+	},
 
-  route{
-    "GetAdminMFAuth",
-    strings.ToUpper("Get"),
-    "/admin/mfauth",
-    GetAdminMFAuth,
-  },
+	route{
+		"GetAdminMFAuth",
+		strings.ToUpper("Get"),
+		"/admin/mfauth",
+		GetAdminMFAuth,
+	},
 
-  route{
-    "AddAdminMFAuth",
-    strings.ToUpper("Post"),
-    "/admin/mfauth",
-    AddAdminMFAuth,
-  },
+	route{
+		"AddAdminMFAuth",
+		strings.ToUpper("Post"),
+		"/admin/mfauth",
+		AddAdminMFAuth,
+	},
 
-  route{
-    "SetAdminMFAuth",
-    strings.ToUpper("Put"),
-    "/admin/mfauth",
-    SetAdminMFAuth,
-  },
+	route{
+		"SetAdminMFAuth",
+		strings.ToUpper("Put"),
+		"/admin/mfauth",
+		SetAdminMFAuth,
+	},
 
-  route{
-    "RemoveAdminMFAuth",
-    strings.ToUpper("Delete"),
-    "/admin/mfauth",
-    RemoveAdminMFAuth,
-  },
+	route{
+		"RemoveAdminMFAuth",
+		strings.ToUpper("Delete"),
+		"/admin/mfauth",
+		RemoveAdminMFAuth,
+	},
+
+	route{
+		"GetIPBlocks",
+		strings.ToUpper("Get"),
+		"/admin/blocks",
+		GetIPBlocks,
+	},
+
+	route{
+		"AddIPBlock",
+		strings.ToUpper("Post"),
+		"/admin/blocks/{ip}",
+		AddIPBlock,
+	},
+
+	route{
+		"RemoveIPBlock",
+		strings.ToUpper("Delete"),
+		"/admin/blocks/{ip}",
+		RemoveIPBlock,
+	},
+
+	route{
+		"GetIPWhitelist",
+		strings.ToUpper("Get"),
+		"/admin/whitelist",
+		GetIPWhitelist,
+	},
+
+	route{
+		"AddIPWhitelist",
+		strings.ToUpper("Post"),
+		"/admin/whitelist/{ip}",
+		AddIPWhitelist,
+	},
+
+	route{
+		"RemoveIPWhitelist",
+		strings.ToUpper("Delete"),
+		"/admin/whitelist/{ip}",
+		RemoveIPWhitelist,
+	},
 
 	route{
 		"RemoveNodeAccount",
@@ -342,12 +384,12 @@ var endpoints = routes{
 		SetNodeStatus,
 	},
 
-  route{
-    "AddFlag",
-    strings.ToUpper("Post"),
-    "/account/flag/{guid}",
-    AddFlag,
-  },
+	route{
+		"AddFlag",
+		strings.ToUpper("Post"),
+		"/account/flag/{guid}",
+		AddFlag,
+	},
 
 	route{
 		"AddGroup",
@@ -776,19 +818,19 @@ var endpoints = routes{
 		SetChannelGroup,
 	},
 
-  route{
-    "GetChannelNotification",
-    strings.ToUpper("Get"),
-    "/content/channels/{channelID}/notification",
-    GetChannelNotification,
-  },
+	route{
+		"GetChannelNotification",
+		strings.ToUpper("Get"),
+		"/content/channels/{channelID}/notification",
+		GetChannelNotification,
+	},
 
-  route{
-    "SetChannelNotification",
-    strings.ToUpper("Put"),
-    "/content/channels/{channelID}/notification",
-    SetChannelNotification,
-  },
+	route{
+		"SetChannelNotification",
+		strings.ToUpper("Put"),
+		"/content/channels/{channelID}/notification",
+		SetChannelNotification,
+	},
 
 	route{
 		"SetChannelSubject",
@@ -888,11 +930,10 @@ var endpoints = routes{
 		AddRing,
 	},
 
-  route{
-    "Signal",
-    strings.ToUpper("Get"),
-    "/signal",
-    Signal,
-  },
-
+	route{
+		"Signal",
+		strings.ToUpper("Get"),
+		"/signal",
+		Signal,
+	},
 }

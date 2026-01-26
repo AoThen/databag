@@ -42,6 +42,18 @@ func rateLimiter(h http.Handler) http.Handler {
 		}
 		clientIP = strings.TrimSpace(clientIP)
 
+		// check if IP is whitelisted (skip all checks)
+		if app.IsIPWhitelisted(clientIP) {
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		// check if IP is blocked
+		if app.IsIPBlocked(clientIP) {
+			http.Error(w, "access denied", http.StatusForbidden)
+			return
+		}
+
 		now := time.Now()
 
 		// get or create rate limit entry

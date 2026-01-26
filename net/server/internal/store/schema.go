@@ -26,6 +26,8 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&TagSlot{})
 	db.AutoMigrate(&Tag{})
 	db.AutoMigrate(&Flag{})
+	db.AutoMigrate(&IPBlock{})
+	db.AutoMigrate(&IPWhitelist{})
 }
 
 type Notification struct {

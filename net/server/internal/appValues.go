@@ -189,6 +189,15 @@ const APPPasswordRequireNumber = false
 // APPPasswordRequireSpecial require special characters in password
 const APPPasswordRequireSpecial = false
 
+// APPIPBlockDuration default IP block duration in hours
+const APPIPBlockDuration = 1
+
+// APPIPBlockThreshold default threshold for blocking IP
+const APPIPBlockThreshold = 5
+
+// APPIPBlockMaxDuration maximum IP block duration in hours
+const APPIPBlockMaxDuration = 168
+
 // AppCardStatus compares cards status with string
 func AppCardStatus(status string) bool {
 	if status == APPCardPending {
