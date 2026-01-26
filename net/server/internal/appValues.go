@@ -7,7 +7,7 @@ const APPTransformCopy = "_"
 const APPTokenSize = 16
 
 // APPBodyLimit config for max size of api body
-const APPBodyLimit = 1048576
+const APPBodyLimit = 20971520
 
 // APPVersion config for current version of api
 const APPVersion = "0.1.0"
