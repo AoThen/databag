@@ -4,6 +4,7 @@ on:
     branches: [ bulid ]
     paths:
         - 'net/server/**'
+        - 'app/client/web/**'
         - .github/workflows/docker.yml
   workflow_dispatch: # 添加手动触发
 jobs:

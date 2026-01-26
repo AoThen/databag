@@ -3,6 +3,7 @@ package databag
 import (
 	"databag/internal/store"
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -16,6 +17,7 @@ func IsIPBlocked(ip string) bool {
 	}
 	if time.Now().After(block.ExpiresAt) {
 		store.DB.Where("ip = ?", ip).Delete(&block)
+		LogMsg("[IPBlock] IP " + ip + " block expired, removed")
 		return false
 	}
 	return true
@@ -47,10 +49,18 @@ func RecordIPAuthFailure(ip string) {
 			ExpiresAt: now.Add(time.Duration(getIPBlockDuration()) * time.Hour),
 			FailCount: 1,
 		}
-		store.DB.Create(&block)
+		LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure count: 1/%d", ip, threshold))
+
+		// 未达到阈值时只记录内存计数，不创建数据库记录
+		if block.FailCount >= threshold {
+			store.DB.Create(&block)
+			LogMsg(fmt.Sprintf("[IPBlock] IP %s blocked after %d auth failures", ip, block.FailCount))
+		}
 	} else {
 		// 累计失败次数
 		block.FailCount++
+
+		LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure count: %d/%d", ip, block.FailCount, threshold))
 
 		// 计算新的封禁时长（指数增长）
 		duration := getIPBlockDuration()
@@ -66,21 +76,25 @@ func RecordIPAuthFailure(ip string) {
 			"fail_count": block.FailCount,
 			"expires_at": block.ExpiresAt,
 		})
-	}
 
-	// 如果达到阈值，更新Reason为已封禁
-	if block.FailCount >= threshold {
-		store.DB.Model(&block).Update("reason", "blocked: too many auth failures")
+		// 如果达到阈值，更新Reason为已封禁
+		if block.FailCount >= threshold {
+			store.DB.Model(&block).Update("reason", "blocked: too many auth failures")
+			LogMsg(fmt.Sprintf("[IPBlock] IP %s blocked after %d auth failures", ip, block.FailCount))
+		}
 	}
 }
 
 func ResetIPAuthFailure(ip string) {
-	store.DB.Where("ip = ?", ip).Delete(&store.IPBlock{})
+	result := store.DB.Where("ip = ?", ip).Delete(&store.IPBlock{})
+	if result.Error == nil && result.RowsAffected > 0 {
+		LogMsg("[IPBlock] IP " + ip + " unblocked")
+	}
 }
 
 func BlockIP(ip string, reason string, durationHours int) error {
 	expiresAt := time.Now().Add(time.Duration(durationHours) * time.Hour)
-	return store.DB.Model(&store.IPBlock{}).Where("ip = ?", ip).Assign(map[string]interface{}{
+	err := store.DB.Model(&store.IPBlock{}).Where("ip = ?", ip).Assign(map[string]interface{}{
 		"ip":         ip,
 		"reason":     reason,
 		"blocked_at": time.Now(),
@@ -93,24 +107,40 @@ func BlockIP(ip string, reason string, durationHours int) error {
 		ExpiresAt: expiresAt,
 		FailCount: 0,
 	}).Error
+	if err == nil {
+		LogMsg(fmt.Sprintf("[IPBlock] IP %s manually blocked, reason: %s, duration: %d hours", ip, reason, durationHours))
+	}
+	return err
 }
 
 func UnblockIP(ip string) error {
-	return store.DB.Where("ip = ?", ip).Delete(&store.IPBlock{}).Error
+	result := store.DB.Where("ip = ?", ip).Delete(&store.IPBlock{})
+	if result.Error == nil && result.RowsAffected > 0 {
+		LogMsg("[IPBlock] IP " + ip + " manually unblocked")
+	}
+	return result.Error
 }
 
 func AddIPToWhitelist(ip string, note string) error {
-	return store.DB.Model(&store.IPWhitelist{}).Where("ip = ?", ip).Assign(map[string]interface{}{
+	err := store.DB.Model(&store.IPWhitelist{}).Where("ip = ?", ip).Assign(map[string]interface{}{
 		"ip":   ip,
 		"note": note,
 	}).FirstOrCreate(&store.IPWhitelist{}, store.IPWhitelist{
 		IP:   ip,
 		Note: note,
 	}).Error
+	if err == nil {
+		LogMsg(fmt.Sprintf("[IPBlock] IP %s added to whitelist, note: %s", ip, note))
+	}
+	return err
 }
 
 func RemoveIPFromWhitelist(ip string) error {
-	return store.DB.Where("ip = ?", ip).Delete(&store.IPWhitelist{}).Error
+	result := store.DB.Where("ip = ?", ip).Delete(&store.IPWhitelist{})
+	if result.Error == nil && result.RowsAffected > 0 {
+		LogMsg("[IPBlock] IP " + ip + " removed from whitelist")
+	}
+	return result.Error
 }
 
 func GetIPBlocksFromDB() ([]store.IPBlock, error) {
