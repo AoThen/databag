@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { LightTheme, DarkTheme } from '../constants/Colors'
-import { en, fr, es, pt, de, ru, el } from '../constants/Strings'
+import { en, fr, es, pt, de, ru, el, zh } from '../constants/Strings'
 
 export function useDisplayContext() {
   const [state, setState] = useState({
@@ -21,6 +21,7 @@ export function useDisplayContext() {
       { value: 'de', label: 'Deutsch' },
       { value: 'ru', label: 'Русский' },
       { value: 'el', label: 'ελληνικά' },
+      { value: 'zh', label: '中文' },
     ],
     language: null,
     strings: en,
@@ -274,25 +275,34 @@ export function useDisplayContext() {
           ],
         })
       } else if (browser && browser.startsWith('el')) {
-        updateState({
-          language: 'el',
-          strings: el,
-          themes: [
-            { value: 'dark', label: el.dark },
-            { value: 'light', label: el.light },
-          ],
-        })
-      } else {
-        updateState({
-          language: 'en',
-          strings: en,
-          themes: [
-            { value: 'dark', label: en.dark },
-            { value: 'light', label: en.light },
-          ],
-        })
+          updateState({
+            language: 'el',
+            strings: el,
+            themes: [
+              { value: 'dark', label: el.dark },
+              { value: 'light', label: el.light },
+            ],
+          })
+        } else if (browser && browser.startsWith('zh')) {
+          updateState({
+            language: 'zh',
+            strings: zh,
+            themes: [
+              { value: 'dark', label: zh.dark },
+              { value: 'light', label: zh.light },
+            ],
+          })
+        } else {
+          updateState({
+            language: 'en',
+            strings: en,
+            themes: [
+              { value: 'dark', label: en.dark },
+              { value: 'light', label: en.light },
+            ],
+          })
+        }
       }
-    }
 
     const audioId = localStorage.getItem('audio_input')
     const videoId = localStorage.getItem('video_input')
@@ -424,6 +434,16 @@ export function useDisplayContext() {
             { value: 'light', label: el.light },
           ],
         })
+      } else if (code && code.startsWith('zh')) {
+        localStorage.setItem('language', 'zh')
+        updateState({
+          language: 'zh',
+          strings: zh,
+          themes: [
+            { value: 'dark', label: zh.dark },
+            { value: 'light', label: zh.light },
+          ],
+        })
       } else {
         localStorage.removeItem('language')
         const browser = navigator.language
@@ -479,6 +499,15 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: el.dark },
               { value: 'light', label: el.light },
+            ],
+          })
+        } else if (browser && browser.startsWith('zh')) {
+          updateState({
+            language: 'zh',
+            strings: zh,
+            themes: [
+              { value: 'dark', label: zh.dark },
+              { value: 'light', label: zh.light },
             ],
           })
         } else {

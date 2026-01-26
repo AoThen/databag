@@ -1,10 +1,11 @@
 name: Android Build Test
 
 on:
+  workflow_dispatch: # 添加手动触发
   push:
     branches: [ bulid ]
     paths:
-      - 'app/mobile/**'
+      - 'app/**'
       - '.github/workflows/android-build.yml'
 
 
