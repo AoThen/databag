@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { getIPBlocks, addIPBlock, removeIPBlock, IPBlock } from '../api/getIPBlocks';
-import { getIPWhitelist, addIPWhitelist, removeIPWhitelist, IPWhitelist } from '../api/getIPWhitelist';
+import { getIPBlocks, addIPBlock, removeIPBlock, type IPBlock } from '../api';
+import { getIPWhitelist, addIPWhitelist, removeIPWhitelist, type IPWhitelist } from '../api';
 
 export interface IPBlockState {
   showIPBlocks: boolean;
