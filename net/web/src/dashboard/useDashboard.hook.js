@@ -13,9 +13,6 @@ import { addAdminMFAuth } from 'api/addAdminMFAuth';
 import { setAdminMFAuth } from 'api/setAdminMFAuth';
 import { removeAdminMFAuth } from 'api/removeAdminMFAuth';
 
-import { getIPBlocks, addIPBlock, removeIPBlock } from 'api/getIPBlocks';
-import { getIPWhitelist, addIPWhitelist, removeIPWhitelist } from 'api/getIPWhitelist';
-
 export function useDashboard(token) {
 
   const [state, setState] = useState({
@@ -55,15 +52,6 @@ export function useDashboard(token) {
     mfAuthSecretImage: null,
     mfaAuthError: null,
     mfaCode: '',
-
-    showIPBlocks: false,
-    blocks: [],
-    whitelist: [],
-    blockIP: '',
-    blockReason: '',
-    blockDuration: 24,
-    whitelistIP: '',
-    whitelistNote: '',
   });
 
   const navigate = useNavigate();
@@ -170,10 +158,6 @@ export function useDashboard(token) {
       await syncConfig();
       await syncAccounts();
     },
-    reloadIPBlocks: async () => {
-      await syncIPBlocks();
-      await syncIPWhitelist();
-    },
     setCode: async (code) => {
       updateState({ mfaCode: code });
     },
@@ -197,62 +181,6 @@ export function useDashboard(token) {
     },
     dismissMFA: async () => {
       updateState({ mfaModal: false });
-    },
-    setShowIPBlocks: (showIPBlocks) => {
-      updateState({ showIPBlocks });
-    },
-    setBlockIP: (blockIP) => {
-      updateState({ blockIP });
-    },
-    setBlockReason: (blockReason) => {
-      updateState({ blockReason });
-    },
-    setBlockDuration: (blockDuration) => {
-      updateState({ blockDuration });
-    },
-    setWhitelistIP: (whitelistIP) => {
-      updateState({ whitelistIP });
-    },
-    setWhitelistNote: (whitelistNote) => {
-      updateState({ whitelistNote });
-    },
-    addBlock: async () => {
-      if (!state.busy && state.blockIP) {
-        updateState({ busy: true });
-        try {
-          await addIPBlock(app.state.adminToken, state.blockIP, state.blockReason || 'manual block', state.blockDuration);
-          updateState({ blockIP: '', blockReason: '', blockDuration: 24 });
-          await syncIPBlocks();
-        }
-        catch (err) {
-          console.log(err);
-          throw new Error("failed to block IP");
-        }
-        updateState({ busy: false });
-      }
-    },
-    removeBlock: async (ip) => {
-      await removeIPBlock(app.state.adminToken, ip);
-      await syncIPBlocks();
-    },
-    addWhitelist: async () => {
-      if (!state.busy && state.whitelistIP) {
-        updateState({ busy: true });
-        try {
-          await addIPWhitelist(app.state.adminToken, state.whitelistIP, state.whitelistNote || 'whitelisted IP');
-          updateState({ whitelistIP: '', whitelistNote: '' });
-          await syncIPWhitelist();
-        }
-        catch (err) {
-          console.log(err);
-          throw new Error("failed to add to whitelist");
-        }
-        updateState({ busy: false });
-      }
-    },
-    removeWhitelist: async (ip) => {
-      await removeIPWhitelist(app.state.adminToken, ip);
-      await syncIPWhitelist();
     },
     setSettings: async () => {
       if (!state.busy) {
@@ -309,26 +237,5 @@ export function useDashboard(token) {
     }
   };
 
-  const syncIPBlocks = async () => {
-    try {
-      const result = await getIPBlocks(app.state.adminToken);
-      updateState({ blocks: result.blocks || [] });
-    }
-    catch(err) {
-      console.log(err);
-    }
-  };
-
-  const syncIPWhitelist = async () => {
-    try {
-      const result = await getIPWhitelist(app.state.adminToken);
-      updateState({ whitelist: result.whitelist || [] });
-    }
-    catch(err) {
-      console.log(err);
-    }
-  };
-
   return { state, actions };
 }
-
