@@ -200,7 +200,24 @@ func ResetIPAuthFailure(ip string) {
 	result := store.DB.Where("ip = ?", ip).Delete(&store.IPBlock{})
 	if result.Error == nil && result.RowsAffected > 0 {
 		LogMsg("[IPBlock] IP " + ip + " unblocked")
+		// 清除缓存以确保立即生效
+		ipCache.Delete(ip)
 	}
+}
+
+// ClearIPCache 手动清理指定IP的缓存
+func ClearIPCache(ip string) {
+	ipCache.Delete(ip)
+	LogMsg("[IPBlock] IP " + ip + " cache cleared")
+}
+
+// ClearAllIPCache 清理所有IP缓存
+func ClearAllIPCache() {
+	ipCache.Range(func(key, value interface{}) bool {
+		ipCache.Delete(key)
+		return true
+	})
+	LogMsg("[IPBlock] All IP cache cleared")
 }
 
 func BlockIP(ip string, reason string, durationHours int) error {
@@ -223,6 +240,8 @@ func BlockIP(ip string, reason string, durationHours int) error {
 	}).Error
 	if err == nil {
 		LogMsg(fmt.Sprintf("[IPBlock] IP %s manually blocked, reason: %s, duration: %d hours", ip, reason, durationHours))
+		// 清除缓存以确保立即生效
+		ipCache.Delete(ip)
 	}
 	return err
 }
@@ -231,6 +250,8 @@ func UnblockIP(ip string) error {
 	result := store.DB.Where("ip = ?", ip).Delete(&store.IPBlock{})
 	if result.Error == nil && result.RowsAffected > 0 {
 		LogMsg("[IPBlock] IP " + ip + " manually unblocked")
+		// 清除缓存以确保立即生效
+		ipCache.Delete(ip)
 	}
 	return result.Error
 }
@@ -245,6 +266,8 @@ func AddIPToWhitelist(ip string, note string) error {
 	}).Error
 	if err == nil {
 		LogMsg(fmt.Sprintf("[IPBlock] IP %s added to whitelist, note: %s", ip, note))
+		// 清除缓存以确保立即生效
+		ipCache.Delete(ip)
 	}
 	return err
 }
@@ -253,6 +276,8 @@ func RemoveIPFromWhitelist(ip string) error {
 	result := store.DB.Where("ip = ?", ip).Delete(&store.IPWhitelist{})
 	if result.Error == nil && result.RowsAffected > 0 {
 		LogMsg("[IPBlock] IP " + ip + " removed from whitelist")
+		// 清除缓存以确保立即生效
+		ipCache.Delete(ip)
 	}
 	return result.Error
 }
