@@ -4,10 +4,103 @@ import (
 	"databag/internal/store"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
 )
+
+// IP缓存条目
+type IPCacheEntry struct {
+	IsBlocked     bool
+	IsWhitelisted bool
+	ExpiresAt     time.Time
+	LastChecked   time.Time
+}
+
+// IP缓存相关变量
+var (
+	ipCache              = sync.Map{}
+	cacheCleanupInterval = 5 * time.Minute
+	cacheExpiration      = 1 * time.Minute
+)
+
+// 初始化缓存清理协程
+func init() {
+	go func() {
+		ticker := time.NewTicker(cacheCleanupInterval)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			now := time.Now()
+			ipCache.Range(func(key, value interface{}) bool {
+				if entry, ok := value.(*IPCacheEntry); ok {
+					if now.After(entry.LastChecked.Add(cacheExpiration)) {
+						ipCache.Delete(key)
+					}
+				}
+				return true
+			})
+		}
+	}()
+}
+
+// 正确的指数增长计算
+func calculateBlockDuration(failCount int, baseDuration, maxDuration int64) int64 {
+	if failCount <= 1 {
+		return baseDuration
+	}
+
+	// 正确的指数增长: baseDuration * 2^(failCount-1)
+	duration := baseDuration
+	for i := 1; i < failCount; i++ {
+		duration *= 2
+		if duration > maxDuration {
+			return maxDuration
+		}
+	}
+
+	return duration
+}
+
+// 统一的IP状态检查
+func CheckIPStatus(ip string) (isWhitelisted bool, isBlocked bool) {
+	// 先检查缓存
+	if entry, ok := ipCache.Load(ip); ok {
+		if cacheEntry, ok := entry.(*IPCacheEntry); ok {
+			if time.Now().Before(cacheEntry.LastChecked.Add(cacheExpiration)) {
+				return cacheEntry.IsWhitelisted, cacheEntry.IsBlocked
+			}
+		}
+	}
+
+	// 缓存未命中，查询数据库
+	isWhitelisted = IsIPWhitelisted(ip)
+	isBlocked = IsIPBlocked(ip)
+
+	// 更新缓存
+	var expiresAt time.Time
+	if isBlocked {
+		var block store.IPBlock
+		err := store.DB.Where("ip = ?", ip).First(&block).Error
+		if err == nil {
+			expiresAt = block.ExpiresAt
+		} else {
+			expiresAt = time.Now().Add(cacheExpiration)
+		}
+	} else {
+		expiresAt = time.Now().Add(cacheExpiration)
+	}
+
+	ipCache.Store(ip, &IPCacheEntry{
+		IsBlocked:     isBlocked,
+		IsWhitelisted: isWhitelisted,
+		ExpiresAt:     expiresAt,
+		LastChecked:   time.Now(),
+	})
+
+	return isWhitelisted, isBlocked
+}
 
 func IsIPBlocked(ip string) bool {
 	var block store.IPBlock
@@ -29,16 +122,16 @@ func IsIPWhitelisted(ip string) bool {
 	return !errors.Is(err, gorm.ErrRecordNotFound)
 }
 
-func RecordIPAuthFailure(ip string) {
+func RecordIPAuthFailure(ip string) bool {
 	if IsIPWhitelisted(ip) {
-		return
+		return false
 	}
 
 	now := time.Now()
 	nowUnix := now.Unix()
 	failPeriod := getLoginFailPeriod()
 	threshold := int(getIPBlockThreshold())
-	blockDuration := getIPBlockDuration()
+	baseDuration := getIPBlockBaseDuration()
 	maxDuration := getIPBlockMaxDuration()
 
 	var block store.IPBlock
@@ -50,39 +143,35 @@ func RecordIPAuthFailure(ip string) {
 		err = gorm.ErrRecordNotFound
 	}
 
-	// 首次失败或时间窗口已过
-	if errors.Is(err, gorm.ErrRecordNotFound) || nowUnix-block.LastFailTime > failPeriod {
+	// 修复时间窗口逻辑：首次失败或时间窗口已过
+	windowExpired := errors.Is(err, gorm.ErrRecordNotFound) ||
+		(err == nil && (nowUnix-block.LastFailTime) > failPeriod)
+
+	if windowExpired {
 		// 时间窗口已过，重置计数
-		if nowUnix-block.LastFailTime > failPeriod && !errors.Is(err, gorm.ErrRecordNotFound) {
+		if err == nil {
 			LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure window expired, count reset", ip))
 		}
+
 		block = store.IPBlock{
 			IP:           ip,
-			Reason:       "too many authentication failures",
+			Reason:       "authentication failures",
 			BlockedAt:    now,
-			ExpiresAt:    now.Add(time.Duration(blockDuration) * time.Hour),
+			ExpiresAt:    now.Add(time.Duration(baseDuration) * time.Hour),
 			FailCount:    1,
-			LastFailTime: nowUnix,
+			LastFailTime: nowUnix, // 正确设置首次失败时间
 		}
 		LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure count: 1/%d", ip, threshold))
 		store.DB.Create(&block)
+		return false
 	} else {
 		// 时间窗口内，累计失败次数
 		block.FailCount++
 		block.LastFailTime = nowUnix
-
 		LogMsg(fmt.Sprintf("[IPBlock] IP %s auth failure count: %d/%d", ip, block.FailCount, threshold))
 
-		// 计算封禁时长（指数增长）
-		duration := blockDuration
-		if block.FailCount > 1 {
-			for i := 1; i < block.FailCount-1; i++ {
-				duration *= 2
-			}
-		}
-		if duration > maxDuration {
-			duration = maxDuration
-		}
+		// 使用修正的指数增长算法
+		duration := calculateBlockDuration(block.FailCount, baseDuration, maxDuration)
 		block.ExpiresAt = now.Add(time.Duration(duration) * time.Hour)
 		block.Reason = "blocked: too many auth failures"
 
@@ -94,11 +183,16 @@ func RecordIPAuthFailure(ip string) {
 			"reason":         block.Reason,
 		})
 
-		// 达到阈值，封禁
+		// 达到阈值，立即封禁并返回true
 		if block.FailCount >= threshold {
 			LogMsg(fmt.Sprintf("[IPBlock] IP %s blocked for %d hours after %d auth failures (window: %d seconds)",
 				ip, duration, block.FailCount, failPeriod))
+
+			// 清除缓存以确保立即生效
+			ipCache.Delete(ip)
+			return true // 立即生效
 		}
+		return false
 	}
 }
 

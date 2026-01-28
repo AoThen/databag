@@ -42,14 +42,17 @@ func rateLimiter(h http.Handler) http.Handler {
 		}
 		clientIP = strings.TrimSpace(clientIP)
 
-		// check if IP is whitelisted (skip all checks)
-		if app.IsIPWhitelisted(clientIP) {
+		// 检查IP状态
+		isWhitelisted, isBlocked := app.CheckIPStatus(clientIP)
+
+		// 白名单优先
+		if isWhitelisted {
 			h.ServeHTTP(w, r)
 			return
 		}
 
-		// check if IP is blocked
-		if app.IsIPBlocked(clientIP) {
+		// 检查IP是否被封禁
+		if isBlocked {
 			http.Error(w, "access denied", http.StatusForbidden)
 			return
 		}

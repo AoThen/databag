@@ -59,8 +59,8 @@ func getPasswordRequireSpecial() bool {
 	return getLoginBoolConfig("DATABAG_PASSWORD_REQUIRE_SPECIAL", APPPasswordRequireSpecial)
 }
 
-func getIPBlockDuration() int64 {
-	return getLoginIntConfig("DATABAG_IP_BLOCK_DURATION", APPIPBlockDuration)
+func getIPBlockBaseDuration() int64 {
+	return getLoginIntConfig("DATABAG_IP_BLOCK_BASE_DURATION", APPIPBlockDuration)
 }
 
 func getIPBlockThreshold() int64 {

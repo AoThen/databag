@@ -43,7 +43,12 @@ func AccountLogin(r *http.Request) (*store.Account, error) {
 		applyProgressiveDelay(account.LoginFailedCount)
 
 		clientIP := getClientIP(r)
-		RecordIPAuthFailure(clientIP)
+
+		// 检查IP是否需要立即封禁
+		if RecordIPAuthFailure(clientIP) {
+			// 立即阻止本次请求
+			return nil, errors.New("IP temporarily blocked due to too many failed attempts")
+		}
 
 		return nil, errors.New("invalid password")
 	}
