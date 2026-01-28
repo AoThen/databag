@@ -2,6 +2,8 @@ package databag
 
 import (
 	"databag/internal/store"
+	"encoding/base64"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"
 	"strings"
@@ -20,6 +22,28 @@ func SetAccountLogin(w http.ResponseWriter, r *http.Request) {
 	if ret != nil {
 		ErrResponse(w, http.StatusUnauthorized, ret)
 		return
+	}
+
+	// 额外：支持通过 Authorization Basic 头传输明文密码以进行强度检查
+	if authHeader := r.Header.Get("Authorization"); authHeader != "" && strings.HasPrefix(authHeader, "Basic ") {
+		token := strings.TrimSpace(strings.TrimPrefix(authHeader, "Basic"))
+		if credBytes, err := base64.StdEncoding.DecodeString(token); err == nil {
+			login := string(credBytes)
+			idx := strings.Index(login, ":")
+			if idx > 0 {
+				plaintext := login[idx+1:]
+				if err := validatePasswordStrength(plaintext); err != nil {
+					ErrResponse(w, http.StatusBadRequest, err)
+					return
+				}
+				if hashed, err := bcrypt.GenerateFromPassword([]byte(plaintext), bcrypt.DefaultCost); err == nil {
+					password = hashed
+				} else {
+					ErrResponse(w, http.StatusInternalServerError, err)
+					return
+				}
+			}
+		}
 	}
 
 	if err := validatePasswordStrength(string(password)); err != nil {

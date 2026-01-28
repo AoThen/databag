@@ -2,7 +2,7 @@ name: databag-example-http
 
 services:
   app:
-    image: balzack/databag:latest
+    image: balzock/databag:latest
     restart: unless-stopped
     ports:
       - 127.0.0.1:7000:7000
@@ -10,5 +10,27 @@ services:
       - database:/var/lib/databag
     environment:
       - ADMIN=password
+
+      # ========== 安全配置 ==========
+      # WebSocket 严格模式: 0=禁用源验证, 1=启用
+      - DATABAG_WS_ORIGIN_STRICT=1
+
+      # ========== 登录安全配置 ==========
+      # - DATABAG_LOGIN_FAIL_PERIOD=300
+      # - DATABAG_LOGIN_FAIL_COUNT=5
+      # - DATABAG_LOGIN_ALLOW_WAIT=1
+
+      # ========== 密码强度要求 ==========
+      # - DATABAG_PASSWORD_MIN_LENGTH=8
+      # - DATABAG_PASSWORD_MAX_LENGTH=128
+      # - DATABAG_PASSWORD_REQUIRE_UPPER=true
+      # - DATABAG_PASSWORD_REQUIRE_LOWER=true
+      # - DATABAG_PASSWORD_REQUIRE_NUMBER=true
+      # - DATABAG_PASSWORD_REQUIRE_SPECIAL=true
+
+      # ========== IP 拉黑配置 ==========
+      # - DATABAG_IP_BLOCK_THRESHOLD=5
+      # - DATABAG_IP_BLOCK_BASE_DURATION=1
+      # - DATABAG_IP_BLOCK_MAX_DURATION=168
 volumes:
   database:

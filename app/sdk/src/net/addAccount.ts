@@ -6,7 +6,7 @@ export async function addAccount(node: string, secure: boolean, username: string
   const endpoint = `http${secure ? 's' : ''}://${node}/account/profile${access}`;
   const auth = encode(`${username}:${password}`);
   const headers = new Headers();
-  headers.append('Credentials', `Basic ${auth}`);
+  headers.append('Authorization', `Basic ${auth}`);
   const { status } = await fetchWithTimeout(endpoint, { method: 'POST', headers }, 60000);
   checkResponse(status);
 }

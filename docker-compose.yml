@@ -41,5 +41,13 @@ services:
       # 要求特殊字符，设置为 true 启用
       # - DATABAG_PASSWORD_REQUIRE_SPECIAL=true
 
+      # ========== IP 拉黑配置 ==========
+      # 触发IP拉黑的失败次数阈值，默认 5 次
+      - DATABAG_IP_BLOCK_THRESHOLD=5
+      # IP拉黑基础时长（小时），默认 1 小时
+      - DATABAG_IP_BLOCK_BASE_DURATION=1
+      # IP拉黑最大时长（小时），默认 168 小时（7天）
+      - DATABAG_IP_BLOCK_MAX_DURATION=168
+
 volumes:
   database:

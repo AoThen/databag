@@ -388,9 +388,17 @@ func BasicCredentials(r *http.Request) (string, []byte, error) {
 	var username string
 	var password []byte
 
-	// parse bearer authentication
+	// Support credentials via自定义头或标准 Authorization 头
 	auth := r.Header.Get("Credentials")
-	token := strings.TrimSpace(strings.TrimPrefix(auth, "Basic"))
+	var token string
+	if auth != "" {
+		token = strings.TrimSpace(strings.TrimPrefix(auth, "Basic"))
+	} else {
+		// 尝试从 Authorization 头读取 Basic 认证信息
+		if authHeader := r.Header.Get("Authorization"); strings.HasPrefix(authHeader, "Basic ") {
+			token = strings.TrimSpace(strings.TrimPrefix(authHeader, "Basic"))
+		}
+	}
 
 	// decode basic auth
 	credentials, err := base64.StdEncoding.DecodeString(token)
