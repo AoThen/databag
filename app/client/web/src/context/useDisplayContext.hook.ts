@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LightTheme, DarkTheme } from '../constants/Colors'
+import { LightTheme, DarkTheme, SepiaTheme, BlueTheme, PurpleTheme } from '../constants/Colors'
 import { en, fr, es, pt, de, ru, el, zh } from '../constants/Strings'
 
 export function useDisplayContext() {
@@ -8,6 +8,9 @@ export function useDisplayContext() {
     themes: [
       { value: 'dark', label: 'Dark' },
       { value: 'light', label: 'Light' },
+      { value: 'sepia', label: 'Sepia' },
+      { value: 'blue', label: 'Blue' },
+      { value: 'purple', label: 'Purple' },
     ],
     theme: null,
     scheme: null,
@@ -125,6 +128,36 @@ export function useDisplayContext() {
           color: LightTheme.mainText,
         },
       })
+    } else if (scheme === 'sepia') {
+      updateState({
+        theme: scheme,
+        scheme: 'sepia',
+        colors: SepiaTheme,
+        menuStyle: {
+          backgroundColor: SepiaTheme.modalArea,
+          color: SepiaTheme.mainText,
+        },
+      })
+    } else if (scheme === 'blue') {
+      updateState({
+        theme: scheme,
+        scheme: 'blue',
+        colors: BlueTheme,
+        menuStyle: {
+          backgroundColor: BlueTheme.modalArea,
+          color: BlueTheme.mainText,
+        },
+      })
+    } else if (scheme === 'purple') {
+      updateState({
+        theme: scheme,
+        scheme: 'purple',
+        colors: PurpleTheme,
+        menuStyle: {
+          backgroundColor: PurpleTheme.modalArea,
+          color: PurpleTheme.mainText,
+        },
+      })
     } else {
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         updateState({
@@ -198,6 +231,9 @@ export function useDisplayContext() {
         themes: [
           { value: 'dark', label: pt.dark },
           { value: 'light', label: pt.light },
+          { value: 'sepia', label: pt.sepia },
+          { value: 'blue', label: pt.blue },
+          { value: 'purple', label: pt.purple },
         ],
       })
     } else if (language && language.startsWith('de')) {
@@ -207,6 +243,9 @@ export function useDisplayContext() {
         themes: [
           { value: 'dark', label: de.dark },
           { value: 'light', label: de.light },
+          { value: 'sepia', label: de.sepia },
+          { value: 'blue', label: de.blue },
+          { value: 'purple', label: de.purple },
         ],
       })
     } else if (language && language.startsWith('ru')) {
@@ -216,6 +255,9 @@ export function useDisplayContext() {
         themes: [
           { value: 'dark', label: ru.dark },
           { value: 'light', label: ru.light },
+          { value: 'sepia', label: ru.sepia },
+          { value: 'blue', label: ru.blue },
+          { value: 'purple', label: ru.purple },
         ],
       })
     } else if (language && language.startsWith('el')) {
@@ -225,6 +267,9 @@ export function useDisplayContext() {
         themes: [
           { value: 'dark', label: el.dark },
           { value: 'light', label: el.light },
+          { value: 'sepia', label: el.sepia },
+          { value: 'blue', label: el.blue },
+          { value: 'purple', label: el.purple },
         ],
       })
     } else {
@@ -338,6 +383,39 @@ export function useDisplayContext() {
             color: LightTheme.mainText,
           },
         })
+      } else if (theme === 'sepia') {
+        localStorage.setItem('color_scheme', 'sepia')
+        updateState({
+          theme: 'sepia',
+          scheme: 'sepia',
+          colors: SepiaTheme,
+          menuStyle: {
+            backgroundColor: SepiaTheme.modalArea,
+            color: SepiaTheme.mainText,
+          },
+        })
+      } else if (theme === 'blue') {
+        localStorage.setItem('color_scheme', 'blue')
+        updateState({
+          theme: 'blue',
+          scheme: 'blue',
+          colors: BlueTheme,
+          menuStyle: {
+            backgroundColor: BlueTheme.modalArea,
+            color: BlueTheme.mainText,
+          },
+        })
+      } else if (theme === 'purple') {
+        localStorage.setItem('color_scheme', 'purple')
+        updateState({
+          theme: 'purple',
+          scheme: 'purple',
+          colors: PurpleTheme,
+          menuStyle: {
+            backgroundColor: PurpleTheme.modalArea,
+            color: PurpleTheme.mainText,
+          },
+        })
       } else {
         localStorage.removeItem('color_scheme')
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -372,6 +450,9 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: fr.dark },
             { value: 'light', label: fr.light },
+            { value: 'sepia', label: fr.sepia },
+            { value: 'blue', label: fr.blue },
+            { value: 'purple', label: fr.purple },
           ],
         })
       } else if (code && code.startsWith('es')) {
@@ -382,6 +463,9 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: es.dark },
             { value: 'light', label: es.light },
+            { value: 'sepia', label: es.sepia },
+            { value: 'blue', label: es.blue },
+            { value: 'purple', label: es.purple },
           ],
         })
       } else if (code && code.startsWith('en')) {
@@ -392,56 +476,69 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: en.dark },
             { value: 'light', label: en.light },
+            { value: 'sepia', label: en.sepia },
+            { value: 'blue', label: en.blue },
+            { value: 'purple', label: en.purple },
           ],
         })
       } else if (code && code.startsWith('pt')) {
-        localStorage.setItem('language', 'pt')
         updateState({
           language: 'pt',
           strings: pt,
           themes: [
             { value: 'dark', label: pt.dark },
             { value: 'light', label: pt.light },
+            { value: 'sepia', label: pt.sepia },
+            { value: 'blue', label: pt.blue },
+            { value: 'purple', label: pt.purple },
           ],
         })
       } else if (code && code.startsWith('de')) {
-        localStorage.setItem('language', 'de')
         updateState({
           language: 'de',
           strings: de,
           themes: [
             { value: 'dark', label: de.dark },
             { value: 'light', label: de.light },
+            { value: 'sepia', label: de.sepia },
+            { value: 'blue', label: de.blue },
+            { value: 'purple', label: de.purple },
           ],
         })
       } else if (code && code.startsWith('ru')) {
-        localStorage.setItem('language', 'ru')
         updateState({
           language: 'ru',
           strings: ru,
           themes: [
             { value: 'dark', label: ru.dark },
             { value: 'light', label: ru.light },
+            { value: 'sepia', label: ru.sepia },
+            { value: 'blue', label: ru.blue },
+            { value: 'purple', label: ru.purple },
           ],
         })
       } else if (code && code.startsWith('el')) {
-        localStorage.setItem('language', 'el')
         updateState({
           language: 'el',
           strings: el,
           themes: [
             { value: 'dark', label: el.dark },
             { value: 'light', label: el.light },
+            { value: 'sepia', label: el.sepia },
+            { value: 'blue', label: el.blue },
+            { value: 'purple', label: el.purple },
           ],
         })
       } else if (code && code.startsWith('zh')) {
-        localStorage.setItem('language', 'zh')
         updateState({
           language: 'zh',
           strings: zh,
           themes: [
             { value: 'dark', label: zh.dark },
             { value: 'light', label: zh.light },
+            { value: 'sepia', label: zh.sepia },
+            { value: 'blue', label: zh.blue },
+            { value: 'purple', label: zh.purple },
           ],
         })
       } else {
@@ -454,6 +551,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: fr.dark },
               { value: 'light', label: fr.light },
+              { value: 'sepia', label: fr.sepia },
+              { value: 'blue', label: fr.blue },
+              { value: 'purple', label: fr.purple },
             ],
           })
         } else if (browser && browser.startsWith('es')) {
@@ -463,6 +563,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: es.dark },
               { value: 'light', label: es.light },
+              { value: 'sepia', label: es.sepia },
+              { value: 'blue', label: es.blue },
+              { value: 'purple', label: es.purple },
             ],
           })
         } else if (browser && browser.startsWith('pt')) {
@@ -472,6 +575,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: pt.dark },
               { value: 'light', label: pt.light },
+              { value: 'sepia', label: pt.sepia },
+              { value: 'blue', label: pt.blue },
+              { value: 'purple', label: pt.purple },
             ],
           })
         } else if (browser && browser.startsWith('de')) {
@@ -481,6 +587,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: de.dark },
               { value: 'light', label: de.light },
+              { value: 'sepia', label: de.sepia },
+              { value: 'blue', label: de.blue },
+              { value: 'purple', label: de.purple },
             ],
           })
         } else if (browser && browser.startsWith('ru')) {
@@ -490,6 +599,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: ru.dark },
               { value: 'light', label: ru.light },
+              { value: 'sepia', label: ru.sepia },
+              { value: 'blue', label: ru.blue },
+              { value: 'purple', label: ru.purple },
             ],
           })
         } else if (browser && browser.startsWith('el')) {
@@ -499,6 +611,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: el.dark },
               { value: 'light', label: el.light },
+              { value: 'sepia', label: el.sepia },
+              { value: 'blue', label: el.blue },
+              { value: 'purple', label: el.purple },
             ],
           })
         } else if (browser && browser.startsWith('zh')) {
@@ -508,6 +623,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: zh.dark },
               { value: 'light', label: zh.light },
+              { value: 'sepia', label: zh.sepia },
+              { value: 'blue', label: zh.blue },
+              { value: 'purple', label: zh.purple },
             ],
           })
         } else {
@@ -517,6 +635,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: en.dark },
               { value: 'light', label: en.light },
+              { value: 'sepia', label: en.sepia },
+              { value: 'blue', label: en.blue },
+              { value: 'purple', label: en.purple },
             ],
           })
         }
