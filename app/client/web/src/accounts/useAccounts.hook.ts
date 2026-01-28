@@ -48,8 +48,16 @@ export function useAccounts() {
       return await app.state.service.resetMemberAccess(accountId)
     },
     blockAccount: async (accountId: number, flag: boolean) => {
-      await app.state.service.blockMember(accountId, flag)
-      await sync()
+      console.log('[Accounts] Block account request:', { accountId, disabled: flag })
+      try {
+        await app.state.service.blockMember(accountId, flag)
+        console.log('[Accounts] Block account success:', { accountId, disabled: flag })
+        await sync()
+        console.log('[Accounts] Account list reloaded')
+      } catch (err) {
+        console.error('[Accounts] Block account error:', { accountId, disabled: flag, error: err })
+        throw err
+      }
     },
     removeAccount: async (accountId: number) => {
       await app.state.service.removeMember(accountId)
