@@ -44,6 +44,12 @@ func RecordIPAuthFailure(ip string) {
 	var block store.IPBlock
 	err := store.DB.Where("ip = ?", ip).First(&block).Error
 
+	if err == nil && now.After(block.ExpiresAt) {
+		store.DB.Where("ip = ?", ip).Delete(&block)
+		LogMsg("[IPBlock] IP " + ip + " expired, record removed")
+		err = gorm.ErrRecordNotFound
+	}
+
 	// 首次失败或时间窗口已过
 	if errors.Is(err, gorm.ErrRecordNotFound) || nowUnix-block.LastFailTime > failPeriod {
 		// 时间窗口已过，重置计数
