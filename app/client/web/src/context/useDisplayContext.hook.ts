@@ -204,6 +204,9 @@ export function useDisplayContext() {
         themes: [
           { value: 'dark', label: fr.dark },
           { value: 'light', label: fr.light },
+          { value: 'sepia', label: fr.sepia },
+          { value: 'blue', label: fr.blue },
+          { value: 'purple', label: fr.purple },
         ],
       })
     } else if (language && language.startsWith('es')) {
@@ -213,6 +216,9 @@ export function useDisplayContext() {
         themes: [
           { value: 'dark', label: es.dark },
           { value: 'light', label: es.light },
+          { value: 'sepia', label: es.sepia },
+          { value: 'blue', label: es.blue },
+          { value: 'purple', label: es.purple },
         ],
       })
     } else if (language && language.startsWith('en')) {
@@ -222,6 +228,9 @@ export function useDisplayContext() {
         themes: [
           { value: 'dark', label: en.dark },
           { value: 'light', label: en.light },
+          { value: 'sepia', label: en.sepia },
+          { value: 'blue', label: en.blue },
+          { value: 'purple', label: en.purple },
         ],
       })
     } else if (language && language.startsWith('pt')) {
@@ -281,6 +290,9 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: fr.dark },
             { value: 'light', label: fr.light },
+            { value: 'sepia', label: fr.sepia },
+            { value: 'blue', label: fr.blue },
+            { value: 'purple', label: fr.purple },
           ],
         })
       } else if (browser && browser.startsWith('es')) {
@@ -290,6 +302,9 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: es.dark },
             { value: 'light', label: es.light },
+            { value: 'sepia', label: es.sepia },
+            { value: 'blue', label: es.blue },
+            { value: 'purple', label: es.purple },
           ],
         })
       } else if (browser && browser.startsWith('pt')) {
@@ -299,6 +314,9 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: pt.dark },
             { value: 'light', label: pt.light },
+            { value: 'sepia', label: pt.sepia },
+            { value: 'blue', label: pt.blue },
+            { value: 'purple', label: pt.purple },
           ],
         })
       } else if (browser && browser.startsWith('de')) {
@@ -308,6 +326,9 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: de.dark },
             { value: 'light', label: de.light },
+            { value: 'sepia', label: de.sepia },
+            { value: 'blue', label: de.blue },
+            { value: 'purple', label: de.purple },
           ],
         })
       } else if (browser && browser.startsWith('ru')) {
@@ -317,6 +338,9 @@ export function useDisplayContext() {
           themes: [
             { value: 'dark', label: ru.dark },
             { value: 'light', label: ru.light },
+            { value: 'sepia', label: ru.sepia },
+            { value: 'blue', label: ru.blue },
+            { value: 'purple', label: ru.purple },
           ],
         })
       } else if (browser && browser.startsWith('el')) {
@@ -326,6 +350,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: el.dark },
               { value: 'light', label: el.light },
+              { value: 'sepia', label: el.sepia },
+              { value: 'blue', label: el.blue },
+              { value: 'purple', label: el.purple },
             ],
           })
         } else if (browser && browser.startsWith('zh')) {
@@ -335,6 +362,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: zh.dark },
               { value: 'light', label: zh.light },
+              { value: 'sepia', label: zh.sepia },
+              { value: 'blue', label: zh.blue },
+              { value: 'purple', label: zh.purple },
             ],
           })
         } else {
@@ -344,6 +374,9 @@ export function useDisplayContext() {
             themes: [
               { value: 'dark', label: en.dark },
               { value: 'light', label: en.light },
+              { value: 'sepia', label: en.sepia },
+              { value: 'blue', label: en.blue },
+              { value: 'purple', label: en.purple },
             ],
           })
         }
