@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getIPBlocks, addIPBlock, removeIPBlock, type IPBlock } from '../api';
 import { getIPWhitelist, addIPWhitelist, removeIPWhitelist, type IPWhitelist } from '../api';
+import { AppContext } from '../context/AppContext';
 
 export interface IPBlockState {
   showIPBlocks: boolean;
@@ -31,7 +32,7 @@ interface IPBlockActions {
   removeWhitelist: (ip: string) => Promise<void>;
 }
 
-export function useIPBlock(adminToken: string): { state: IPBlockState; actions: IPBlockActions } {
+export function useIPBlock(app: typeof AppContext extends React.Context<infer T> ? T : never): { state: IPBlockState; actions: IPBlockActions } {
   const [state, setState] = useState<IPBlockState>({
     showIPBlocks: false,
     blocks: [],
@@ -44,6 +45,11 @@ export function useIPBlock(adminToken: string): { state: IPBlockState; actions: 
     error: null,
     loading: false,
   });
+
+  const getToken = (): string => {
+    const service = app.state.service as { token?: string } | null | undefined;
+    return service?.token || '';
+  };
 
   const actions: IPBlockActions = {
     setShowIPBlocks: (show: boolean) => {
@@ -61,10 +67,15 @@ export function useIPBlock(adminToken: string): { state: IPBlockState; actions: 
     setLoading: (loading: boolean) => setState((prev) => ({ ...prev, loading })),
     
     reloadIPBlocks: async () => {
+      const token = getToken();
+      if (!token) {
+        actions.setError('Not logged in as admin');
+        return;
+      }
       try {
         const [blocksResult, whitelistResult] = await Promise.all([
-          getIPBlocks(adminToken),
-          getIPWhitelist(adminToken),
+          getIPBlocks(token),
+          getIPWhitelist(token),
         ]);
         setState((prev) => ({
           ...prev,
@@ -79,11 +90,16 @@ export function useIPBlock(adminToken: string): { state: IPBlockState; actions: 
     },
     
     addBlock: async () => {
+      const token = getToken();
+      if (!token) {
+        actions.setError('Not logged in as admin');
+        return;
+      }
       if (!state.blockIP || state.loading) return;
       actions.setLoading(true);
       actions.setError(null);
       try {
-        await addIPBlock(adminToken, state.blockIP, state.blockReason || 'manual block', state.blockDuration);
+        await addIPBlock(token, state.blockIP, state.blockReason || 'manual block', state.blockDuration);
         setState((prev) => ({
           ...prev,
           blockIP: '',
@@ -100,10 +116,15 @@ export function useIPBlock(adminToken: string): { state: IPBlockState; actions: 
     },
     
     removeBlock: async (ip: string) => {
+      const token = getToken();
+      if (!token) {
+        actions.setError('Not logged in as admin');
+        return;
+      }
       actions.setLoading(true);
       actions.setError(null);
       try {
-        await removeIPBlock(adminToken, ip);
+        await removeIPBlock(token, ip);
         await actions.reloadIPBlocks();
       } catch (err) {
         console.error('Failed to unblock IP:', err);
@@ -114,11 +135,16 @@ export function useIPBlock(adminToken: string): { state: IPBlockState; actions: 
     },
     
     addWhitelist: async () => {
+      const token = getToken();
+      if (!token) {
+        actions.setError('Not logged in as admin');
+        return;
+      }
       if (!state.whitelistIP || state.loading) return;
       actions.setLoading(true);
       actions.setError(null);
       try {
-        await addIPWhitelist(adminToken, state.whitelistIP, state.whitelistNote || 'whitelisted IP');
+        await addIPWhitelist(token, state.whitelistIP, state.whitelistNote || 'whitelisted IP');
         setState((prev) => ({
           ...prev,
           whitelistIP: '',
@@ -134,10 +160,15 @@ export function useIPBlock(adminToken: string): { state: IPBlockState; actions: 
     },
     
     removeWhitelist: async (ip: string) => {
+      const token = getToken();
+      if (!token) {
+        actions.setError('Not logged in as admin');
+        return;
+      }
       actions.setLoading(true);
       actions.setError(null);
       try {
-        await removeIPWhitelist(adminToken, ip);
+        await removeIPWhitelist(token, ip);
         await actions.reloadIPBlocks();
       } catch (err) {
         console.error('Failed to remove from whitelist:', err);

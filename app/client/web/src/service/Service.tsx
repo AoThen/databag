@@ -16,8 +16,7 @@ export function Service() {
   const [tab, setTab] = useState('accounts')
   const [setup, { open: openSetup, close: closeSetup }] = useDisclosure(false)
   
-  const adminToken = (app.state as { adminToken?: string })?.adminToken || '';
-  const { state: ipState, actions: ipActions } = useIPBlock(adminToken)
+  const { state: ipState, actions: ipActions } = useIPBlock(app)
 
   const openIPBlock = () => {
     ipActions.setShowIPBlocks(true);
