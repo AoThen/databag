@@ -102,6 +102,9 @@ func AccessToken(r *http.Request) (*store.AccountToken, int, error) {
 }
 
 // ParamAdminToken compares admin token with token query param
+// Supports two types of tokens:
+// 1. Static admin token (CNFToken) - for backward compatibility
+// 2. Session token (CNFAdminSession) - for service token authentication
 func ParamAdminToken(r *http.Request) (int, error) {
 
 	// parse authentication token
@@ -115,15 +118,22 @@ func ParamAdminToken(r *http.Request) (int, error) {
 		return http.StatusUnauthorized, errors.New("node not configured")
 	}
 
-	// compare password
-	value := getStrConfigValue(CNFToken, "")
-	if value != token {
-		clientIP := getClientIP(r)
-		RecordIPAuthFailure(clientIP)
-		return http.StatusUnauthorized, errors.New("invalid admin token")
+	// check static admin token (CNFToken)
+	staticToken := getStrConfigValue(CNFToken, "")
+	if staticToken != "" && staticToken == token {
+		return http.StatusOK, nil
 	}
 
-	return http.StatusOK, nil
+	// check session token (CNFAdminSession)
+	sessionToken := getStrConfigValue(CNFAdminSession, "")
+	if sessionToken != "" && sessionToken == token {
+		return http.StatusOK, nil
+	}
+
+	// token is invalid
+	clientIP := getClientIP(r)
+	RecordIPAuthFailure(clientIP)
+	return http.StatusUnauthorized, errors.New("invalid admin token")
 }
 
 // ParamSessionToken compares session token with token query param
