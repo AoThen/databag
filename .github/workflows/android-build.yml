@@ -5,7 +5,7 @@ on:
   push:
     branches: [ bulid ]
     paths:
-      - 'app/**'
+      - 'app/client/mobile/**'
       - '.github/workflows/android-build.yml'
 
 

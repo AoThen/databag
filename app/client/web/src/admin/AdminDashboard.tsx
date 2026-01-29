@@ -52,9 +52,6 @@ export function AdminDashboard() {
   const [cleanupResult, setCleanupResult] = useState<any>(null)
   const [settingsOpened, { open: settingsOpen, close: cleanupClose }] = useDisclosure(false)
   const [statusOpened, { open: statusOpen, close: statusClose }] = useDisclosure(false)
-  
-  const [settingsOpened, { open: settingsOpen, close: settingsClose }] = useDisclosure(false)
-  const [statusOpened, { open: statusOpen, close: statusClose }] = useDisclosure(false)
 
   const strings = display.state.strings
 
