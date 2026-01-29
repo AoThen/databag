@@ -178,16 +178,16 @@ const APPPasswordMinLength = 8
 const APPPasswordMaxLength = 128
 
 // APPPasswordRequireUpper require uppercase letters in password
-const APPPasswordRequireUpper = false
+const APPPasswordRequireUpper = true
 
 // APPPasswordRequireLower require lowercase letters in password
-const APPPasswordRequireLower = false
+const APPPasswordRequireLower = true
 
 // APPPasswordRequireNumber require numbers in password
-const APPPasswordRequireNumber = false
+const APPPasswordRequireNumber = true
 
 // APPPasswordRequireSpecial require special characters in password
-const APPPasswordRequireSpecial = false
+const APPPasswordRequireSpecial = true
 
 // APPIPBlockDuration default IP block duration in hours
 const APPIPBlockDuration = 1

@@ -32,14 +32,14 @@ services:
       - DATABAG_PASSWORD_MIN_LENGTH=8
       # 密码最大长度，默认 128 字符
       - DATABAG_PASSWORD_MAX_LENGTH=128
-      # 要求大写字母，设置为 true 启用
-      # - DATABAG_PASSWORD_REQUIRE_UPPER=true
-      # 要求小写字母，设置为 true 启用
-      # - DATABAG_PASSWORD_REQUIRE_LOWER=true
-      # 要求数字，设置为 true 启用
-      # - DATABAG_PASSWORD_REQUIRE_NUMBER=true
-      # 要求特殊字符，设置为 true 启用
-      # - DATABAG_PASSWORD_REQUIRE_SPECIAL=true
+      # 要求大写字母，已启用（与客户端验证保持一致）
+      - DATABAG_PASSWORD_REQUIRE_UPPER=true
+      # 要求小写字母，已启用（与客户端验证保持一致）
+      - DATABAG_PASSWORD_REQUIRE_LOWER=true
+      # 要求数字，已启用（与客户端验证保持一致）
+      - DATABAG_PASSWORD_REQUIRE_NUMBER=true
+      # 要求特殊字符，已启用（与客户端验证保持一致）
+      - DATABAG_PASSWORD_REQUIRE_SPECIAL=true
 
       # ========== IP 拉黑配置 ==========
       # 触发IP拉黑的失败次数阈值，默认 5 次

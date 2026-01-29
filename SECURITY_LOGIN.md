@@ -49,7 +49,7 @@
 - 必须包含特殊字符
 
 **默认配置：**
-仅启用最小和最大长度限制，其他要求默认关闭，以免破坏现有用户密码。
+服务端和客户端已统一启用强密码策略（要求大小写字母、数字、特殊字符），确保账户安全。
 
 ## 环境变量配置
 
@@ -60,62 +60,76 @@
 | 环境变量 | 说明 | 默认值 | 推荐值 |
 |---------|------|--------|--------|
 | `DATABAG_LOGIN_FAIL_PERIOD` | 登录失败锁定时间窗口（秒） | 300 (5分钟) | 300-600 |
-| `DATABAG_LOGIN_FAIL_COUNT` | 登录失败次数阈值 | 5 | 3-5 |
+| `DATABAG_LOGIN_FAIL_COUNT` | 登录失败次数阈值 | 10 | 3-5（生产环境建议收紧） |
 | `DATABAG_LOGIN_ALLOW_WAIT` | 登录失败响应延迟基础时间（秒） | 1 | 1-2 |
 
 ### 密码强度参数
 
 | 环境变量 | 说明 | 默认值 | 推荐值 |
 |---------|------|--------|--------|
-| `DATABAG_PASSWORD_MIN_LENGTH` | 密码最小长度 | 8 | 12+ |
+| `DATABAG_PASSWORD_MIN_LENGTH` | 密码最小长度 | 8 | 12+（生产环境建议） |
 | `DATABAG_PASSWORD_MAX_LENGTH` | 密码最大长度 | 128 | 128 |
-| `DATABAG_PASSWORD_REQUIRE_UPPER` | 要求大写字母 | false | true |
-| `DATABAG_PASSWORD_REQUIRE_LOWER` | 要求小写字母 | false | true |
-| `DATABAG_PASSWORD_REQUIRE_NUMBER` | 要求数字 | false | true |
-| `DATABAG_PASSWORD_REQUIRE_SPECIAL` | 要求特殊字符 | false | true |
+| `DATABAG_PASSWORD_REQUIRE_UPPER` | 要求大写字母 | **true**（已启用） | true |
+| `DATABAG_PASSWORD_REQUIRE_LOWER` | 要求小写字母 | **true**（已启用） | true |
+| `DATABAG_PASSWORD_REQUIRE_NUMBER` | 要求数字 | **true**（已启用） | true |
+| `DATABAG_PASSWORD_REQUIRE_SPECIAL` | 要求特殊字符 | **true**（已启用） | true |
+
+> **重要提示**：密码复杂度要求默认已启用，与客户端验证规则保持一致。如需放宽限制（如开发环境），可将相应的 `REQUIRE_*` 环境变量设置为 `false` 或移除。
 
 ## 配置示例
 
-### 生产环境推荐配置
+### 生产环境配置（严格）
 
 ```yaml
 services:
   app:
     environment:
-      # 管理员密码
+      # 管理员密码（必须设置强密码）
       - ADMIN=your-secure-admin-password
 
-      # 登录安全
+      # 登录安全（比默认更严格）
       - DATABAG_LOGIN_FAIL_PERIOD=600      # 10 分钟锁定窗口
-      - DATABAG_LOGIN_FAIL_COUNT=3         # 3 次失败后锁定
+      - DATABAG_LOGIN_FAIL_COUNT=3         # 3 次失败后锁定（默认10）
       - DATABAG_LOGIN_ALLOW_WAIT=2         # 2 秒基础延迟
+      - DATABAG_IP_BLOCK_THRESHOLD=3       # 3次失败后封禁IP
+      - DATABAG_IP_BLOCK_BASE_DURATION=2   # 封禁至少2小时
 
-      # 密码强度（生产环境建议启用）
-      - DATABAG_PASSWORD_MIN_LENGTH=12     # 最少 12 字符
+      # 密码强度（默认已启用，可进一步收紧）
+      - DATABAG_PASSWORD_MIN_LENGTH=12     # 最少 12 字符（默认8）
       - DATABAG_PASSWORD_MAX_LENGTH=128    # 最多 128 字符
+      # 以下已默认启用，客户端也会相应验证
       - DATABAG_PASSWORD_REQUIRE_UPPER=true
       - DATABAG_PASSWORD_REQUIRE_LOWER=true
       - DATABAG_PASSWORD_REQUIRE_NUMBER=true
       - DATABAG_PASSWORD_REQUIRE_SPECIAL=true
 ```
 
-### 开发环境配置
+### 开发/测试环境配置（宽松）
 
 ```yaml
 services:
   app:
     environment:
-      - ADMIN=admin
+      # 使用简单的管理员密码
+      - ADMIN=admin123
 
       # 宽松的登录限制便于测试
       - DATABAG_LOGIN_FAIL_PERIOD=60       # 1 分钟锁定窗口
-      - DATABAG_LOGIN_FAIL_COUNT=10        # 允许更多失败尝试
+      - DATABAG_LOGIN_FAIL_COUNT=10        # 允许更多失败尝试（默认10）
       - DATABAG_LOGIN_ALLOW_WAIT=0         # 关闭延迟
+      # 禁用IP封禁
+      - DATABAG_IP_BLOCK_THRESHOLD=999
 
       # 宽松的密码要求
-      - DATABAG_PASSWORD_MIN_LENGTH=6
-      # 不启用复杂度要求
+      - DATABAG_PASSWORD_MIN_LENGTH=6      # 降低最小长度
+      # 禁用密码复杂度要求（注意：需要同时修改客户端验证规则）
+      - DATABAG_PASSWORD_REQUIRE_UPPER=false
+      - DATABAG_PASSWORD_REQUIRE_LOWER=false
+      - DATABAG_PASSWORD_REQUIRE_NUMBER=false
+      - DATABAG_PASSWORD_REQUIRE_SPECIAL=false
 ```
+
+> **注意**：如果禁用密码复杂度要求，需要同时修改客户端的验证规则（`app/mobile/src/utils/validation.js`和 `app/client/web/src/utils/validation.js`），否则客户端会拒绝不符合强密码规则的注册请求。
 
 ## 数据库变更
 
@@ -132,12 +146,36 @@ ALTER TABLE account ADD COLUMN login_failed_count INTEGER DEFAULT 0;
 
 ### 1. 生产环境配置
 
-- 设置严格的密码策略（最小长度 12+，要求大小写数字特殊字符）
-- 将登录失败阈值设置为 3-5 次
-- 锁定时间窗口设置为 10-30 分钟
+- **已默认启用密码复杂度要求**（大小写字母、数字、特殊字符）
+- 将密码最小长度提升到 12+ 字符（默认8）
+- 将登录失败阈值从默认的10次降低到 3-5 次
+- 锁定时间窗口设置为 10-30 分钟（默认5分钟）
+- 配置IP封禁策略（默认：5次失败后封禁，至少1小时）
 - 启用 MFA 双因素认证（已有功能）
 
-### 2. 监控建议
+### 2. 升级注意事项（重要）
+
+**对于现有部署：**
+- 服务端密码复杂度要求已从 `false` 更改为 `true`（默认启用）
+- 这可能会影响现有用户在修改密码时的体验
+- 如果现有用户的密码不符合新规则，会在修改密码时提示错误
+- **不影响已登录用户**，只在设置/修改密码时应用新规则
+
+**如需回退到之前的行为：**
+在 docker-compose.yml 中添加以下环境变量：
+```yaml
+- DATABAG_PASSWORD_REQUIRE_UPPER=false
+- DATABAG_PASSWORD_REQUIRE_LOWER=false
+- DATABAG_PASSWORD_REQUIRE_NUMBER=false
+- DATABAG_PASSWORD_REQUIRE_SPECIAL=false
+```
+
+**客户端与服务端同步：**
+- 移动端和 Web 端的密码验证规则已与服务端保持一致
+- 前端会在用户输入时即时提示密码规则
+- 确保服务端和客户端都使用相同的环境变量配置
+
+### 3. 监控建议
 
 - 监控频繁失败的登录尝试
 - 检查是否有特定 IP 或账号被频繁锁定
