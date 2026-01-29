@@ -93,7 +93,7 @@ export function Service() {
       )}
       {serviceState.layout === 'large' && (
         <div className={classes.display}>
-          <Accounts openSetup={openSetup} openIPBlock={openIPBlock} openCleanup={() => setTab('cleanup')} />
+          <Accounts openSetup={openSetup} openIPBlock={openIPBlock} openCleanup={cleanupOpen} />
           <Drawer opened={setup} onClose={closeSetup} withCloseButton={false} size="550px" padding="0" position="right">
             <div style={{ height: '100vh' }}>
               <Setup />

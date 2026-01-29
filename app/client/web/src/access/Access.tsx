@@ -25,16 +25,6 @@ export function Access() {
           await actions.accountAccess()
         } else if (state.mode === 'admin') {
           await actions.adminLogin()
-          // 添加调试信息
-          console.log('[Access] Admin login completed, checking service state...')
-          setTimeout(() => {
-            const app = require('../context/AppContext').useAppContext()
-            console.log('[Access] App state after admin login:', app.state)
-            console.log('[Access] Service object:', app.state.service)
-            if (app.state.service) {
-              console.log('[Access] Service token:', (app.state.service as any).token)
-            }
-          }, 100)
         }
         otpClose()
       } catch (err) {
