@@ -110,6 +110,8 @@ export function Access() {
         useNativeDriver: false,
       }).start(() => fadeIn(mode));
     } else {
+      // Android: 确保动画值正确设置
+      switching.setValue(1);
       actions.setMode(mode);
     }
   };
@@ -199,7 +201,7 @@ export function Access() {
               </Animated.View>
             )}
             {state.mode === 'admin' && (
-              <Animated.View style={[styles.blocks, {opacity: switching}]}>
+              <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.adminAccess}</Text>
                 <View style={styles.block}>
                   <TextInput
@@ -261,7 +263,7 @@ export function Access() {
               </Animated.View>
             )}
             {state.mode === 'reset' && (
-              <Animated.View style={[styles.blocks, {opacity: switching}]}>
+              <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.accessAccount}</Text>
                 <View style={styles.block}>
                   <TextInput
@@ -318,7 +320,7 @@ export function Access() {
               </Animated.View>
             )}
             {state.mode === 'create' && (
-              <Animated.View style={[styles.blocks, {opacity: switching}]}>
+              <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.createAccount}</Text>
                 <View style={styles.block}>
                   <TextInput
@@ -412,7 +414,7 @@ export function Access() {
               </Animated.View>
             )}
             {state.mode === 'account' && (
-              <Animated.View style={[styles.blocks, {opacity: switching}]}>
+              <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.login}</Text>
                 <View style={styles.block}>
                   <TextInput

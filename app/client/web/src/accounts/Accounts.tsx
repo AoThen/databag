@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react'
 import classes from './Accounts.module.css'
 import { useAccounts } from './useAccounts.hook'
 import { Modal, Text, ActionIcon, Button, Tooltip } from '@mantine/core'
-import { TbUserPlus, TbUserCheck, TbCopy, TbCheck, TbReload, TbSettings, TbLockOpen2, TbUserCancel, TbTrash, TbShield } from "react-icons/tb";
+import { TbUserPlus, TbUserCheck, TbCopy, TbCheck, TbReload, TbSettings, TbLockOpen2, TbUserCancel, TbTrash, TbShield, TbDatabase } from "react-icons/tb";
 import { Card } from '../card/Card'
 import { Colors } from '../constants/Colors'
 import { modals } from '@mantine/modals'
 import { useDisclosure } from '@mantine/hooks'
 
-export function Accounts({ openSetup, openIPBlock }: { openSetup: () => void; openIPBlock: () => void }) {
+export function Accounts({ openSetup, openIPBlock, openCleanup }: { openSetup: () => void; openIPBlock: () => void; openCleanup?: () => void }) {
   const { state, actions } = useAccounts()
   const [loading, setLoading] = useState(false)
   const [blocking, setBlocking] = useState(null as null | number)

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Statistic, Progress, Button, Space, Tag } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined, ClearOutlined, DatabaseOutlined, CloudOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, ArrowDownOutlined, ClearOutlined, DatabaseOutlined, CloudOutlined, ClusterOutlined } from '@ant-design/icons';
 import memoryManager from 'utils/memoryManager';
 import streamingAsset from 'utils/streamingAsset';
 import mediaCache from 'utils/indexedDBUtil';
@@ -9,7 +9,8 @@ export function PerformanceMonitor() {
   const [stats, setStats] = useState({
     memory: { usedHeap: 0, totalHeap: 0, usagePercent: 0 },
     blob: { usedMemory: 0, count: 0, maxMemory: 0, usagePercent: 0 },
-    storage: { quota: 0, usage: 0, usagePercent: 0 }
+    storage: { quota: 0, usage: 0, usagePercent: 0 },
+    worker: { totalWorkers: 0, idleWorkers: 0, busyWorkers: 0, queuedTasks: 0, initialized: false }
   });
   const [visible, setVisible] = useState(false);
 
@@ -17,6 +18,7 @@ export function PerformanceMonitor() {
     const memoryStats = memoryManager.getStats();
     const streamingStats = streamingAsset.getMemoryStats();
     const cacheStats = await mediaCache.getStats();
+    const workerStats = streamingStats.workerStats || { totalWorkers: 0, idleWorkers: 0, busyWorkers: 0, queuedTasks: 0, initialized: false };
 
     setStats({
       memory: {
@@ -34,6 +36,13 @@ export function PerformanceMonitor() {
         quota: cacheStats.quota || memoryStats.storage?.quota || 0,
         usage: cacheStats.totalSize || memoryStats.storage?.usage || 0,
         usagePercent: parseFloat(cacheStats.usagePercent || memoryStats.storage?.usagePercent || 0)
+      },
+      worker: {
+        totalWorkers: workerStats.totalWorkers || 0,
+        idleWorkers: workerStats.idleWorkers || 0,
+        busyWorkers: workerStats.busyWorkers || 0,
+        queuedTasks: workerStats.queuedTasks || 0,
+        initialized: workerStats.initialized || false
       }
     });
   }, []);
@@ -62,9 +71,9 @@ export function PerformanceMonitor() {
 
   if (!visible) {
     return (
-      <Button 
-        type="text" 
-        icon={<DatabaseOutlined />} 
+      <Button
+        type="text"
+        icon={<DatabaseOutlined />}
         onClick={() => setVisible(true)}
         style={{ position: 'fixed', bottom: 80, right: 16, zIndex: 1000 }}
       >
@@ -74,12 +83,12 @@ export function PerformanceMonitor() {
   }
 
   return (
-    <div style={{ 
-      position: 'fixed', 
-      bottom: 80, 
-      right: 16, 
+    <div style={{
+      position: 'fixed',
+      bottom: 80,
+      right: 16,
       zIndex: 1000,
-      width: 320
+      width: 340
     }}>
       <Card
         title="Performance Monitor"
@@ -103,9 +112,9 @@ export function PerformanceMonitor() {
             <span>JS Heap</span>
             <span>{formatSize(stats.memory.usedHeap)} / {formatSize(stats.memory.totalHeap)}</span>
           </div>
-          <Progress 
-            percent={Math.min(100, stats.memory.usagePercent)} 
-            size="small" 
+          <Progress
+            percent={Math.min(100, stats.memory.usagePercent)}
+            size="small"
             status={stats.memory.usagePercent > 80 ? 'exception' : 'normal'}
             showInfo={false}
           />
@@ -116,8 +125,8 @@ export function PerformanceMonitor() {
             <span>Blob URLs</span>
             <span>{formatSize(stats.blob.usedMemory)} ({stats.blob.count})</span>
           </div>
-          <Progress 
-            percent={Math.min(100, stats.blob.usagePercent)} 
+          <Progress
+            percent={Math.min(100, stats.blob.usagePercent)}
             size="small"
             status={stats.blob.usagePercent > 80 ? 'exception' : 'normal'}
             showInfo={false}
@@ -129,11 +138,28 @@ export function PerformanceMonitor() {
             <span><CloudOutlined /> IndexedDB Cache</span>
             <span>{formatSize(stats.storage.usage)}</span>
           </div>
-          <Progress 
-            percent={Math.min(100, stats.storage.usagePercent)} 
+          <Progress
+            percent={Math.min(100, stats.storage.usagePercent)}
             size="small"
             showInfo={false}
           />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span><ClusterOutlined /> Decrypt Workers</span>
+            <span>{stats.worker.idleWorkers}/{stats.worker.totalWorkers} idle</span>
+          </div>
+          {stats.worker.initialized ? (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Tag color="blue">Workers: {stats.worker.totalWorkers}</Tag>
+              <Tag color="green">Idle: {stats.worker.idleWorkers}</Tag>
+              <Tag color="orange">Busy: {stats.worker.busyWorkers}</Tag>
+              <Tag color="purple">Queue: {stats.worker.queuedTasks}</Tag>
+            </div>
+          ) : (
+            <Tag color="red">Workers: Not Available</Tag>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -145,6 +171,9 @@ export function PerformanceMonitor() {
           </Tag>
           <Tag color={streamingAsset.featureSupport.indexedDB ? 'green' : 'red'}>
             IDB: {streamingAsset.featureSupport.indexedDB ? '✓' : '✗'}
+          </Tag>
+          <Tag color={streamingAsset.featureSupport.worker ? 'green' : 'red'}>
+            Worker: {streamingAsset.featureSupport.worker ? '✓' : '✗'}
           </Tag>
         </div>
       </Card>

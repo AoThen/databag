@@ -37,7 +37,9 @@ interface CleanupConfig {
 export function AdminDashboard() {
   const app = useContext(AppContext) as ContextType
   const display = useContext(DisplayContext) as ContextType
-  
+
+  const adminToken = app.state.service?.getToken?.() || (app.state.service as any)?.token || ''
+
   const [status, setStatus] = useState<CleanupStatus | null>(null)
   const [config, setConfigState] = useState<CleanupConfig>({
     cleanupEnabled: false,
@@ -55,13 +57,15 @@ export function AdminDashboard() {
   const strings = display.state.strings
 
   useEffect(() => {
-    loadStatus()
-    loadConfig()
-  }, [])
+    if (adminToken) {
+      loadStatus()
+      loadConfig()
+    }
+  }, [adminToken])
 
   const loadStatus = async () => {
     try {
-      const data = await cleanupApi.getCleanupStatus(app.state.adminToken!)
+      const data = await cleanupApi.getCleanupStatus(adminToken)
       setStatus(data)
     } catch (err) {
       console.error('Failed to load cleanup status:', err)
@@ -70,7 +74,7 @@ export function AdminDashboard() {
 
   const loadConfig = async () => {
     try {
-      const data = await cleanupApi.getCleanupConfig(app.state.adminToken!)
+      const data = await cleanupApi.getCleanupConfig(adminToken)
       setConfigState({
         cleanupEnabled: data.cleanupEnabled || false,
         cleanupIntervalHours: data.cleanupIntervalHours || 24,
@@ -85,8 +89,8 @@ export function AdminDashboard() {
   const saveConfig = async () => {
     setLoading(true)
     try {
-      await cleanupApi.setCleanupConfig(app.state.adminToken!, config)
-      settingsClose()
+      await cleanupApi.setCleanupConfig(adminToken, config)
+      cleanupClose()
       loadStatus()
     } catch (err) {
       console.error('Failed to save config:', err)
@@ -104,7 +108,7 @@ export function AdminDashboard() {
   const executeCleanup = async (dryRun: boolean) => {
     setCleaning(true)
     try {
-      const result = await cleanupApi.cleanupData(app.state.adminToken!, {
+      const result = await cleanupApi.cleanupData(adminToken, {
         retentionDays: config.messageRetentionDays,
         includeAssets: true,
         dryRun: dryRun,

@@ -3,10 +3,11 @@ import { Drawer, Tooltip, ActionIcon } from '@mantine/core'
 import classes from './Service.module.css'
 import { useService } from './useService.hook'
 import { useIPBlock } from './useIPBlock'
-import { TbAddressBook, TbSettings, TbShield } from "react-icons/tb";
+import { TbAddressBook, TbSettings, TbShield, TbTrash, TbDatabase } from "react-icons/tb";
 import { Accounts } from '../accounts/Accounts'
 import { Setup } from '../setup/Setup'
 import { IPBlockModal } from './IPBlockModal'
+import { AdminDashboard } from '../admin/AdminDashboard'
 import { useDisclosure } from '@mantine/hooks'
 import { AppContext } from '../context/AppContext'
 
@@ -15,7 +16,8 @@ export function Service() {
   const app = useContext(AppContext);
   const [tab, setTab] = useState('accounts')
   const [setup, { open: openSetup, close: closeSetup }] = useDisclosure(false)
-  
+  const [cleanup, { open: cleanupOpen, close: cleanupClose }] = useDisclosure(false)
+
   const { state: ipState, actions: ipActions } = useIPBlock(app)
 
   const openIPBlock = () => {
@@ -34,7 +36,12 @@ export function Service() {
             </div>
             <div className={tab === 'accounts' ? classes.show : classes.hide}>
               <div className={classes.screen}>
-                <Accounts openSetup={() => {}} openIPBlock={openIPBlock} />
+                <Accounts openSetup={() => {}} openIPBlock={openIPBlock} openCleanup={() => setTab('cleanup')} />
+              </div>
+            </div>
+            <div className={tab === 'cleanup' ? classes.show : classes.hide}>
+              <div className={classes.screen}>
+                <AdminDashboard />
               </div>
             </div>
           </div>
@@ -48,6 +55,21 @@ export function Service() {
               <div className={classes.idleTabItem} onClick={() => setTab('accounts')}>
                 <TbAddressBook className={classes.tabIcon} />
               </div>
+            )}
+            <div className={classes.tabDivider} />
+            {tab === 'cleanup' && (
+              <Tooltip label="数据清理" withArrow>
+                <div className={classes.activeTabItem} onClick={() => setTab('cleanup')}>
+                  <TbTrash className={classes.tabIcon} />
+                </div>
+              </Tooltip>
+            )}
+            {tab !== 'cleanup' && (
+              <Tooltip label="数据清理" withArrow>
+                <div className={classes.idleTabItem} onClick={() => setTab('cleanup')}>
+                  <TbTrash className={classes.tabIcon} />
+                </div>
+              </Tooltip>
             )}
             <div className={classes.tabDivider} />
             {tab === 'setup' && (
@@ -71,10 +93,15 @@ export function Service() {
       )}
       {serviceState.layout === 'large' && (
         <div className={classes.display}>
-          <Accounts openSetup={openSetup} openIPBlock={openIPBlock} />
+          <Accounts openSetup={openSetup} openIPBlock={openIPBlock} openCleanup={() => setTab('cleanup')} />
           <Drawer opened={setup} onClose={closeSetup} withCloseButton={false} size="550px" padding="0" position="right">
             <div style={{ height: '100vh' }}>
               <Setup />
+            </div>
+          </Drawer>
+          <Drawer opened={cleanup} onClose={cleanupClose} withCloseButton={true} size="700px" padding="0" position="right">
+            <div style={{ height: '100vh', overflow: 'auto' }}>
+              <AdminDashboard />
             </div>
           </Drawer>
         </div>

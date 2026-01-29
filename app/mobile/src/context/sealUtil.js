@@ -2,7 +2,7 @@ import CryptoJS from 'crypto-js';
 import { RSA } from 'react-native-rsa-native';
 import { JSEncrypt } from 'jsencrypt'
 
-const PBKDF2_ITERATIONS_NEW = 600000;
+const PBKDF2_ITERATIONS_NEW = 10240;
 const PBKDF2_ITERATIONS_LEGACY = 1024;
 
 export function getChannelSeals(subject) {
