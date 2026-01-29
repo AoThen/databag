@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Progress, Modal, Spin } from 'antd';
 import ReactResizeDetector from 'react-resize-detector';
 import { PlayCircleOutlined, MinusCircleOutlined, SoundOutlined } from '@ant-design/icons';
@@ -8,22 +8,29 @@ import { Colors } from 'constants/Colors';
 
 import background from 'images/audio.png';
 
-export function AudioAsset({ asset }) {
-
+export function AudioAsset({ asset, contentKey }) {
   const [width, setWidth] = useState(0);
   const [playing, setPlaying] = useState(true);
 
-  const { actions, state } = useAudioAsset(asset);
+  const { actions, state } = useAudioAsset(asset, contentKey);
 
-  const audio = useRef(null);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (state.streaming && actions.setRef && audioRef.current) {
+      actions.setRef(audioRef.current);
+    }
+  }, [state.streaming, actions]);
 
   const play = (on) => {
     setPlaying(on);
-    if (on) {
-      audio.current.play();
-    }
-    else {
-      audio.current.pause();
+    if (audioRef.current) {
+      if (on) {
+        audioRef.current.play();
+      }
+      else {
+        audioRef.current.pause();
+      }
     }
   }
 
@@ -45,8 +52,14 @@ export function AudioAsset({ asset }) {
         <div class="label">{ asset.label }</div>
       </div>
       <Modal centered={true} visible={state.active} width={256 + 12} bodyStyle={{ width: '100%', height: 'auto', paddingBottom: 6, paddingTop: 6, paddingLeft: 6, paddingRight: 6, backgroundColor: '#dddddd' }} footer={null} destroyOnClose={true} closable={false} onCancel={actions.clearActive}>
-        <audio style={{ position: 'absolute', top: 0, visibility: 'hidden' }} autoplay="true"
-          src={state.url} type="audio/mpeg" ref={audio} onPlay={actions.ready} />
+        <audio 
+          style={{ position: 'absolute', top: 0, visibility: 'hidden' }} 
+          autoplay="true"
+          src={state.url} 
+          type="audio/mpeg" 
+          ref={audioRef} 
+          onPlay={actions.ready}
+        />
         <AudioModalWrapper>
           <img class="background" src={background} alt="audio background" />
           { state.loading && state.error && (
@@ -59,6 +72,9 @@ export function AudioAsset({ asset }) {
               <Spin size="large" delay={250} />
               { state.total !== 0 && (
                 <Progress percent={Math.floor(100 * state.block / state.total)} size="small" showInfo={false} trailColor={Colors.white} strokeColor={Colors.background} />
+              )}
+              { state.streaming && (
+                <div style={{ fontSize: 12, marginTop: 8, color: Colors.background }}>Streaming...</div>
               )}
             </div>
           )}
@@ -83,4 +99,3 @@ export function AudioAsset({ asset }) {
     </AudioAssetWrapper>
   )
 }
-

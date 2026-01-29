@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchWithTimeout } from 'api/fetchUtil';
 import { decryptBlock } from 'context/sealUtil';
+import streamingAsset from 'utils/streamingAsset';
 
 export function useTopicItem(topic, contentKey, strings, menuStyle) {
 
@@ -23,6 +24,10 @@ export function useTopicItem(topic, contentKey, strings, menuStyle) {
     return bytes;
   }
 
+  const getAssetUrl = useCallback((partId) => {
+    return topic.assetUrl(partId, topic.id);
+  }, [topic]);
+
   useEffect(() => {
     const assets = [];
     if (topic.assets?.length) {
@@ -30,36 +35,54 @@ export function useTopicItem(topic, contentKey, strings, menuStyle) {
         if (asset.encrypted) {
           const encrypted = true;
           const { type, thumb, label, extension, parts } = asset.encrypted;
+
           const getDecryptedBlob = async (abort, progress) => {
-            let pos = 0;
-            let len = 0;
-            
-            const slices = []
-            for (let i = 0; i < parts.length; i++) {
-              if (abort()) {
-                throw new Error("asset unseal aborted");
-              }
-              progress(i, parts.length);
-              const part = parts[i];
-              const url = topic.assetUrl(part.partId, topic.id);
-              const response = await fetchWithTimeout(url, { method: 'GET' });
-              const block = await response.text();
-              const decrypted = decryptBlock(block, part.blockIv, contentKey);
-              const slice = base64ToUint8Array(decrypted);
-              slices.push(slice);
-              len += slice.byteLength;
-            };
-            progress(parts.length, parts.length);
-            
-            const data = new Uint8Array(len)
-            for (let i = 0; i < slices.length; i++) {
-              const slice = slices[i];
-              data.set(slice, pos);
-              pos += slice.byteLength
+            const enrichedParts = parts.map(part => ({
+              ...part,
+              assetUrl: getAssetUrl(part.partId)
+            }));
+
+            const blob = await streamingAsset.getStreamedBlob(
+              enrichedParts,
+              decryptBlock,
+              contentKey,
+              abort,
+              progress
+            );
+            return blob;
+          };
+
+          const getStreamingMedia = async (mediaElement, abort, progress) => {
+            if (type !== 'video' && type !== 'audio') {
+              throw new Error('Streaming only supported for video and audio');
             }
-            return new Blob([data]); 
-          }
-          assets.push({ type, thumb, label, extension, encrypted, getDecryptedBlob });
+
+            const enrichedParts = parts.map(part => ({
+              ...part,
+              assetUrl: getAssetUrl(part.partId),
+              mimeType: extension ? `video/${extension}` : undefined
+            }));
+
+            return await streamingAsset.getStreamingMedia(
+              enrichedParts,
+              decryptBlock,
+              contentKey,
+              mediaElement,
+              abort,
+              progress
+            );
+          };
+
+          assets.push({
+            type,
+            thumb,
+            label,
+            extension,
+            encrypted,
+            getDecryptedBlob,
+            getStreamingMedia,
+            parts: parts.map(part => ({ ...part, assetUrl: getAssetUrl(part.partId) }))
+          });
         }
         else {
           const encrypted = false

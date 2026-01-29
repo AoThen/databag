@@ -12,7 +12,7 @@ import { useTopicItem } from './useTopicItem.hook';
 export function TopicItem({ host, contentKey, sealed, topic, update, remove, strings, colors, menuStyle }) {
 
   const [ modal, modalContext ] = Modal.useModal();
-  const { state, actions } = useTopicItem(topic, contentKey);
+  const { state, actions } = useTopicItem(topic, contentKey, strings, menuStyle);
 
   const removeTopic = () => {
     modal.confirm({
@@ -55,16 +55,16 @@ export function TopicItem({ host, contentKey, sealed, topic, update, remove, str
 
   const renderAsset = (asset, idx) => {
     if (asset.type === 'image') {
-      return <ImageAsset asset={asset} />
+      return <ImageAsset asset={asset} contentKey={contentKey} />
     }
     if (asset.type === 'video') {
-      return <VideoAsset asset={asset} />
+      return <VideoAsset asset={asset} contentKey={contentKey} />
     }
     if (asset.type === 'audio') {
-      return <AudioAsset asset={asset} />
+      return <AudioAsset asset={asset} contentKey={contentKey} />
     }
     if (asset.type === 'binary') {
-      return <BinaryAsset asset={asset} />
+      return <BinaryAsset asset={asset} contentKey={contentKey} />
     }
     return <></>
   }
@@ -147,4 +147,3 @@ export function TopicItem({ host, contentKey, sealed, topic, update, remove, str
     </TopicItemWrapper>
   )
 }
-

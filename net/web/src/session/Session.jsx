@@ -3,6 +3,7 @@ import { Modal, Drawer, Spin } from 'antd';
 import { CallingWrapper, RingingWrapper, SessionWrapper } from './Session.styled';
 import { useSession } from './useSession.hook';
 import { Conversation } from './conversation/Conversation';
+import { PerformanceMonitor } from './conversation/PerformanceMonitor';
 import { Details } from './details/Details';
 import { Identity } from './identity/Identity';
 import { Channels } from './channels/Channels';
@@ -378,6 +379,7 @@ export function Session() {
         </Modal>
       </SessionWrapper>
     </ThemeProvider>
+    <PerformanceMonitor />
   );
 }
 

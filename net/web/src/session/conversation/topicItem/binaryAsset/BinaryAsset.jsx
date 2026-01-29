@@ -6,11 +6,11 @@ import { BinaryAssetWrapper } from './BinaryAsset.styled';
 import { useBinaryAsset } from './useBinaryAsset.hook';
 import { Colors } from 'constants/Colors';
 
-export function BinaryAsset({ asset }) {
+export function BinaryAsset({ asset, contentKey }) {
 
   const [width, setWidth] = useState(0);
 
-  const { actions, state } = useBinaryAsset(asset);
+  const { actions, state } = useBinaryAsset(asset, contentKey);
 
   return (
     <BinaryAssetWrapper>
@@ -31,10 +31,12 @@ export function BinaryAsset({ asset }) {
           { state.unsealing && (
             <Progress percent={Math.floor(100 * state.block / state.total)} size="small" showInfo={false} trailColor={Colors.white} strokeColor={Colors.background} />
           )}
+          { state.cached && !state.unsealing && (
+            <div class="cached">Cached</div>
+          )}
         </div>
         <div class="extension">{ asset.extension }</div>
       </div>
     </BinaryAssetWrapper>
   )
 }
-

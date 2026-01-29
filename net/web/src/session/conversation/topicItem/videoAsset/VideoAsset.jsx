@@ -5,9 +5,8 @@ import { VideoAssetWrapper, VideoModalWrapper } from './VideoAsset.styled';
 import { useVideoAsset } from './useVideoAsset.hook';
 import { Colors } from 'constants/Colors';
 
-export function VideoAsset({ asset }) {
-
-  const { state, actions } = useVideoAsset(asset);
+export function VideoAsset({ asset, contentKey }) {
+  const { state, actions } = useVideoAsset(asset, contentKey);
 
   const activate = () => {
     if (state.dimension.width / state.dimension.height > window.innerWidth / window.innerHeight) {
@@ -54,14 +53,26 @@ export function VideoAsset({ asset }) {
                         <Spin size="large" delay={250} />
                         { state.total !== 0 && (
                           <Progress percent={Math.floor(100 * state.block / state.total)} size="small" showInfo={false} trailColor={Colors.white} strokeColor={Colors.background} />
-                        )} 
+                        )}
+                        { state.streaming && (
+                          <div style={{ fontSize: 12, marginTop: 8, color: Colors.background }}>Streaming...</div>
+                        )}
                       </div>
                     )}
                   </div>
               )}
               { !state.loading && (
-                <video style={{display: state.loaded ? 'block' : 'none'}} autoplay="true" controls src={state.url} width={state.width} height={state.height} 
-                    playsinline="true" onLoadedData={actions.setLoaded} />
+                <video 
+                  style={{display: state.loaded ? 'block' : 'none'}} 
+                  autoplay="true" 
+                  controls 
+                  src={state.url} 
+                  width={state.width} 
+                  height={state.height}
+                  playsinline="true" 
+                  onLoadedData={actions.setLoaded}
+                  ref={actions.setRef}
+                />
               )}
             </div>
           </VideoModalWrapper>
@@ -70,4 +81,3 @@ export function VideoAsset({ asset }) {
     </VideoAssetWrapper>
   )
 }
-

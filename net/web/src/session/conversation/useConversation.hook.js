@@ -25,6 +25,10 @@ export function useConversation(cardId, channelId) {
     colors: {},
     strings: {},
     menuStyle: {},
+    loadingInit: false,
+    loadingMore: false,
+    atEnd: false,
+    delayed: false,
   });
 
   const profile = useContext(ProfileContext);
@@ -110,6 +114,7 @@ export function useConversation(cardId, channelId) {
       const { card, channel } = conversationId.current;
       loading.current = true;
       conversationId.current = null;
+      updateState({ loadingInit: true, delayed: true });
       await conversation.actions.setChannel(card, channel);
       loading.current = false;
       await setChannel();
@@ -259,7 +264,7 @@ export function useConversation(cardId, channelId) {
     item.assetUrl = conversation.actions.getTopicAssetUrl;
   };
 
-  const syncChannel = () => { 
+  const syncChannel = () => {
     const messages = new Map();
     conversation.state.topics.forEach((value, id) => {
       const curCardId = conversation.state.card?.id;
@@ -284,12 +289,16 @@ export function useConversation(cardId, channelId) {
       return 1;
     });
 
-    updateState({ topics: sorted });
+    const atEnd = conversation.state.channel?.data?.topicMarker === conversation.state.channel?.data?.topicRevision;
+    updateState({ topics: sorted, atEnd, loadingInit: false, loadingMore: false });
   }
 
   const actions = {
     more: () => {
-      conversation.actions.loadMore();
+      if (!state.loadingMore) {
+        updateState({ loadingMore: true });
+        conversation.actions.loadMore();
+      }
     },
     resync: () => {
       conversation.actions.resync();

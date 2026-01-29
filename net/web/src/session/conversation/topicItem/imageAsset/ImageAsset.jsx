@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Progress, Modal, Spin } from 'antd';
 import ReactResizeDetector from 'react-resize-detector';
 import { ImageAssetWrapper, ImageModalWrapper } from './ImageAsset.styled';
 import { useImageAsset } from './useImageAsset.hook';
 import { Colors } from 'constants/Colors';
 
-export function ImageAsset({ asset }) {
-
-  const { state, actions } = useImageAsset(asset);
+export function ImageAsset({ asset, contentKey }) {
+  const { state, actions } = useImageAsset(asset, contentKey);
   const [dimension, setDimension] = useState({ width: 0, height: 0 });
 
   const popout = () => {
@@ -39,12 +38,22 @@ export function ImageAsset({ asset }) {
         <Modal centered={true} visible={state.popout} width={state.width + 12} bodyStyle={{ width: '100%', height: 'auto', paddingBottom: 6, paddingTop: 6, paddingLeft: 6, paddingRight: 6, backgroundColor: '#dddddd' }} footer={null} destroyOnClose={true} closable={false} onCancel={actions.clearPopout}>
           <ImageModalWrapper onClick={actions.clearPopout}>
             <div class="frame">
-              <img class="thumb" src={asset.thumb} alt="topic asset" />
+              { (state.progressiveUrl || asset.thumb) && !state.url && (
+                <img 
+                  class="thumb" 
+                  src={state.progressiveUrl || asset.thumb} 
+                  alt="topic asset preview"
+                  style={{ opacity: state.url ? 0 : 1 }}
+                />
+              )}
               { !state.error && (
                 <div class="loading">
                   <Spin size="large" delay={250} />
                   { state.total !== 0 && (
                     <Progress percent={Math.floor(100 * state.block / state.total)} size="small" showInfo={false} trailColor={Colors.white} strokeColor={Colors.background} />
+                  )}
+                  { state.progressive && (
+                    <div style={{ fontSize: 12, marginTop: 8, color: Colors.background }}>Progressive loading...</div>
                   )}
                 </div>
               )}
@@ -53,7 +62,7 @@ export function ImageAsset({ asset }) {
                   <Spin size="large" delay={250} />
                 </div>
               )}
-              { !state.loading && (
+              { !state.loading && state.url && (
                 <img class="full" src={state.url} alt="topic asset" />
               )}
             </div>
@@ -63,4 +72,3 @@ export function ImageAsset({ asset }) {
     </ImageAssetWrapper>
   )
 }
-
