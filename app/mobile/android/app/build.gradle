@@ -162,6 +162,9 @@ android {
                         defaultConfig.versionCode * 1000 + versionCodes.get(abi)
             }
 
+            def fileName = "Databag-v${versionName}-${variant.buildType.name}.apk"
+            output.outputFileName = fileName
+
         }
     }
 }
