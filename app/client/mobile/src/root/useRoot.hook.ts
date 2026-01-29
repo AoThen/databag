@@ -19,10 +19,11 @@ export function useRoot() {
   };
 
   useEffect(() => {
-    setTimeout(() => {
+    // 当应用真正初始化完成时隐藏SplashScreen，而不是硬编码5秒延迟
+    if (app.state.initialized) {
       SplashScreen.hide();
-    }, CLEAR_TIME);
-  }, []);
+    }
+  }, [app.state.initialized]);
 
   useEffect(() => {
     const {pathname} = location;

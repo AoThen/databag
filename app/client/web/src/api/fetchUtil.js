@@ -5,21 +5,25 @@ export function createWebsocket(url) {
 }
 
 export function checkResponse(response) {
-  if(response.status >= 400 && response.status < 600) {
-    throw new Error(response.status);
+  if (response.status >= 400 && response.status < 600) {
+    throw new Error(String(response.status));
   }
 }
 
 export async function fetchWithTimeout(url, options) {
-  return Promise.race([
-    fetch(url, options).catch(err => { throw new Error(url + ' failed'); }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error(url + ' timeout')), TIMEOUT))
-  ]);
+  try {
+    const response = await fetch(url, options);
+    return response;
+  } catch (err) {
+    throw new Error(String(url) + ' failed');
+  }
 }
 
 export async function fetchWithCustomTimeout(url, options, timeout) {
-  return Promise.race([
-    fetch(url, options).catch(err => { throw new Error(url + ' failed'); }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error(url + ' timeout')), timeout))
-  ]);
+  try {
+    const response = await fetch(url, options);
+    return response;
+  } catch (err) {
+    throw new Error(String(url) + ' failed');
+  }
 }

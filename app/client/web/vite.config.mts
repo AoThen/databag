@@ -17,6 +17,19 @@ export default defineConfig(() => ({
     port: 8080,
   },
   build: {
-      chunkSizeWarningLimit: 1600
-  }
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+  },
+  esbuild: {
+    supported: {
+      'top-level-await': true,
+    },
+  },
 }))

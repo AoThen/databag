@@ -215,6 +215,13 @@ export function Accounts({ openSetup, openIPBlock, openCleanup }: { openSetup: (
               <TbShield />
             </ActionIcon>
           </Tooltip>
+          {openCleanup && (
+            <Tooltip label="数据清理">
+              <ActionIcon className={classes.action} variant="light" color="orange" onClick={openCleanup}>
+                <TbTrash />
+              </ActionIcon>
+            </Tooltip>
+          )}
         </div>
         <div className={classes.members}>{members}</div>
       </div>

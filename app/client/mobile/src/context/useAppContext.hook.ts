@@ -62,24 +62,65 @@ export function useAppContext() {
   };
 
   const setup = async () => {
-    await local.current.open(SETTINGS_DB);
-    const favorite = JSON.parse(await local.current.get('favorite', JSON.stringify([])));
-    const fullDayTime = (await local.current.get('time_format', '12h')) === '24h';
-    const monthFirstDate = (await local.current.get('date_format', 'month_first')) === 'month_first';
-    const setLanguage = await local.current.get('language', null);
-    const fontSize = parseInt(await local.current.get('font_size', '0'), 10) || 0;
-    const keyboardOffset = parseInt(await local.current.get('keyboard_offset', '0'), 10) || 0;
-    const createSealed = (await local.current.get('create_sealed', 'true')) === 'true';
+    // 并行初始化数据库和基本设置
+    const [localDbReady, settingsData, locale] = await Promise.all([
+      local.current.open(SETTINGS_DB),
+      (async () => {
+        // 并行读取所有设置
+        const [
+          favoriteRaw,
+          timeFormat,
+          dateFormat,
+          setLanguage,
+          fontSizeRaw,
+          keyboardOffsetRaw,
+          createSealedRaw
+        ] = await Promise.all([
+          local.current.get('favorite', JSON.stringify([])),
+          local.current.get('time_format', '12h'),
+          local.current.get('date_format', 'month_first'),
+          local.current.get('language', null),
+          local.current.get('font_size', '0'),
+          local.current.get('keyboard_offset', '0'),
+          local.current.get('create_sealed', 'true')
+        ]);
+        
+        return {
+          favorite: JSON.parse(favoriteRaw),
+          fullDayTime: timeFormat === '24h',
+          monthFirstDate: dateFormat === 'month_first',
+          setLanguage,
+          fontSize: parseInt(fontSizeRaw, 10) || 0,
+          keyboardOffset: parseInt(keyboardOffsetRaw, 10) || 0,
+          createSealed: createSealedRaw === 'true'
+        };
+      })(),
+      (async () => {
+        // 获取设备语言
+        return Platform.OS === 'ios' 
+          ? NativeModules.SettingsManager?.settings.AppleLocale || NativeModules.SettingsManager?.settings.AppleLanguages[0]
+          : NativeModules.I18nManager?.localeIdentifier;
+      })()
+    ]);
 
-    const locale =
-      Platform.OS === 'ios' ? NativeModules.SettingsManager?.settings.AppleLocale || NativeModules.SettingsManager?.settings.AppleLanguages[0] : NativeModules.I18nManager?.localeIdentifier;
+    const {favorite, fullDayTime, monthFirstDate, setLanguage, fontSize, keyboardOffset, createSealed} = settingsData;
     const defaultLanguage = locale?.slice(0, 2) || '';
     const lang = setLanguage ? setLanguage : defaultLanguage;
     const language = lang === 'fr' ? 'fr' : lang === 'es' ? 'es' : lang === 'pt' ? 'pt' : lang === 'de' ? 'de' : lang === 'ru' ? 'ru' : lang === 'el' ? 'el' : lang === 'zh' ? 'zh' : 'en';
 
-    const store = new SessionStore();
-    await store.open(DATABAG_DB);
-    const session: Session | null = await sdk.current.initOfflineStore(store);
+    // 并行初始化SessionStore和SDK
+    const [store, session] = await Promise.all([
+      (async () => {
+        const sessionStore = new SessionStore();
+        await sessionStore.open(DATABAG_DB);
+        return sessionStore;
+      })(),
+      (async () => {
+        const sessionStore = new SessionStore();
+        await sessionStore.open(DATABAG_DB);
+        return sdk.current.initOfflineStore(sessionStore);
+      })()
+    ]);
     if (session) {
       updateState({session, fullDayTime, monthFirstDate, fontSize, keyboardOffset, createSealed, language, favorite, initialized: true});
     } else {

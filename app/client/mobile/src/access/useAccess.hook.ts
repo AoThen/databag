@@ -30,9 +30,7 @@ export function useAccess() {
     setState(s => ({...s, ...value}));
   };
 
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
+  // SplashScreen.hide() 已移至 useRoot.hook 基于初始化状态调用，避免重复调用
 
   useEffect(() => {
     const {username, token, node, secure, mode} = state;

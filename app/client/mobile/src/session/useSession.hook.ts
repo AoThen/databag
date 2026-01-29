@@ -23,9 +23,7 @@ export function useSession() {
 
   useEffect(() => {
     const setContentState = (loaded: boolean) => {
-      if (loaded) {
-        SplashScreen.hide();
-      }
+      // SplashScreen.hide() 已移至 useRoot.hook 统一管理，避免重复调用
     };
     const setSdkState = (sdkState: string) => {
       if (sdkState === 'closed') {
