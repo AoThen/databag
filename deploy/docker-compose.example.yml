@@ -1,0 +1,94 @@
+version: '3.8'
+
+# Databag Docker Compose 配置示例
+# 自动清理功能默认关闭，需要手动启用
+
+services:
+  databag:
+    image: databag/databag:latest
+    container_name: databag
+    hostname: databag
+    ports:
+      - "443:443"    # HTTPS 端口
+      - "80:80"      # HTTP 重定向端口
+    volumes:
+      - databag_data:/var/lib/databag  # 数据目录
+      - databag_web:/opt/databag       # Web应用目录
+      - databag_logs:/var/log/databag  # 日志目录
+    environment:
+      # ==================== 数据清理配置 ====================
+      
+      # 🚨 自动清理开关：默认 false，必须显式设置为 true 才启用
+      # 推荐值：false (推荐使用 Web 界面手动管理清理)
+      DATABAG_CLEANUP_ENABLED: "false"
+      
+      # 自动清理间隔（小时）：仅当 DATABAG_CLEANUP_ENABLED=true 时生效
+      # 推荐值：24 (每天一次)
+      # 可用范围：1-8760
+      DATABAG_CLEANUP_INTERVAL_HOURS: "24"
+      
+      # 消息保留天数：超过此天数的老消息将被清理
+      # 推荐值：90 (3个月)
+      # 可用范围：1-3650
+      DATABAG_MESSAGE_RETENTION_DAYS: "90"
+      
+      # 文件保留天数：超过此天数的老文件将被清理
+      # 推荐值：180 (6个月)
+      # 可用范围：1-3650
+      DATABAG_ASSET_RETENTION_DAYS: "180"
+      
+      # ==================== 可选配置 ====================
+      
+      # 日志级别：debug, info, warn, error
+      # 推荐值：info (生产环境)，debug (调试时)
+      DATABAG_LOG_LEVEL: "info"
+      
+      # 时区设置
+      TZ: "Asia/Shanghai"
+      
+      # 节点名称（可选，用于多节点部署）
+      # DATABAG_NODE_NAME: "node1"
+      
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "--no-check-certificate", "https://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    user: "1000:1000"  # 使用非 root 用户运行
+    networks:
+      - databag_network
+    labels:
+      - "com.databag.version=${DATABAG_VERSION:-latest}"
+      - "com.databag.cleanup=disabled"
+      - "maintainer=admin@example.com"
+
+# 命名网络
+networks:
+  databag_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+# 数据卷
+volumes:
+  databag_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/databag/data  # 修改为本地路径
+  databag_web:
+    driver: local
+  databag_logs:
+    driver: local
+
+# 说明：
+# 1. 数据清理功能默认关闭，需要手动启用
+# 2. 使用前请创建 /srv/databag/data 目录并设置权限
+# 3. 启动：docker-compose up -d
+# 4. 查看日志：docker-compose logs -f
+# 5. 停止：docker-compose down

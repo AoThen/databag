@@ -385,6 +385,34 @@ var endpoints = routes{
 	},
 
 	route{
+		"CleanupData",
+		strings.ToUpper("Post"),
+		"/admin/cleanup",
+		CleanupData,
+	},
+
+	route{
+		"GetCleanupStatus",
+		strings.ToUpper("Get"),
+		"/admin/cleanup/status",
+		GetCleanupStatus,
+	},
+
+	route{
+		"GetCleanupConfig",
+		strings.ToUpper("Get"),
+		"/admin/cleanup/config",
+		GetCleanupConfig,
+	},
+
+	route{
+		"SetCleanupConfig",
+		strings.ToUpper("Put"),
+		"/admin/cleanup/config",
+		SetCleanupConfig,
+	},
+
+	route{
 		"AddFlag",
 		strings.ToUpper("Post"),
 		"/account/flag/{guid}",

@@ -111,6 +111,21 @@ const CNFPasswordRequireNumber = "password_require_number"
 
 const CNFPasswordRequireSpecial = "password_require_special"
 
+// CNFCleanupEnabled enables automatic data cleanup
+const CNFCleanupEnabled = "cleanup_enabled"
+
+// CNFCleanupIntervalHours specifies cleanup interval in hours
+const CNFCleanupIntervalHours = "cleanup_interval_hours"
+
+// CNFMessageRetentionDays specifies how long to keep messages
+const CNFMessageRetentionDays = "message_retention_days"
+
+// CNFAssetRetentionDays specifies how long to keep assets
+const CNFAssetRetentionDays = "asset_retention_days"
+
+// CNFCleanupLastRun tracks last cleanup execution time
+const CNFCleanupLastRun = "cleanup_last_run"
+
 func getStrConfigValue(configID string, empty string) string {
 	var config store.Config
 	err := store.DB.Where("config_id = ?", configID).First(&config).Error

@@ -70,3 +70,19 @@ func getIPBlockThreshold() int64 {
 func getIPBlockMaxDuration() int64 {
 	return getLoginIntConfig("DATABAG_IP_BLOCK_MAX_DURATION", APPIPBlockMaxDuration)
 }
+
+func getCleanupEnabled() bool {
+	return getLoginBoolConfig("DATABAG_CLEANUP_ENABLED", false)
+}
+
+func getCleanupIntervalHours() int64 {
+	return getLoginIntConfig("DATABAG_CLEANUP_INTERVAL_HOURS", 24)
+}
+
+func getMessageRetentionDays() int64 {
+	return getLoginIntConfig("DATABAG_MESSAGE_RETENTION_DAYS", 90)
+}
+
+func getAssetRetentionDays() int64 {
+	return getLoginIntConfig("DATABAG_ASSET_RETENTION_DAYS", 180)
+}

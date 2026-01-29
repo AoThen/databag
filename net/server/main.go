@@ -161,6 +161,9 @@ func main() {
 
 	router := app.NewRouter(webApp)
 
+	// start automatic cleanup scheduler if enabled
+	app.StartCleanupScheduler()
+
 	// wrap router with rate limiting, security headers, then CORS
 	wrappedRouter := rateLimiter(securityHeaders(router))
 
