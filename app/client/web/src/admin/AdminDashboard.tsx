@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from 'react'
 import { AppContext } from '../context/AppContext'
 import { DisplayContext } from '../context/DisplayContext'
 import { ContextType } from '../context/ContextType'
-import { cleanupApi } from '../api/cleanupApi'
+import { cleanupData, getCleanupStatus, getCleanupConfig, setCleanupConfig } from '../api/cleanupApi'
 import classes from './AdminDashboard.module.css'
 import { 
   Modal, TextInput, PasswordInput, Button, Select, Switch, 
@@ -50,6 +50,8 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(false)
   const [cleaning, setCleaning] = useState(false)
   const [cleanupResult, setCleanupResult] = useState<any>(null)
+  const [settingsOpened, { open: settingsOpen, close: cleanupClose }] = useDisclosure(false)
+  const [statusOpened, { open: statusOpen, close: statusClose }] = useDisclosure(false)
   
   const [settingsOpened, { open: settingsOpen, close: settingsClose }] = useDisclosure(false)
   const [statusOpened, { open: statusOpen, close: statusClose }] = useDisclosure(false)
@@ -65,7 +67,7 @@ export function AdminDashboard() {
 
   const loadStatus = async () => {
     try {
-      const data = await cleanupApi.getCleanupStatus(adminToken)
+      const data = await getCleanupStatus(adminToken)
       setStatus(data)
     } catch (err) {
       console.error('Failed to load cleanup status:', err)
@@ -74,7 +76,7 @@ export function AdminDashboard() {
 
   const loadConfig = async () => {
     try {
-      const data = await cleanupApi.getCleanupConfig(adminToken)
+      const data = await getCleanupConfig(adminToken)
       setConfigState({
         cleanupEnabled: data.cleanupEnabled || false,
         cleanupIntervalHours: data.cleanupIntervalHours || 24,
@@ -89,7 +91,7 @@ export function AdminDashboard() {
   const saveConfig = async () => {
     setLoading(true)
     try {
-      await cleanupApi.setCleanupConfig(adminToken, config)
+      await setCleanupConfig(adminToken, config)
       cleanupClose()
       loadStatus()
     } catch (err) {
@@ -108,7 +110,7 @@ export function AdminDashboard() {
   const executeCleanup = async (dryRun: boolean) => {
     setCleaning(true)
     try {
-      const result = await cleanupApi.cleanupData(adminToken, {
+      const result = await cleanupData(adminToken, {
         retentionDays: config.messageRetentionDays,
         includeAssets: true,
         dryRun: dryRun,
