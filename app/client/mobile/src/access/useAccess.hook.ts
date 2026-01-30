@@ -31,7 +31,6 @@ export function useAccess() {
     node: '',
     available: 0,
     taken: false,
-    showServerPresets: false,
   });
 
   const updateState = (value: any) => {
@@ -135,13 +134,6 @@ export function useAccess() {
     },
     requestPermission: () => {
       app.actions.requestPermission();
-    },
-    toggleServerPresets: () => {
-      updateState({showServerPresets: !state.showServerPresets});
-    },
-    selectPresetServer: (server: string) => {
-      actions.setNode(server);
-      updateState({showServerPresets: false});
     },
     getPresetServers: () => {
       return PRESET_SERVERS;

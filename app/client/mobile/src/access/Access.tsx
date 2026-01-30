@@ -206,18 +206,42 @@ export function Access() {
               <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.adminAccess}</Text>
                 <View style={styles.block}>
-                  <TextInput
-                    style={styles.input}
-                    mode="outlined"
-                    outlineStyle={styles.inputBorder}
-                    autoCapitalize="none"
-                    autoComplete="off"
-                    autoCorrect={false}
-                    placeholder={state.strings.server}
-                    value={state.node}
-                    left={<TextInput.Icon style={styles.icon} icon="server" />}
-                    onChangeText={value => actions.setNode(value)}
-                  />
+                  <View>
+                    <TextInput
+                      style={styles.input}
+                      mode="outlined"
+                      outlineStyle={styles.inputBorder}
+                      autoCapitalize="none"
+                      autoComplete="off"
+                      autoCorrect={false}
+                      placeholder={state.strings.server}
+                      value={state.node}
+                      left={<TextInput.Icon style={styles.icon} icon="server" />}
+                      right={
+                        <TextInput.Icon 
+                          icon="chevron-down" 
+                          onPress={() => setServerMenuVisible(true)} 
+                        />
+                      }
+                      onChangeText={value => actions.setNode(value)}
+                    />
+                    <Menu
+                      visible={serverMenuVisible}
+                      onDismiss={() => setServerMenuVisible(false)}
+                      anchor={undefined}
+                      style={styles.serverMenu}
+                    >
+                      <Menu.Item onPress={() => { actions.setNode(''); setServerMenuVisible(false); }} title="Custom Server" />
+                      <Divider />
+                      {actions.getPresetServers().map((preset, index) => (
+                        <Menu.Item 
+                          key={index}
+                          onPress={() => { actions.setNode(preset.value); setServerMenuVisible(false); }} 
+                          title={`${preset.label} - ${preset.value}`} 
+                        />
+                      ))}
+                    </Menu>
+                  </View>
                   <TextInput
                     style={styles.input}
                     mode="outlined"
@@ -267,23 +291,43 @@ export function Access() {
             {state.mode === 'reset' && (
               <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.accessAccount}</Text>
-                <View style={styles.block}>
-                  <View>
-                    <TextInput
-                      style={styles.input}
-                      mode="outlined"
-                      outlineStyle={styles.inputBorder}
-                      autoCapitalize="none"
-                      autoComplete="off"
-                      autoCorrect={false}
-                      placeholder={state.strings.server}
-                      value={state.node}
-                      left={<TextInput.Icon style={styles.icon} icon="server" />}
-                      right={
-                        <TextInput.Icon 
-                          icon="chevron-down" 
-                          onPress={() => setServerMenuVisible(true)} 
-                        />
+                  <View style={styles.block}>
+                   <View>
+                     <TextInput
+                       style={styles.input}
+                       mode="outlined"
+                       outlineStyle={styles.inputBorder}
+                       autoCapitalize="none"
+                       autoComplete="off"
+                       autoCorrect={false}
+                       placeholder={state.strings.server}
+                       value={state.node}
+                       left={<TextInput.Icon style={styles.icon} icon="server" />}
+                       right={
+                         <TextInput.Icon 
+                           icon="chevron-down" 
+                           onPress={() => setServerMenuVisible(true)} 
+                         />
+                       }
+                       onChangeText={value => actions.setNode(value)}
+                     />
+                     <Menu
+                       visible={serverMenuVisible}
+                       onDismiss={() => setServerMenuVisible(false)}
+                       anchor={undefined}
+                       style={styles.serverMenu}
+                     >
+                       <Menu.Item onPress={() => { actions.setNode(''); setServerMenuVisible(false); }} title="Custom Server" />
+                       <Divider />
+                       {actions.getPresetServers().map((preset, index) => (
+                         <Menu.Item 
+                           key={index}
+                           onPress={() => { actions.setNode(preset.value); setServerMenuVisible(false); }} 
+                           title={`${preset.label} - ${preset.value}`} 
+                         />
+                       ))}
+                     </Menu>
+                   </View>
                       }
                       onChangeText={value => actions.setNode(value)}
                     />
@@ -442,7 +486,7 @@ export function Access() {
             {state.mode === 'account' && (
               <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.login}</Text>
-                <View style={styles.block}>
+                 <View style={styles.block}>
                    <View>
                      <TextInput
                        style={styles.input}
@@ -465,7 +509,7 @@ export function Access() {
                      <Menu
                        visible={serverMenuVisible}
                        onDismiss={() => setServerMenuVisible(false)}
-                       anchor={{ x: 0, y: 0 }}
+                       anchor={undefined}
                        style={styles.serverMenu}
                      >
                        <Menu.Item onPress={() => { actions.setNode(''); setServerMenuVisible(false); }} title="Custom Server" />
