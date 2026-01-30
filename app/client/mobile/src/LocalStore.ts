@@ -21,7 +21,7 @@ export class LocalStore implements SqlStore {
         return rows[0].value;
       }
     } catch (err) {
-      console.log(err);
+      // 移除调试日志以提高性能
     }
     return unset;
   }

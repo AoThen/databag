@@ -62,69 +62,111 @@ export function useAppContext() {
   };
 
   const setup = async () => {
-    // 并行初始化数据库和基本设置
-    const [localDbReady, settingsData, locale] = await Promise.all([
-      local.current.open(SETTINGS_DB),
-      (async () => {
-        // 并行读取所有设置
-        const [
-          favoriteRaw,
-          timeFormat,
-          dateFormat,
-          setLanguage,
-          fontSizeRaw,
-          keyboardOffsetRaw,
-          createSealedRaw
-        ] = await Promise.all([
-          local.current.get('favorite', JSON.stringify([])),
-          local.current.get('time_format', '12h'),
-          local.current.get('date_format', 'month_first'),
-          local.current.get('language', null),
-          local.current.get('font_size', '0'),
-          local.current.get('keyboard_offset', '0'),
-          local.current.get('create_sealed', 'true')
-        ]);
-        
-        return {
-          favorite: JSON.parse(favoriteRaw),
-          fullDayTime: timeFormat === '24h',
-          monthFirstDate: dateFormat === 'month_first',
-          setLanguage,
-          fontSize: parseInt(fontSizeRaw, 10) || 0,
-          keyboardOffset: parseInt(keyboardOffsetRaw, 10) || 0,
-          createSealed: createSealedRaw === 'true'
-        };
-      })(),
-      (async () => {
-        // 获取设备语言
-        return Platform.OS === 'ios' 
-          ? NativeModules.SettingsManager?.settings.AppleLocale || NativeModules.SettingsManager?.settings.AppleLanguages[0]
-          : NativeModules.I18nManager?.localeIdentifier;
-      })()
-    ]);
+    try {
+      // 设置超时以防止长时间阻塞
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Initialization timeout')), 10000)
+      );
 
-    const {favorite, fullDayTime, monthFirstDate, setLanguage, fontSize, keyboardOffset, createSealed} = settingsData;
-    const defaultLanguage = locale?.slice(0, 2) || '';
-    const lang = setLanguage ? setLanguage : defaultLanguage;
-    const language = lang === 'fr' ? 'fr' : lang === 'es' ? 'es' : lang === 'pt' ? 'pt' : lang === 'de' ? 'de' : lang === 'ru' ? 'ru' : lang === 'el' ? 'el' : lang === 'zh' ? 'zh' : 'en';
+      // 并行初始化数据库和基本设置，添加超时保护
+      const [localDbReady, settingsData, locale] = await Promise.race([
+        Promise.all([
+          local.current.open(SETTINGS_DB),
+          (async () => {
+            // 并行读取所有设置，添加错误处理
+            try {
+              const [
+                favoriteRaw,
+                timeFormat,
+                dateFormat,
+                setLanguage,
+                fontSizeRaw,
+                keyboardOffsetRaw,
+                createSealedRaw
+              ] = await Promise.all([
+                local.current.get('favorite', JSON.stringify([])),
+                local.current.get('time_format', '12h'),
+                local.current.get('date_format', 'month_first'),
+                local.current.get('language', null),
+                local.current.get('font_size', '0'),
+                local.current.get('keyboard_offset', '0'),
+                local.current.get('create_sealed', 'true')
+              ]);
+              
+              return {
+                favorite: JSON.parse(favoriteRaw),
+                fullDayTime: timeFormat === '24h',
+                monthFirstDate: dateFormat === 'month_first',
+                setLanguage,
+                fontSize: parseInt(fontSizeRaw, 10) || 0,
+                keyboardOffset: parseInt(keyboardOffsetRaw, 10) || 0,
+                createSealed: createSealedRaw === 'true'
+              };
+            } catch (err) {
+              // 如果设置读取失败，使用默认值
+              return {
+                favorite: [],
+                fullDayTime: false,
+                monthFirstDate: true,
+                setLanguage: null,
+                fontSize: 0,
+                keyboardOffset: 0,
+                createSealed: true
+              };
+            }
+          })(),
+          (async () => {
+            // 获取设备语言，添加错误处理
+            try {
+              return Platform.OS === 'ios' 
+                ? NativeModules.SettingsManager?.settings.AppleLocale || NativeModules.SettingsManager?.settings.AppleLanguages[0]
+                : NativeModules.I18nManager?.localeIdentifier;
+            } catch (err) {
+              return 'en';
+            }
+          })()
+        ]),
+        timeoutPromise
+      ]);
 
-    // 并行初始化SessionStore和SDK
-    const [store, session] = await Promise.all([
-      (async () => {
-        const sessionStore = new SessionStore();
-        await sessionStore.open(DATABAG_DB);
-        return sessionStore;
-      })(),
-      (async () => {
-        const sessionStore = new SessionStore();
-        await sessionStore.open(DATABAG_DB);
-        return sdk.current.initOfflineStore(sessionStore);
-      })()
-    ]);
-    if (session) {
-      updateState({session, fullDayTime, monthFirstDate, fontSize, keyboardOffset, createSealed, language, favorite, initialized: true});
-    } else {
-      updateState({fullDayTime, monthFirstDate, language, fontSize, keyboardOffset, createSealed, initialized: true});
+      const {favorite, fullDayTime, monthFirstDate, setLanguage, fontSize, keyboardOffset, createSealed} = settingsData;
+      const defaultLanguage = locale?.slice(0, 2) || '';
+      const lang = setLanguage ? setLanguage : defaultLanguage;
+      const language = lang === 'fr' ? 'fr' : lang === 'es' ? 'es' : lang === 'pt' ? 'pt' : lang === 'de' ? 'de' : lang === 'ru' ? 'ru' : lang === 'el' ? 'el' : lang === 'zh' ? 'zh' : 'en';
+
+      // 优化：只创建一个SessionStore实例，避免重复初始化
+      const sessionStore = new SessionStore();
+      await sessionStore.open(DATABAG_DB);
+      
+      // 并行初始化SDK和获取store引用，添加错误处理
+      const [store, session] = await Promise.race([
+        Promise.all([
+          Promise.resolve(sessionStore),
+          sdk.current.initOfflineStore(sessionStore)
+        ]).catch(err => {
+          console.log('SDK initialization failed:', err);
+          return [sessionStore, null];
+        }),
+        timeoutPromise
+      ]);
+      
+      if (session) {
+        updateState({session, fullDayTime, monthFirstDate, fontSize, keyboardOffset, createSealed, language, favorite, initialized: true});
+      } else {
+        updateState({fullDayTime, monthFirstDate, language, fontSize, keyboardOffset, createSealed, initialized: true});
+      }
+    } catch (err) {
+      console.log('App initialization failed:', err);
+      // 即使初始化失败，也要标记为已初始化以避免无限加载
+      updateState({
+        fullDayTime: false,
+        monthFirstDate: true,
+        language: 'en',
+        fontSize: 0,
+        keyboardOffset: 0,
+        createSealed: true,
+        initialized: true
+      });
     }
   };
 

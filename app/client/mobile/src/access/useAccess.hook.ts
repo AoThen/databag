@@ -4,6 +4,13 @@ import {AppContext} from '../context/AppContext';
 import {ContextType} from '../context/ContextType';
 import SplashScreen from 'react-native-splash-screen';
 
+// 预设服务器列表
+const PRESET_SERVERS = [
+  { label: 'Databag Official', value: 'databag.com' },
+  { label: 'Local Server', value: '192.168.1.100' },
+  { label: 'Test Server', value: 'test.databag.com' },
+];
+
 export function useAccess() {
   const debounceAvailable = useRef(setTimeout(() => {}, 0));
   const debounceTaken = useRef(setTimeout(() => {}, 0));
@@ -24,6 +31,7 @@ export function useAccess() {
     node: '',
     available: 0,
     taken: false,
+    showServerPresets: false,
   });
 
   const updateState = (value: any) => {
@@ -127,6 +135,16 @@ export function useAccess() {
     },
     requestPermission: () => {
       app.actions.requestPermission();
+    },
+    toggleServerPresets: () => {
+      updateState({showServerPresets: !state.showServerPresets});
+    },
+    selectPresetServer: (server: string) => {
+      actions.setNode(server);
+      updateState({showServerPresets: false});
+    },
+    getPresetServers: () => {
+      return PRESET_SERVERS;
     },
   };
 
