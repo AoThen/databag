@@ -34,6 +34,65 @@ interface CleanupConfig {
   assetRetentionDays: number
 }
 
+const DEFAULT_STRINGS = {
+  dataCleanup: '数据清理',
+  settings: '设置',
+  refresh: '刷新',
+  totalMessages: '总消息数',
+  totalFiles: '总文件数',
+  estimatedSpace: '预估空间',
+  lastCleanup: '上次清理',
+  never: '从未',
+  enabled: '已启用',
+  disabled: '已禁用',
+  oldDataWarning: '{count}条旧消息可清理',
+  oldAssetsWarning: '{count}个旧文件可清理',
+  canBeFreed: '可释放空间',
+  autoCleanupStatus: '自动清理: {enabled}',
+  cleanupWarning: '此操作将删除超过{days}天的消息和相关文件，是否继续？',
+  confirmCleanup: '确认清理',
+  cleanup: '清理',
+  cancel: '取消',
+  deletedMessages: '删除消息',
+  deletedFiles: '删除文件',
+  freedSpace: '释放空间',
+  affectedAccounts: '影响账户',
+  processingTime: '处理时间',
+  check: '检查',
+  success: '成功',
+  operationFailed: '操作失败',
+  tryAgain: '请重试',
+  close: '关闭',
+  manualCleanup: '手动清理',
+  cleanupDescription: '清理超过{days}天的旧消息',
+  messageRetention: '消息保留',
+  messageRetentionDesc: '超过此天数的老消息将被删除',
+  assetRetention: '文件保留',
+  assetRetentionDesc: '超过此天数的老文件将被删除',
+  days: '天',
+  hours: '小时',
+  preview: '预览',
+  cleanupNow: '立即清理',
+  autoCleanup: '自动清理',
+  enableAutoCleanup: '启用自动清理',
+  cleanupInterval: '清理间隔',
+  saveSettings: '保存设置',
+  cleanupSettings: '清理设置',
+  cleanupIntervalDesc: '自动清理的执行频率',
+  messageRetentionDays: '消息保留天数',
+  messageRetentionDaysDesc: '消息保留天数说明',
+  assetRetentionDays: '文件保留天数',
+  assetRetentionDaysDesc: '文件保留天数说明',
+  save: '保存',
+  estimatedCleanup: '预估清理结果',
+  willDeleteMessages: '将删除消息',
+  willDeleteFiles: '将删除文件',
+  willFreeSpace: '将释放空间',
+  previewNote: '预览模式下不会实际删除任何数据',
+  executeCleanup: '执行清理',
+  cleanupPreview: '清理预览',
+}
+
 export function AdminDashboard() {
   const app = useContext(AppContext) as ContextType
   const display = useContext(DisplayContext) as ContextType
@@ -53,7 +112,7 @@ export function AdminDashboard() {
   const [settingsOpened, { open: settingsOpen, close: cleanupClose }] = useDisclosure(false)
   const [statusOpened, { open: statusOpen, close: statusClose }] = useDisclosure(false)
 
-  const strings = display.state.strings
+  const strings = display.state.strings || DEFAULT_STRINGS
 
   useEffect(() => {
     if (adminToken) {
