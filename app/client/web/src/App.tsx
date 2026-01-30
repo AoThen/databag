@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import { Root } from './root/Root'
 import { Access } from './access/Access'
 import { Service } from './service/Service'
@@ -186,13 +186,19 @@ export function App() {
   const isCustomTheme = ['sepia', 'blue', 'purple'].includes(themeKey)
   const mantineScheme = isCustomTheme ? 'light' : scheme
 
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
     <div className={classes.app} style={getThemeStyleVars(themeColors) as React.CSSProperties}>
       <IconContext.Provider value={{ size: "1.5em" }}>
-      <MantineProvider forceColorScheme={mantineScheme} theme={appTheme}>
+      <MantineProvider forceColorScheme={mantineScheme} theme={appTheme} withCSSVariables={false}>
         <style>{isCustomTheme ? getCSSOverride(themeColors) : ''}</style>
         <ModalsProvider>
-          <RouterProvider router={router} />
+          {mounted && <RouterProvider router={router} />}
         </ModalsProvider>
       </MantineProvider>
       </IconContext.Provider>
