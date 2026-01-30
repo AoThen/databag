@@ -63,9 +63,8 @@ export function useAppContext() {
 
   const setup = async () => {
     try {
-      // 设置超时以防止长时间阻塞
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Initialization timeout')), 10000)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Initialization timeout')), 5000)
       );
 
       // 并行初始化数据库和基本设置，添加超时保护
@@ -306,11 +305,19 @@ export function useAppContext() {
         updateState({focus: null});
       }
     },
-    getAvailable: async (node: string, secure: boolean) => {
-      return await sdk.current.available(node, secure);
+    getAvailable: async (node: string, secure: boolean, signal?: AbortSignal) => {
+      const controller = new AbortController();
+      if (signal) {
+        signal.addEventListener('abort', () => controller.abort());
+      }
+      return await sdk.current.available(node, secure, controller.signal);
     },
-    getUsername: async (username: string, token: string, node: string, secure: boolean) => {
-      return await sdk.current.username(username, token, node, secure);
+    getUsername: async (username: string, token: string, node: string, secure: boolean, signal?: AbortSignal) => {
+      const controller = new AbortController();
+      if (signal) {
+        signal.addEventListener('abort', () => controller.abort());
+      }
+      return await sdk.current.username(username, token, node, secure, controller.signal);
     },
     adminLogin: async (token: string, node: string, secure: boolean, code: string) => {
       const service = await sdk.current.configure(node, secure, token, code);

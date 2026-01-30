@@ -11,9 +11,20 @@ const PRESET_SERVERS = [
   { label: 'Test Server', value: 'test.databag.com' },
 ];
 
+const DEBOUNCE_DELAY = 500;
+const REQUEST_CACHE_TTL = 30000;
+
+interface CacheEntry {
+  result: any;
+  timestamp: number;
+}
+
+const requestCache = new Map<string, CacheEntry>();
+
 export function useAccess() {
   const debounceAvailable = useRef(setTimeout(() => {}, 0));
   const debounceTaken = useRef(setTimeout(() => {}, 0));
+  const pendingRequests = useRef<Map<string, AbortController>>(new Map());
   const app = useContext(AppContext) as ContextType;
   const display = useContext(DisplayContext) as ContextType;
   const [state, setState] = useState({
@@ -31,6 +42,7 @@ export function useAccess() {
     node: '',
     available: 0,
     taken: false,
+    checking: null as 'server' | 'username' | null,
   });
 
   const updateState = (value: any) => {
@@ -50,37 +62,75 @@ export function useAccess() {
 
   const getAvailable = (node: string, secure: boolean) => {
     clearTimeout(debounceAvailable.current);
+    const cacheKey = `available:${node}:${secure}`;
+    if (requestCache.has(cacheKey)) {
+      const cached = requestCache.get(cacheKey)!;
+      if (Date.now() - cached.timestamp < REQUEST_CACHE_TTL) {
+        updateState({available: cached.result, checking: null});
+        return;
+      }
+    }
     debounceAvailable.current = setTimeout(async () => {
+      if (pendingRequests.current.has('available')) {
+        pendingRequests.current.get('available')?.abort();
+      }
+      const controller = new AbortController();
+      pendingRequests.current.set('available', controller);
+      updateState({checking: 'server'});
       try {
         if (node) {
-          const available = await app.actions.getAvailable(node, secure);
-          updateState({available});
+          const available = await app.actions.getAvailable(node, secure, controller.signal);
+          requestCache.set(cacheKey, {result: available, timestamp: Date.now()});
+          updateState({available, checking: null});
         } else {
-          updateState({available: 0});
+          updateState({available: 0, checking: null});
         }
       } catch (err) {
-        console.log(err);
-        updateState({available: 0});
+        if ((err as Error).name !== 'AbortError') {
+          console.log(err);
+          updateState({available: 0, checking: null});
+        }
+      } finally {
+        pendingRequests.current.delete('available');
       }
-    }, 2000);
+    }, DEBOUNCE_DELAY);
   };
 
   const checkTaken = (username: string, token: string, node: string, secure: boolean) => {
-    updateState({taken: false});
+    updateState({taken: false, checking: 'username'});
     clearTimeout(debounceTaken.current);
+    const cacheKey = `taken:${username}:${token}:${node}:${secure}`;
+    if (requestCache.has(cacheKey)) {
+      const cached = requestCache.get(cacheKey)!;
+      if (Date.now() - cached.timestamp < REQUEST_CACHE_TTL) {
+        updateState({taken: !cached.result, checking: null});
+        return;
+      }
+    }
     debounceTaken.current = setTimeout(async () => {
+      if (pendingRequests.current.has('taken')) {
+        pendingRequests.current.get('taken')?.abort();
+      }
+      const controller = new AbortController();
+      pendingRequests.current.set('taken', controller);
+      updateState({checking: 'username'});
       try {
         if (node && username) {
-          const available = await app.actions.getUsername(username, token, node, secure);
-          updateState({taken: !available});
+          const available = await app.actions.getUsername(username, token, node, secure, controller.signal);
+          requestCache.set(cacheKey, {result: available, timestamp: Date.now()});
+          updateState({taken: !available, checking: null});
         } else {
-          updateState({taken: false});
+          updateState({taken: false, checking: null});
         }
       } catch (err) {
-        console.log(err);
-        updateState({taken: false});
+        if ((err as Error).name !== 'AbortError') {
+          console.log(err);
+          updateState({taken: false, checking: null});
+        }
+      } finally {
+        pendingRequests.current.delete('taken');
       }
-    }, 2000);
+    }, DEBOUNCE_DELAY);
   };
 
   useEffect(() => {
