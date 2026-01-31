@@ -3,9 +3,10 @@ package databag
 import (
 	"databag/internal/store"
 	"fmt"
-	"gorm.io/gorm"
 	"sync"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const maxConcurrentGarbageCollects = 5
@@ -22,7 +23,7 @@ func StartCleanupScheduler() {
 
 	interval := getCleanupIntervalHours()
 	if interval <= 0 {
-		interval = 24
+		interval = 168
 	}
 
 	go runCleanupScheduler(interval)
@@ -75,9 +76,15 @@ func executeScheduledCleanup() {
 
 	setCleanupLastRun(now)
 
-	if response.DeletedTopics > 0 || response.DeletedAssets > 0 {
-		LogMsg(fmt.Sprintf("[Cleanup] 自动清理完成: 删除消息 %d 条, 删除文件 %d 个, 释放空间 %s",
-			response.DeletedTopics, response.DeletedAssets, formatBytes(response.FreedBytes)))
+	// 新增：IP封禁清理
+	var ipCleanupResult int64
+	if getIPBlockCleanupEnabled() {
+		ipCleanupResult = cleanupExpiredIPBlocks()
+	}
+
+	if response.DeletedTopics > 0 || response.DeletedAssets > 0 || ipCleanupResult > 0 {
+		LogMsg(fmt.Sprintf("[Cleanup] 自动清理完成: 删除消息 %d 条, 删除文件 %d 个, 释放空间 %s, 清理过期IP封禁 %d 条",
+			response.DeletedTopics, response.DeletedAssets, formatBytes(response.FreedBytes), ipCleanupResult))
 	}
 }
 
@@ -184,6 +191,23 @@ func performCleanup(retentionDays int64, includeAssets bool) (*CleanupResponse, 
 	cleanupOrphanedAssets(cutoffTime)
 
 	return &response, nil
+}
+
+func getIPBlockCleanupEnabled() bool {
+	return getBoolConfigValue("DATABAG_IP_BLOCK_CLEANUP_ENABLED", true)
+}
+
+func cleanupExpiredIPBlocks() int64 {
+	now := time.Now()
+	result := store.DB.Where("expires_at < ?", now).Delete(&store.IPBlock{})
+	if result.Error != nil {
+		LogMsg(fmt.Sprintf("[Cleanup] IP封禁清理失败: %v", result.Error))
+		return 0
+	}
+	if result.RowsAffected > 0 {
+		LogMsg(fmt.Sprintf("[Cleanup] 清理过期IP封禁 %d 条", result.RowsAffected))
+	}
+	return result.RowsAffected
 }
 
 func calculateAssetSize(assets []store.Asset) int64 {

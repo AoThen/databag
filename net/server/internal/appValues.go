@@ -196,7 +196,7 @@ const APPIPBlockDuration = 1
 const APPIPBlockThreshold = 5
 
 // APPIPBlockMaxDuration maximum IP block duration in hours
-const APPIPBlockMaxDuration = 168
+const APPIPBlockMaxDuration = 720
 
 // AppCardStatus compares cards status with string
 func AppCardStatus(status string) bool {

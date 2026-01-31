@@ -222,7 +222,21 @@ func ClearAllIPCache() {
 
 func BlockIP(ip string, reason string, durationHours int) error {
 	now := time.Now()
-	expiresAt := now.Add(time.Duration(durationHours) * time.Hour)
+	var expiresAt time.Time
+
+	if durationHours == 0 {
+		// 永久封禁：设置到2099年
+		expiresAt = time.Date(2099, 12, 31, 23, 59, 59, 0, time.UTC)
+	} else {
+		expiresAt = now.Add(time.Duration(durationHours) * time.Hour)
+	}
+
+	// 验证最大时长限制
+	maxDuration := getIPBlockMaxDuration()
+	if durationHours > 0 && int64(durationHours) > maxDuration {
+		return fmt.Errorf("封禁时长 %d 小时超过最大限制 %d 小时", durationHours, maxDuration)
+	}
+
 	err := store.DB.Model(&store.IPBlock{}).Where("ip = ?", ip).Assign(map[string]interface{}{
 		"ip":             ip,
 		"reason":         reason,
@@ -239,7 +253,11 @@ func BlockIP(ip string, reason string, durationHours int) error {
 		LastFailTime: now.Unix(),
 	}).Error
 	if err == nil {
-		LogMsg(fmt.Sprintf("[IPBlock] IP %s manually blocked, reason: %s, duration: %d hours", ip, reason, durationHours))
+		if durationHours == 0 {
+			LogMsg(fmt.Sprintf("[IPBlock] IP %s manually blocked permanently, reason: %s", ip, reason))
+		} else {
+			LogMsg(fmt.Sprintf("[IPBlock] IP %s manually blocked, reason: %s, duration: %d hours", ip, reason, durationHours))
+		}
 		// 清除缓存以确保立即生效
 		ipCache.Delete(ip)
 	}

@@ -22,10 +22,10 @@ services:
       # 推荐值：false (推荐使用 Web 界面手动管理清理)
       DATABAG_CLEANUP_ENABLED: "false"
       
-      # 自动清理间隔（小时）：仅当 DATABAG_CLEANUP_ENABLED=true 时生效
-      # 推荐值：24 (每天一次)
-      # 可用范围：1-8760
-      DATABAG_CLEANUP_INTERVAL_HOURS: "24"
+       # 自动清理间隔（小时）：仅当 DATABAG_CLEANUP_ENABLED=true 时生效
+       # 推荐值：168 (7天一次)
+       # 可用范围：1-8760
+      DATABAG_CLEANUP_INTERVAL_HOURS: "168"
       
       # 消息保留天数：超过此天数的老消息将被清理
       # 推荐值：90 (3个月)
@@ -36,6 +36,29 @@ services:
       # 推荐值：180 (6个月)
       # 可用范围：1-3650
       DATABAG_ASSET_RETENTION_DAYS: "180"
+      
+      # ==================== IP封禁配置 ====================
+      
+      # IP封禁最大时长（小时）：手动封禁的最大限制
+      # 推荐值：720 (30天)
+      # 可用范围：1-720
+      # 注意：0 表示永久封禁
+      DATABAG_IP_BLOCK_MAX_DURATION: "720"
+      
+      # IP封禁阈值：触发自动封禁的失败次数
+      # 推荐值：5
+      # 可用范围：1-100
+      DATABAG_IP_BLOCK_THRESHOLD: "5"
+      
+      # IP封禁基础时长（小时）：自动封禁的起始时长
+      # 推荐值：1
+      # 可用范围：1-168
+      DATABAG_IP_BLOCK_BASE_DURATION: "1"
+      
+      # IP封禁清理开关：是否启用过期IP封禁的自动清理
+      # 推荐值：true (跟随主清理开关）
+      # 注意：当 DATABAG_CLEANUP_ENABLED=false 时此配置也无效
+      DATABAG_IP_BLOCK_CLEANUP_ENABLED: "true"
       
       # ==================== 可选配置 ====================
       
@@ -88,7 +111,9 @@ volumes:
 
 # 说明：
 # 1. 数据清理功能默认关闭，需要手动启用
-# 2. 使用前请创建 /srv/databag/data 目录并设置权限
-# 3. 启动：docker-compose up -d
-# 4. 查看日志：docker-compose logs -f
-# 5. 停止：docker-compose down
+# 2. IP封禁最大时长已扩展为30天（720小时）
+# 3. 自动清理间隔已调整为7天（168小时）
+# 4. 使用前请创建 /srv/databag/data 目录并设置权限
+# 5. 启动：docker-compose up -d
+# 6. 查看日志：docker-compose logs -f
+# 7. 停止：docker-compose down

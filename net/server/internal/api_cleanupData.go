@@ -25,6 +25,7 @@ type CleanupResponse struct {
 	FreedBytes       int64 `json:"freedBytes"`
 	AffectedAccounts int   `json:"affectedAccounts"`
 	ProcessingTime   int64 `json:"processingTime"`
+	IPBlocksDeleted  int64 `json:"ipBlocksDeleted"`
 }
 
 type CleanupStatus struct {
