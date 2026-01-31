@@ -14,7 +14,10 @@ import { useResizeDetector } from 'react-resize-detector'
 import { modals } from '@mantine/modals'
 import { sanitizeUrl } from '@braintree/sanitize-url'
 
-export function Message({ topic, card, profile, host }: { topic: Topic; card: Card | null; profile: Profile | null; host: boolean }) {
+// Extend Topic type to include readByMe (needed until SDK is updated)
+type TopicWithReadStatus = Topic & { readByMe?: boolean }
+
+export function Message({ topic, card, profile, host }: { topic: TopicWithReadStatus; card: Card | null; profile: Profile | null; host: boolean }) {
   const { state, actions } = useMessage()
   const scroll = useRef(null as HTMLDivElement | null)
   const { locked, data, created, topicId, status, transform } = topic

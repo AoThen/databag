@@ -210,6 +210,12 @@ export function useConversation() {
     close: () => {
       app.actions.clearFocus()
     },
+    markAsRead: async (topicId: string) => {
+      const focus = app.state.focus
+      if (focus) {
+        await focus.markTopicRead(topicId)
+      }
+    },
     setMessage: (message: string) => {
       updateState({ message })
     },

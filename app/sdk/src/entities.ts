@@ -99,6 +99,7 @@ export type TopicDetailEntity = {
   updated: number;
   status: string;
   transform: string;
+  readByMe?: boolean;
 }
 
 export type TopicEntity = {

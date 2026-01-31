@@ -73,7 +73,7 @@
     text-overflow: ellipsis;
     overflow: hidden;
     font-style: italic;
-    color: #888888;
+    color: var(--mantine-color-text-7);
   }
   .subject {
     font-size: 14px;
@@ -94,7 +94,7 @@
   }
   .unknown {
     font-style: italic;
-    color: #888888;
+    color: var(--mantine-color-text-7);
   }
   .known {
     font-weight: bold;
@@ -102,7 +102,7 @@
   .notes {
     font-weight: bold;
     font-style: italic;
-    color: #888888;
+    color: var(--mantine-color-text-7);
   }
   .unread {
     width: 8px;

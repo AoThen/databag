@@ -1051,7 +1051,7 @@ export class FocusModule implements Focus {
   }   
 
   private getTopicDetail(entity: TopicDetailEntity, revision: number): TopicDetail {
-    const { guid, dataType, data, created, updated, status, transform } = entity;
+    const { guid, dataType, data, created, updated, status, transform, readByMe } = entity;
     return {
       revision,
       guid,
@@ -1062,6 +1062,7 @@ export class FocusModule implements Focus {
       updated,
       status,
       transform,
+      readByMe,
     }
   }
 

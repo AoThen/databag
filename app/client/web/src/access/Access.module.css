@@ -91,7 +91,7 @@
   .left {
     flex: 1;
     height: 100%;
-    background-color: #90bea7;
+    background-color: var(--color-splash-area);
 
     .splash {
       height: 100%;

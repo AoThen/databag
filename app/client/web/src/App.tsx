@@ -128,10 +128,18 @@ function getCSSOverride(colors: typeof LightTheme) {
       --mantine-color-surface-1: ${colors.frameArea} !important;
       --mantine-color-surface-2: ${colors.modalArea} !important;
       --mantine-color-surface-3: ${colors.itemArea} !important;
+      --mantine-color-surface-4: ${colors.hoverArea} !important;
+      --mantine-color-surface-5: ${colors.inputArea} !important;
       --mantine-color-text-0: ${colors.mainText} !important;
       --mantine-color-text-1: ${colors.descriptionText} !important;
       --mantine-color-text-2: ${colors.hintText} !important;
       --mantine-color-text-3: ${colors.activeText} !important;
+      --mantine-color-text-4: ${colors.idleText} !important;
+      --mantine-color-text-5: ${colors.placeholderText} !important;
+      --mantine-color-text-6: ${colors.labelText} !important;
+      --mantine-color-text-7: ${colors.hintText} !important;
+      --mantine-color-text-8: ${colors.idleText} !important;
+      --mantine-color-text-9: ${colors.placeholderText} !important;
       --mantine-color-tab-1: ${colors.frameArea} !important;
       --mantine-color-tab-2: ${colors.selectedArea} !important;
       --mantine-color-tab-3: ${colors.hoverArea} !important;
@@ -161,6 +169,8 @@ function getCSSOverride(colors: typeof LightTheme) {
       --color-hover-area: ${colors.hoverArea} !important;
       --color-link-text: ${colors.linkText} !important;
       --color-alert-text: ${colors.alertText} !important;
+      --color-text: ${colors.mainText} !important;
+      --color-icon-area: ${colors.iconArea} !important;
     }
   `
 }

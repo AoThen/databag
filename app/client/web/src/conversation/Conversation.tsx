@@ -12,6 +12,10 @@ import { BinaryFile } from './binaryFile/BinaryFile'
 import { SketchPicker } from 'react-color'
 import AnimateHeight from 'react-animate-height'
 import { useResizeDetector } from 'react-resize-detector'
+import { Topic } from 'databag-client-sdk'
+
+// Extend Topic type to include readByMe (needed until SDK is updated)
+type TopicWithReadStatus = Topic & { readByMe?: boolean }
 
 const PAD_HEIGHT = 1024 - 64
 
@@ -289,10 +293,12 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const topicId = entry.target.getAttribute('data-topic-id')
-            const topic = state.topics.find((t) => t.topicId === topicId)
-            if (topic && topic.guid !== state.profile?.guid && topic.status === 'confirmed') {
-              // Mark as read (don't await to avoid blocking)
-              actions.markAsRead(topicId).catch(() => {})
+            if (topicId) {
+              const topic = state.topics.find((t) => t.topicId === topicId)
+              if (topic && topic.guid !== state.profile?.guid && topic.status === 'confirmed') {
+                // Mark as read (don't await to avoid blocking)
+                actions.markAsRead(topicId).catch(() => {})
+              }
             }
           }
         })
