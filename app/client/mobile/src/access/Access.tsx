@@ -487,42 +487,42 @@ export function Access() {
               <Animated.View style={[styles.blocks, Platform.OS === 'ios' ? {opacity: switching} : null]}>
                 <Text variant="headlineSmall">{state.strings.login}</Text>
                  <View style={styles.block}>
-                   <View>
-                     <TextInput
-                       style={styles.input}
-                       mode="outlined"
-                       autoCapitalize="none"
-                       outlineStyle={styles.inputBorder}
-                       autoComplete="off"
-                       autoCorrect={false}
-                       placeholder={state.strings.server}
-                       value={state.node}
-                       left={<TextInput.Icon style={styles.icon} icon="server" />}
-                       right={
-                         <TextInput.Icon 
-                           icon="chevron-down" 
-                           onPress={() => setServerMenuVisible(true)} 
-                         />
-                       }
-                       onChangeText={value => actions.setNode(value)}
-                     />
-                     <Menu
-                       visible={serverMenuVisible}
-                       onDismiss={() => setServerMenuVisible(false)}
-                       anchor={undefined}
-                       style={styles.serverMenu}
-                     >
-                       <Menu.Item onPress={() => { actions.setNode(''); setServerMenuVisible(false); }} title="Custom Server" />
-                       <Divider />
-                       {actions.getPresetServers().map((preset, index) => (
-                         <Menu.Item 
-                           key={index}
-                           onPress={() => { actions.setNode(preset.value); setServerMenuVisible(false); }} 
-                           title={`${preset.label} - ${preset.value}`} 
-                         />
-                       ))}
-                     </Menu>
-                   </View>
+                    <View>
+                      <TextInput
+                        style={styles.input}
+                        mode="outlined"
+                        autoCapitalize="none"
+                        outlineStyle={styles.inputBorder}
+                        autoComplete="off"
+                        autoCorrect={false"
+                        placeholder={state.strings.server}
+                        value={state.node}
+                        left={<TextInput.Icon style={styles.icon} icon="server" />}
+                        right={
+                          <TextInput.Icon 
+                            icon="chevron-down" 
+                            onPress={() => setServerMenuVisible(true)} 
+                          />
+                        }
+                        onChangeText={value => actions.setNode(value)}
+                      />
+                      <Menu
+                        visible={serverMenuVisible}
+                        onDismiss={() => setServerMenuVisible(false)}
+                        style={styles.serverMenu}
+                        contentStyle={{ maxWidth: 280 }}
+                      >
+                        <Menu.Item onPress={() => { actions.setNode(''); setServerMenuVisible(false); }} title="Custom Server" />
+                        <Divider />
+                        {actions.getPresetServers().map((preset, index) => (
+                          <Menu.Item 
+                            key={index}
+                            onPress={() => { actions.setNode(preset.value); setServerMenuVisible(false); }} 
+                            title={`${preset.label} - ${preset.value}`} 
+                          />
+                        ))}
+                      </Menu>
+                    </View>
                   <TextInput
                     style={styles.input}
                     mode="outlined"

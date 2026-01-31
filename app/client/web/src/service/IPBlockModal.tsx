@@ -50,6 +50,34 @@ export function IPBlockModal({ opened, onClose, strings, state, actions }: IPBlo
     return new Date(timestamp * 1000).toLocaleString();
   };
 
+  const calculateExpiryTime = (duration: number) => {
+    const now = new Date();
+    const expiry = new Date(now.getTime() + duration * 60 * 60 * 1000);
+    return expiry.toLocaleString();
+  };
+
+  const quickTimeOptions = [
+    { value: 1, label: strings.oneHour || '1 Hour' },
+    { value: 6, label: strings.sixHours || '6 Hours' },
+    { value: 24, label: strings.oneDay || '1 Day' },
+    { value: 168, label: strings.sevenDays || '7 Days' },
+    { value: 720, label: strings.thirtyDays || '30 Days' },
+    { value: 0, label: strings.permanent || 'Permanent' }, // Special case for permanent
+  ];
+
+  const formatDuration = (hours: number) => {
+    if (hours === 0) return strings.permanent || 'Permanent';
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      if (remainingHours === 0) {
+        return `${days} ${strings.days || 'Days'}`;
+      }
+      return `${hours} ${strings.hours || 'Hours'} (${days} ${strings.days || 'Days'})`;
+    }
+    return `${hours} ${strings.hours || 'Hours'}`;
+  };
+
   const blockColumns = [
     { title: strings.ip, dataIndex: 'ip', key: 'ip' },
     { title: strings.reason, dataIndex: 'reason', key: 'reason' },
@@ -104,7 +132,7 @@ export function IPBlockModal({ opened, onClose, strings, state, actions }: IPBlo
 
         <div className={classes.section}>
           <Text fw={500} mb="xs">{strings.blockIP}</Text>
-          <Group gap="xs" align="flex-end" grow>
+          <Group gap="xs" align="flex-end" grow mb="md">
             <TextInput
               placeholder={strings.ipAddress}
               value={state.blockIP}
@@ -115,14 +143,20 @@ export function IPBlockModal({ opened, onClose, strings, state, actions }: IPBlo
               value={state.blockReason}
               onChange={(event) => actions.setBlockReason(event.currentTarget.value)}
             />
-            <NumberInput
-              style={{ width: 100 }}
-              placeholder={strings.hours}
-              min={1}
-              max={720}
-              value={state.blockDuration}
-              onChange={(val) => actions.setBlockDuration(Number(val) || 24)}
-            />
+          </Group>
+          
+          <div className={classes.durationSection}>
+            <div className={classes.durationInput}>
+              <Text size="sm" fw={500}>{strings.duration}</Text>
+              <NumberInput
+                placeholder={strings.hours}
+                min={1}
+                max={720}
+                value={state.blockDuration}
+                onChange={(val) => actions.setBlockDuration(Number(val) || 24)}
+                description={formatDuration(state.blockDuration)}
+              />
+            </div>
             <Button 
               onClick={actions.addBlock} 
               disabled={!state.blockIP || state.loading}
@@ -130,7 +164,30 @@ export function IPBlockModal({ opened, onClose, strings, state, actions }: IPBlo
             >
               {strings.block}
             </Button>
-          </Group>
+          </div>
+          
+          <div>
+            <Text size="sm" fw={500} mb="xs">{strings.quickTimeOptions}</Text>
+            <div className={classes.quickTimeButtons}>
+              {quickTimeOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  className={classes.quickTimeButton}
+                  variant={state.blockDuration === option.value ? "filled" : "light"}
+                  size="compact-xs"
+                  onClick={() => actions.setBlockDuration(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {state.blockDuration > 0 && state.blockDuration <= 720 && (
+            <div className={classes.timePreview}>
+              {strings.timePreview}: {calculateExpiryTime(state.blockDuration)}
+            </div>
+          )}
         </div>
 
         <div className={classes.section}>

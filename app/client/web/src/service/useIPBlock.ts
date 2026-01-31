@@ -47,7 +47,7 @@ export function useIPBlock(app: typeof AppContext extends React.Context<infer T>
   });
 
   const getToken = (): string => {
-    const service = app.state.service as { token?: string } | null | undefined;
+    const service = (app as any).state.service as { token?: string } | null | undefined;
     return service?.token || '';
   };
 

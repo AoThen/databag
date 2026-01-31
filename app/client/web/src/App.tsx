@@ -195,7 +195,7 @@ export function App() {
   return (
     <div className={classes.app} style={getThemeStyleVars(themeColors) as React.CSSProperties}>
       <IconContext.Provider value={{ size: "1.5em" }}>
-      <MantineProvider forceColorScheme={mantineScheme} theme={appTheme} withCSSVariables={false}>
+      <MantineProvider forceColorScheme={mantineScheme} theme={appTheme} withCssVariables={false}>
         <style>{isCustomTheme ? getCSSOverride(themeColors) : ''}</style>
         <ModalsProvider>
           {mounted && <RouterProvider router={router} />}

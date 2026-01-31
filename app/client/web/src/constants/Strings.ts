@@ -436,6 +436,16 @@ export const en = {
   failedToUnblockIP: 'Failed to unblock IP',
   failedToAddWhitelist: 'Failed to add to whitelist',
   failedToRemoveWhitelist: 'Failed to remove from whitelist',
+  quickTimeOptions: 'Quick Select',
+  oneHour: '1 Hour',
+  sixHours: '6 Hours',
+  oneDay: '1 Day',
+  sevenDays: '7 Days',
+  thirtyDays: '30 Days',
+  permanent: 'Permanent',
+  timePreview: 'Estimated Unblock Time',
+  days: 'Days',
+  currentDuration: 'Current Duration',
 };
 
 export const fr = {
@@ -866,6 +876,16 @@ export const fr = {
   failedToUnblockIP: 'Échec du déblocage IP',
   failedToAddWhitelist: 'Échec de l\'ajout à la liste blanche',
   failedToRemoveWhitelist: 'Échec de la suppression de la liste blanche',
+  quickTimeOptions: 'Sélection Rapide',
+  oneHour: '1 Heure',
+  sixHours: '6 Heures',
+  oneDay: '1 Jour',
+  sevenDays: '7 Jours',
+  thirtyDays: '30 Jours',
+  permanent: 'Permanent',
+  timePreview: 'Heure Estimée de Déblocage',
+  days: 'Jours',
+  currentDuration: 'Durée Actuelle',
 };
 
 export const es = {
@@ -1294,6 +1314,16 @@ export const es = {
   failedToUnblockIP: 'Error al desbloquear IP',
   failedToAddWhitelist: 'Error al agregar a la lista blanca',
   failedToRemoveWhitelist: 'Error al quitar de la lista blanca',
+  quickTimeOptions: 'Selección Rápida',
+  oneHour: '1 Hora',
+  sixHours: '6 Horas',
+  oneDay: '1 Día',
+  sevenDays: '7 Días',
+  thirtyDays: '30 Días',
+  permanent: 'Permanente',
+  timePreview: 'Hora Estimada de Desbloqueo',
+  days: 'Días',
+  currentDuration: 'Duración Actual',
 };
 
 export const pt = {
@@ -1723,6 +1753,16 @@ export const pt = {
   failedToUnblockIP: 'Falha ao desbloquear IP',
   failedToAddWhitelist: 'Falha ao adicionar à lista branca',
   failedToRemoveWhitelist: 'Falha ao remover da lista branca',
+  quickTimeOptions: 'Seleção Rápida',
+  oneHour: '1 Hora',
+  sixHours: '6 Horas',
+  oneDay: '1 Dia',
+  sevenDays: '7 Dias',
+  thirtyDays: '30 Dias',
+  permanent: 'Permanente',
+  timePreview: 'Hora Estimada de Desbloqueio',
+  days: 'Dias',
+  currentDuration: 'Duração Atual',
 };
 
 export const de = {
@@ -2152,6 +2192,16 @@ export const de = {
   failedToUnblockIP: 'IP-Entsperrung fehlgeschlagen',
   failedToAddWhitelist: 'Hinzufügen zur Whitelist fehlgeschlagen',
   failedToRemoveWhitelist: 'Entfernen aus Whitelist fehlgeschlagen',
+  quickTimeOptions: 'Schnellauswahl',
+  oneHour: '1 Stunde',
+  sixHours: '6 Stunden',
+  oneDay: '1 Tag',
+  sevenDays: '7 Tage',
+  thirtyDays: '30 Tage',
+  permanent: 'Permanent',
+  timePreview: 'Geschätzte Entsperrzeit',
+  days: 'Tage',
+  currentDuration: 'Aktuelle Dauer',
 };
 
 export const ru = {
@@ -2581,6 +2631,16 @@ export const ru = {
   failedToUnblockIP: 'Не удалось разблокировать IP',
   failedToAddWhitelist: 'Не удалось добавить в белый список',
   failedToRemoveWhitelist: 'Не удалось удалить из белого списка',
+  quickTimeOptions: 'Быстрый выбор',
+  oneHour: '1 час',
+  sixHours: '6 часов',
+  oneDay: '1 день',
+  sevenDays: '7 дней',
+  thirtyDays: '30 дней',
+  permanent: 'Постоянно',
+  timePreview: 'Предполагаемое время разблокировки',
+  days: 'Дни',
+  currentDuration: 'Текущая длительность',
 };
 
 export const el = {
@@ -2981,6 +3041,16 @@ export const el = {
   failedToUnblockIP: 'Αποτυχία αποδέσμευσης IP',
   failedToAddWhitelist: 'Αποτυχία προσθήκης στη λευκή λίστα',
   failedToRemoveWhitelist: 'Αποτυχία αφαίρεσης από τη λευκή λίστα',
+  quickTimeOptions: 'Γρήγορη Επιλογή',
+  oneHour: '1 Ώρα',
+  sixHours: '6 Ώρες',
+  oneDay: '1 Ημέρα',
+  sevenDays: '7 Ημέρες',
+  thirtyDays: '30 Ημέρες',
+  permanent: 'Μόνιμο',
+  timePreview: 'Εκτιμώμενη Ώρα Αποδέσμευσης',
+  days: 'Ημέρες',
+  currentDuration: 'Τρέχουσα Διάρκεια',
 };
 
 export const zh = {
@@ -3410,4 +3480,14 @@ export const zh = {
   failedToUnblockIP: '解除封禁失败',
   failedToAddWhitelist: '添加白名单失败',
   failedToRemoveWhitelist: '移除白名单失败',
+  quickTimeOptions: '快速选择',
+  oneHour: '1小时',
+  sixHours: '6小时',
+  oneDay: '1天',
+  sevenDays: '7天',
+  thirtyDays: '30天',
+  permanent: '永久',
+  timePreview: '预计解封时间',
+  days: '天',
+  currentDuration: '当前时长',
 };

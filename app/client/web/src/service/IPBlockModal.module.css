@@ -21,3 +21,64 @@
 .tableTitle {
   margin-bottom: 8px;
 }
+
+/* Quick time selection buttons */
+.quickTimeButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.quickTimeButton {
+  min-width: 60px;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+/* Time preview styling */
+.timePreview {
+  font-size: 12px;
+  color: var(--mantine-color-gray-6);
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: var(--mantine-color-gray-0);
+  border: 1px solid var(--mantine-color-gray-2);
+  border-radius: 4px;
+}
+
+/* Duration input styling */
+.durationSection {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.durationInput {
+  min-width: 120px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .quickTimeButtons {
+    gap: 2px;
+  }
+  
+  .quickTimeButton {
+    min-width: 50px;
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  
+  .durationSection {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .durationInput {
+    width: 100%;
+    min-width: auto;
+  }
+}

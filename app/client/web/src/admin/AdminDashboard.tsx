@@ -216,7 +216,7 @@ export function AdminDashboard() {
             </Stack>
           ),
           confirmProps: { display: 'none' },
-          cancelProps: { label: str('close') },
+          cancelProps: { children: str('close') },
         })
         
         loadStatus()
