@@ -14,6 +14,12 @@ import (
 // SetTopicRead marks a topic as read by the current user
 func SetTopicRead(w http.ResponseWriter, r *http.Request) {
 
+	// Check if read receipts feature is enabled
+	if !IsReadReceiptsEnabled() {
+		ErrResponse(w, http.StatusForbidden, errors.New("read receipts feature is disabled"))
+		return
+	}
+
 	// Parse parameters
 	params := mux.Vars(r)
 	topicID := params["topicID"]

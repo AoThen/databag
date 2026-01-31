@@ -193,10 +193,12 @@ export function Message({ topic, card, profile, host }: { topic: Topic; card: Ca
               {!name && handle && <span>{`${handle}${node ? '/' + node : ''}`}</span>}
               {!name && !handle && <span className={classes.unknown}>{state.strings.unknownContact}</span>}
               <span className={classes.timestamp}> {timestamp}</span>
-              {!host && profile && topic.readBy && topic.readBy.length > 0 && (
-                <span className={classes.readReceipts}>
-                  {topic.readBy.length === 1 ? '✓' : '✓✓'}
-                </span>
+              {/* 未读/已读标识 */}
+              {!locked && status === 'confirmed' && (
+                <div className={classes.readStatus}>
+                  {!topic.readByMe && <div className={classes.unreadDot} title="未读">●</div>}
+                  {topic.readByMe && <div className={classes.readCheck} title="已读">✓</div>}
+                </div>
               )}
             </div>
             <div className={classes.options}>

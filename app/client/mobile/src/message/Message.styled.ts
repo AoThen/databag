@@ -268,10 +268,21 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  readReceipts: {
-    fontSize: 12,
-    color: Colors.primary,
+  readStatus: {
     marginLeft: 4,
+    display: 'flex',
+    alignItems: 'center',
+  },
+  unreadDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.primary,
+  },
+  readCheck: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: 'bold',
   },
   menuButton: {
     backgroundColor: 'transparent',

@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-//GetChannelTopicDetail retrieves topic subject and attributes
+// GetChannelTopicDetail retrieves topic subject and attributes
 func GetChannelTopicDetail(w http.ResponseWriter, r *http.Request) {
 
 	// scan parameters
@@ -39,5 +39,39 @@ func GetChannelTopicDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	WriteResponse(w, getTopicDetailModel(&topicSlot))
+	act := &channelSlot.Account
+
+	WriteResponse(w, getTopicDetailModelWithReadStatus(&topicSlot, act))
+}
+
+func getTopicDetailModelWithReadStatus(slot *store.TopicSlot, account *store.Account) *TopicDetail {
+
+	if slot.Topic == nil {
+		return nil
+	}
+
+	transform := APPTransformComplete
+	for _, asset := range slot.Topic.Assets {
+		if asset.Status == APPAssetError {
+			transform = APPTransformError
+		} else if asset.Status == APPAssetWaiting && transform == APPTransformComplete {
+			transform = APPTransformIncomplete
+		}
+	}
+
+	// query if current user has read this topic
+	var topicRead store.TopicRead
+	err := store.DB.Where("topic_id = ? AND account_id = ?", slot.Topic.ID, account.ID).First(&topicRead).Error
+	readByMe := (err == nil && topicRead.ReadTime > 0)
+
+	return &TopicDetail{
+		GUID:      slot.Topic.GUID,
+		DataType:  slot.Topic.DataType,
+		Data:      slot.Topic.Data,
+		Created:   slot.Topic.Created,
+		Updated:   slot.Topic.Updated,
+		Status:    slot.Topic.Status,
+		Transform: transform,
+		ReadByMe:  readByMe,
+	}
 }

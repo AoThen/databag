@@ -231,15 +231,17 @@ export function Message({topic, card, profile, host, select}: {topic: Topic; car
         <View style={styles.headerContainer}>
           {name && <Text numberOfLines={1} style={styles.labelName}>{name}</Text>}
           {!name && handle && <Text numberOfLines={1} style={styles.labelHandle}>{`${handle}${node ? '@' + node : ''}`}</Text>}
-          {!name && !handle && <Text numberOfLines={1} style={styles.labelUnknown}>{state.strings.unknownContact}</Text>}
-          <View style={styles.headerActions}>
-            <Text style={styles.timestamp}> {timestamp}</Text>
-            {!host && profile && topic.readBy && topic.readBy.length > 0 && (
-              <Text style={styles.readReceipts}>
-                {topic.readBy.length === 1 ? '✓' : '✓✓'}
-              </Text>
-            )}
-            <Menu
+           {!name && !handle && <Text numberOfLines={1} style={styles.labelUnknown}>{state.strings.unknownContact}</Text>}
+           <View style={styles.headerActions}>
+             <Text style={styles.timestamp}> {timestamp}</Text>
+             {/* 未读/已读标识 */}
+             {!locked && status === 'confirmed' && (
+               <View style={styles.readStatus}>
+                 {!topic.readByMe && <View style={styles.unreadDot} />}
+                 {topic.readByMe && <Text style={styles.readCheck}>✓</Text>}
+               </View>
+             )}
+             <Menu
               mode={Platform.OS === 'ios' ? 'flat' : 'elevated'}
               elevation={Platform.OS === 'ios' ? 8 : 2}
               contentStyle={styles.menuContent}

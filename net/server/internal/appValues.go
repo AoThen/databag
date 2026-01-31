@@ -1,5 +1,11 @@
 package databag
 
+import (
+	"os"
+	"strconv"
+	"strings"
+)
+
 // APPCopyTransform reserved tranform code indicating copy
 const APPTransformCopy = "_"
 
@@ -86,6 +92,33 @@ const APPNotifyView = "view"
 
 // APPNotifyTopicRead config for notification name for topic read receipts
 const APPNotifyTopicRead = "topic_read"
+
+// CNFEnableReadReceipts config name for read receipts feature
+const CNFEnableReadReceipts = "enable_read_receipts"
+
+// IsReadReceiptsEnabled checks if read receipts feature is enabled
+// Priority: 1. Environment variable DATABAG_ENABLE_READ_RECEIPTS
+//  2. Database config
+//  3. Default value (true)
+func IsReadReceiptsEnabled() bool {
+	// 1. Check environment variable first
+	if envValue := os.Getenv("DATABAG_ENABLE_READ_RECEIPTS"); envValue != "" {
+		// Parse environment variable (accept "true", "false", "1", "0", etc.)
+		if strings.ToLower(strings.TrimSpace(envValue)) == "true" || envValue == "1" {
+			return true
+		}
+		if strings.ToLower(strings.TrimSpace(envValue)) == "false" || envValue == "0" {
+			return false
+		}
+		// Try parsing as boolean
+		if boolValue, err := strconv.ParseBool(envValue); err == nil {
+			return boolValue
+		}
+	}
+
+	// 2. Fallback to database config
+	return getBoolConfigValue(CNFEnableReadReceipts, true)
+}
 
 // APPTokenAgent config for query param name for self token
 const APPTokenAgent = "agent"

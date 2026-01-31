@@ -1,6 +1,6 @@
 package databag
 
-//AccountProfile account profile view retrieved by admin
+// AccountProfile account profile view retrieved by admin
 type AccountProfile struct {
 	AccountID uint32 `json:"accountId"`
 
@@ -16,14 +16,14 @@ type AccountProfile struct {
 
 	ImageSet bool `json:"imageSet,omitempty"`
 
-  Seal string `json:"seal,emitempty"`
+	Seal string `json:"seal,emitempty"`
 
 	Disabled bool `json:"disabled"`
 
 	StorageUsed int64 `json:"storageUsed"`
 }
 
-//AccountStatus server settings for account
+// AccountStatus server settings for account
 type AccountStatus struct {
 	Disabled bool `json:"disabled"`
 
@@ -35,34 +35,34 @@ type AccountStatus struct {
 
 	Searchable bool `json:"searchable"`
 
-  MFAEnabled bool `json:"mfaEnabled"`
+	MFAEnabled bool `json:"mfaEnabled"`
 
 	PushEnabled bool `json:"pushEnabled"`
 
-  Sealable bool `json:"sealable"`
+	Sealable bool `json:"sealable"`
 
 	Seal *Seal `json:"seal,omitempty"`
 
-  EnableIce bool `json:"enableIce"`
+	EnableIce bool `json:"enableIce"`
 
-  AllowUnsealed bool `json:"allowUnsealed"`
+	AllowUnsealed bool `json:"allowUnsealed"`
 
 	WebPushKey string `json:"webPushKey"`
 }
 
-//Announce initial message sent on websocket
+// Announce initial message sent on websocket
 type Announce struct {
 	AppToken string `json:"appToken"`
 }
 
-//MFASecret values for configuring TOTP
+// MFASecret values for configuring TOTP
 type MFASecret struct {
-  Image string `json:"secretImage"`
+	Image string `json:"secretImage"`
 
-  Text string `json:"secretText"`
+	Text string `json:"secretText"`
 }
 
-//Notification describes type of notifications to receive
+// Notification describes type of notifications to receive
 type Notification struct {
 	Event string `json:"event,omitempty"`
 
@@ -71,7 +71,7 @@ type Notification struct {
 	MessageBody string `json:"messageBoday,omitempty"`
 }
 
-//Article slot for account data shared by group list
+// Article slot for account data shared by group list
 type Article struct {
 	ID string `json:"id"`
 
@@ -80,7 +80,7 @@ type Article struct {
 	Data *ArticleData `json:"data"`
 }
 
-//ArticleData account data shared by group list
+// ArticleData account data shared by group list
 type ArticleData struct {
 	DataType string `json:"dataType"`
 
@@ -93,7 +93,7 @@ type ArticleData struct {
 	Groups *IDList `json:"groups,omitempty"`
 }
 
-//Asset files associated with channel topic
+// Asset files associated with channel topic
 type Asset struct {
 	AssetID string `json:"assetId"`
 
@@ -102,7 +102,7 @@ type Asset struct {
 	Status string `json:"status,omitempty"`
 }
 
-//Card slot for references to an account contact
+// Card slot for references to an account contact
 type Card struct {
 	ID string `json:"id"`
 
@@ -111,7 +111,7 @@ type Card struct {
 	Data *CardData `json:"data"`
 }
 
-//CardData account contact data
+// CardData account contact data
 type CardData struct {
 	DetailRevision int64 `json:"detailRevision"`
 
@@ -130,20 +130,20 @@ type CardData struct {
 	CardProfile *CardProfile `json:"cardProfile,omitempty"`
 }
 
-//CardDetail values set for associated contact
+// CardDetail values set for associated contact
 type CardDetail struct {
 	Status string `json:"status"`
 
 	StatusUpdated int64 `json:"statusUpdated"`
 
-  Token string `json:"token,omitempty"`
+	Token string `json:"token,omitempty"`
 
 	Notes string `json:"notes,omitempty"`
 
 	Groups []string `json:"groups,omitempty"`
 }
 
-//CardProfile profile for account contact
+// CardProfile profile for account contact
 type CardProfile struct {
 	GUID string `json:"guid"`
 
@@ -157,21 +157,21 @@ type CardProfile struct {
 
 	ImageSet bool `json:"imageSet"`
 
-  Seal string `json:"seal,omitempty"`
+	Seal string `json:"seal,omitempty"`
 
 	Version string `json:"version,omitempty"`
 
 	Node string `json:"node"`
 }
 
-//ChannelContacts ids for cards and groups with whom channel is shared
+// ChannelContacts ids for cards and groups with whom channel is shared
 type ChannelContacts struct {
 	Groups []string `json:"groups"`
 
 	Cards []string `json:"cards"`
 }
 
-//Channel slot for communication channel
+// Channel slot for communication channel
 type Channel struct {
 	ID string `json:"id"`
 
@@ -180,7 +180,7 @@ type Channel struct {
 	Data *ChannelData `json:"data"`
 }
 
-//ChannelData communication channel data
+// ChannelData communication channel data
 type ChannelData struct {
 	DetailRevision int64 `json:"detailRevision"`
 
@@ -191,7 +191,7 @@ type ChannelData struct {
 	ChannelDetail *ChannelDetail `json:"channelDetail,omitempty"`
 }
 
-//ChannelDetail description of channel
+// ChannelDetail description of channel
 type ChannelDetail struct {
 	DataType string `json:"dataType"`
 
@@ -201,32 +201,32 @@ type ChannelDetail struct {
 
 	Updated int64 `json:"updated"`
 
-  EnableImage bool `json:"enableImage"`
+	EnableImage bool `json:"enableImage"`
 
-  EnableAudio bool `json:"enableAudio"`
+	EnableAudio bool `json:"enableAudio"`
 
-  EnableVideo bool `json:"enableVideo"`
+	EnableVideo bool `json:"enableVideo"`
 
-  EnableBinary bool `json:"enableBinary"`
+	EnableBinary bool `json:"enableBinary"`
 
 	Contacts *ChannelContacts `json:"contacts,omitempty"`
 
 	Members []string `json:"members"`
 }
 
-//ChannelMember contact member of channel
+// ChannelMember contact member of channel
 type ChannelMember struct {
-  Member string `json:"member"`
+	Member string `json:"member"`
 
-  PushEnabled bool `json:"pushEnabled"`
+	PushEnabled bool `json:"pushEnabled"`
 }
 
-//ChannelSummary latest topic posted on channel
+// ChannelSummary latest topic posted on channel
 type ChannelSummary struct {
 	LastTopic *TopicDetail `json:"lastTopic,omitempty"`
 }
 
-//ChannelParams params used when creating a channel
+// ChannelParams params used when creating a channel
 type ChannelParams struct {
 	DataType string `json:"dataType"`
 
@@ -237,12 +237,12 @@ type ChannelParams struct {
 	Cards []string `json:"cards"`
 }
 
-//Claim token to verify for 3rd party authentication
+// Claim token to verify for 3rd party authentication
 type Claim struct {
 	Token string `json:"token"`
 }
 
-//Connect data exchanged in a contact connection message
+// Connect data exchanged in a contact connection message
 type Connect struct {
 	Contact string `json:"contact"`
 
@@ -268,12 +268,12 @@ type Connect struct {
 
 	Version string `json:"version,omitempty"`
 
-  Seal string `json:"seal,omitempty"`
+	Seal string `json:"seal,omitempty"`
 
 	Node string `json:"node,omitempty"`
 }
 
-//ContactStatus status of contact returned after connection message
+// ContactStatus status of contact returned after connection message
 type ContactStatus struct {
 	Token string `json:"token,omitempty"`
 
@@ -288,7 +288,7 @@ type ContactStatus struct {
 	Status string `json:"status"`
 }
 
-//DataMessage general structure holding signed messages
+// DataMessage general structure holding signed messages
 type DataMessage struct {
 	Message string `json:"message"`
 
@@ -301,12 +301,12 @@ type DataMessage struct {
 	SignatureType string `json:"signatureType"`
 }
 
-//Disconnect data exchanged when closing connection
+// Disconnect data exchanged when closing connection
 type Disconnect struct {
 	Contact string `json:"contact"`
 }
 
-//Group slot for holding a contact group alias
+// Group slot for holding a contact group alias
 type Group struct {
 	ID string `json:"id"`
 
@@ -315,7 +315,7 @@ type Group struct {
 	Data *GroupData `json:"data,omitempty"`
 }
 
-//GroupData a contact group alias
+// GroupData a contact group alias
 type GroupData struct {
 	DataType string `json:"dataType"`
 
@@ -326,7 +326,7 @@ type GroupData struct {
 	Updated int64 `json:"updated"`
 }
 
-//Identity data exchanged in a profile message
+// Identity data exchanged in a profile message
 type Identity struct {
 	Revision int64 `json:"revision"`
 
@@ -344,26 +344,26 @@ type Identity struct {
 
 	Node string `json:"node"`
 
-  Seal string `json:"seal"`
+	Seal string `json:"seal"`
 }
 
-//IDList general list of ids
+// IDList general list of ids
 type IDList struct {
 	IDs []string `json:"ids"`
 }
 
-//LoginAccess response object when app is associated
+// LoginAccess response object when app is associated
 type LoginAccess struct {
-  GUID string `json:"guid"`
+	GUID string `json:"guid"`
 
 	AppToken string `json:"appToken"`
 
 	Created int64 `json:"created"`
 
-  PushSupported bool `json:"pushSupported"`
+	PushSupported bool `json:"pushSupported"`
 }
 
-//NodeConfig node configuration values
+// NodeConfig node configuration values
 type NodeConfig struct {
 	Domain string `json:"domain"`
 
@@ -389,18 +389,18 @@ type NodeConfig struct {
 
 	AccountStorage int64 `json:"accountStorage"`
 
-  TransformSupported bool `json:"transformSupported"`
+	TransformSupported bool `json:"transformSupported"`
 
-  AllowUnsealed bool `json:"allowUnsealed"`
+	AllowUnsealed bool `json:"allowUnsealed"`
 
-  PushSupported bool `json:"pushSupported"`
+	PushSupported bool `json:"pushSupported"`
 
-  EnableOpenAccess bool `json:"enableOpenAccess,omitempty"`
+	EnableOpenAccess bool `json:"enableOpenAccess,omitempty"`
 
 	OpenAccessLimit int64 `json:"openAccessLimit,omitempty"`
 }
 
-//Profile public attributes of account
+// Profile public attributes of account
 type Profile struct {
 	GUID string `json:"guid"`
 
@@ -414,7 +414,7 @@ type Profile struct {
 
 	Image string `json:"image,omitempty"`
 
-  Seal string `json:"seal,omitempty"`
+	Seal string `json:"seal,omitempty"`
 
 	Revision int64 `json:"revision"`
 
@@ -423,7 +423,7 @@ type Profile struct {
 	Node string `json:"node"`
 }
 
-//ProfileData subset of profile attributes to set
+// ProfileData subset of profile attributes to set
 type ProfileData struct {
 	Name string `json:"name,omitempty"`
 
@@ -432,14 +432,14 @@ type ProfileData struct {
 	Location string `json:"location,omitempty"`
 }
 
-//Activity listener for account
+// Activity listener for account
 type Activity struct {
-  Revision *Revision `json:"revision,emitempty"`
+	Revision *Revision `json:"revision,emitempty"`
 
-  Phone *Phone `json:"ring",omitempty"`
+	Phone *Phone `json:"ring",omitempty"`
 }
 
-//Revision revision of each account module
+// Revision revision of each account module
 type Revision struct {
 	Account int64 `json:"account"`
 
@@ -454,35 +454,35 @@ type Revision struct {
 	Card int64 `json:"card"`
 }
 
-//Phone call indicator from contact initiating call
+// Phone call indicator from contact initiating call
 type Phone struct {
-  CardID string `json:"cardId"`
+	CardID string `json:"cardId"`
 
-  CallID string `json:"callId"`
+	CallID string `json:"callId"`
 
-  CalleeToken string `json:"calleeToken"`
+	CalleeToken string `json:"calleeToken"`
 
-  Ice []IceURL `json:"ice,omitEmpty"`
+	Ice []IceURL `json:"ice,omitEmpty"`
 
-  IceURL string `json:"iceUrl"`
+	IceURL string `json:"iceUrl"`
 
-  IceUsername string `json:"iceUsername"`
+	IceUsername string `json:"iceUsername"`
 
-  IcePassword string `json:"icePassword"`
+	IcePassword string `json:"icePassword"`
 }
 
-//Seal key for channel sealing
+// Seal key for channel sealing
 type Seal struct {
 	PasswordSalt string `json:"passwordSalt"`
 
 	PrivateKeyIV string `json:"privateKeyIv,omitempty"`
 
-  PrivateKeyEncrypted string `json:"privateKeyEncrypted,omitempty"`
+	PrivateKeyEncrypted string `json:"privateKeyEncrypted,omitempty"`
 
 	PublicKey string `json:"publicKey,omitempty"`
 }
 
-//SignedData object serialized in message
+// SignedData object serialized in message
 type SignedData struct {
 	GUID string `json:"guid"`
 
@@ -493,14 +493,14 @@ type SignedData struct {
 	Value string `json:"value"`
 }
 
-//Subject payload of attribute, channel, topic or tag
+// Subject payload of attribute, channel, topic or tag
 type Subject struct {
 	DataType string `json:"dataType"`
 
 	Data string `json:"data"`
 }
 
-//Tag slot for tags associated with topic
+// Tag slot for tags associated with topic
 type Tag struct {
 	ID string `json:"id"`
 
@@ -509,7 +509,7 @@ type Tag struct {
 	Data *TagData `json:"data"`
 }
 
-//TagData data associated with topic
+// TagData data associated with topic
 type TagData struct {
 	GUID string `json:"guid"`
 
@@ -522,7 +522,7 @@ type TagData struct {
 	Updated int64 `json:"updated"`
 }
 
-//Topic slot for object associated with channel
+// Topic slot for object associated with channel
 type Topic struct {
 	ID string `json:"id"`
 
@@ -531,7 +531,7 @@ type Topic struct {
 	Data *TopicData `json:"data"`
 }
 
-//TopicData data and revision of posted topic and tags
+// TopicData data and revision of posted topic and tags
 type TopicData struct {
 	DetailRevision int64 `json:"detailRevision"`
 
@@ -540,7 +540,7 @@ type TopicData struct {
 	TopicDetail *TopicDetail `json:"topicDetail,omitempty"`
 }
 
-//TopicDetail payload of topic
+// TopicDetail payload of topic
 type TopicDetail struct {
 	GUID string `json:"guid"`
 
@@ -555,10 +555,11 @@ type TopicDetail struct {
 	Status string `json:"status"`
 
 	Transform string `json:"transform,omitempty"`
+
+	ReadByMe bool `json:"readByMe"`
 }
 
 type Call struct {
-
 	Id string `json:"id"`
 
 	CardId string `json:"cardId"`
@@ -569,63 +570,59 @@ type Call struct {
 
 	KeepAlive int32 `json:"keepAlive"`
 
-  IceService string `json:"iceService"`
+	IceService string `json:"iceService"`
 
-  Ice []IceURL `json:"ice,omitEmpty"`
+	Ice []IceURL `json:"ice,omitEmpty"`
 
-  IceURL string `json:"iceUrl"`
+	IceURL string `json:"iceUrl"`
 
-  IceUsername string `json:"iceUsername"`
+	IceUsername string `json:"iceUsername"`
 
-  IcePassword string `json:"icePassword"`
+	IcePassword string `json:"icePassword"`
 }
 
 type IceServers struct {
+	URLs []string `json:"urls"`
 
-  URLs []string `json:"urls"`
+	Username string `json:"username"`
 
-  Username string `json:"username"`
-
-  Credential string `json:"credential"`
+	Credential string `json:"credential"`
 }
 
 type IceService struct {
-
-  Servers IceServers `json:"iceServers"`
+	Servers IceServers `json:"iceServers"`
 }
 
 type IceURL struct {
+	URLs string `json:"urls"`
 
-  URLs string `json:"urls"`
+	Username string `json:"username"`
 
-  Username string `json:"username"`
-
-  Credential string `json:"credential"`
+	Credential string `json:"credential"`
 }
 
 type Ring struct {
-
-  CallID string `json:"callId"`
+	CallID string `json:"callId"`
 
 	CalleeToken string `json:"calleeToken"`
 
 	Index int32 `json:"index"`
 
-  Ice []IceURL `json:"ice,omitEmpty"`
+	Ice []IceURL `json:"ice,omitEmpty"`
 
-  IceURL string `json:"iceUrl"`
+	IceURL string `json:"iceUrl"`
 
-  IceUsername string `json:"iceUsername"`
+	IceUsername string `json:"iceUsername"`
 
-  IcePassword string `json:"icePassword"`
+	IcePassword string `json:"icePassword"`
 }
 
 type PushMessage struct {
-  Title string `json:"title"`
-  Body string `json:"body"`
-  Token string `json:"token"`
+	Title string `json:"title"`
+	Body  string `json:"body"`
+	Token string `json:"token"`
 }
 
 type PushResponse struct {
-  Message string `json:"message"`
+	Message string `json:"message"`
 }
