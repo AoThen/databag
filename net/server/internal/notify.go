@@ -79,6 +79,10 @@ func sendLocalNotification(notification *store.Notification) {
 		if err := NotifyViewRevision(&card, notification.Revision); err != nil {
 			ErrMsg(err)
 		}
+	} else if notification.Module == APPNotifyTopicRead {
+		if err := NotifyChannelRevision(&card, notification.Revision); err != nil {
+			ErrMsg(err)
+		}
 	} else if notification.Module == APPPushNotify {
 		SendPushEvent(card.Account, notification.Event)
 	} else {
@@ -97,6 +101,8 @@ func sendRemoteNotification(notification *store.Notification) {
 		module = "channel/revision"
 	} else if notification.Module == APPNotifyView {
 		module = "view/revision"
+	} else if notification.Module == APPNotifyTopicRead {
+		module = "channel/revision"
 	} else if notification.Module == APPPushNotify {
 		module = "notification"
 	} else {

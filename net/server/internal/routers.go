@@ -840,6 +840,20 @@ var endpoints = routes{
 	},
 
 	route{
+		"SetTopicRead",
+		strings.ToUpper("Put"),
+		"/content/channels/{channelID}/topics/{topicID}/read",
+		SetTopicRead,
+	},
+
+	route{
+		"GetTopicReads",
+		strings.ToUpper("Get"),
+		"/content/channels/{channelID}/topics/{topicID}/reads",
+		GetTopicReads,
+	},
+
+	route{
 		"SetChannelGroup",
 		strings.ToUpper("Put"),
 		"/content/channels/{channelID}/groups/{groupID}",

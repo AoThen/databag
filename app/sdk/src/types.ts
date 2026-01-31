@@ -111,6 +111,17 @@ export type Topic = {
   status: string;
   transform: string;
   assets: Asset[];
+  readCount?: number;
+  readBy?: ReadReceipt[];
+  readByMe?: boolean;
+};
+
+export type ReadReceipt = {
+  guid: string;
+  name?: string;
+  handle?: string;
+  imageUrl?: string;
+  readTime: number;
 };
 
 export type Tag = {

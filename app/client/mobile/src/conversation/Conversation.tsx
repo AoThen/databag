@@ -299,6 +299,15 @@ export function Conversation({layout, close, openDetails}: {layotu: string; clos
             onEndReached={loadMore}
             onEndReachedThreshold={0}
             contentContainerStyle={styles.smMessages}
+            onViewableItemsChanged={useCallback(({ viewableItems }) => {
+              viewableItems.forEach(({ item }) => {
+                if (item.guid !== state.profile?.guid && item.status === 'confirmed') {
+                  // Mark as read (don't await to avoid blocking)
+                  actions.markAsRead(item.topicId).catch(() => {});
+                }
+              });
+            }, [state.profile])}
+            viewabilityConfig={{ itemVisiblePercentThreshold: 50, minimumViewTime: 1000 }}
             renderItem={({item}) => {
               const {host} = state;
               const card = state.cards.get(item.guid) || null;

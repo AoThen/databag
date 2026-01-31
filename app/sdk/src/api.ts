@@ -155,6 +155,9 @@ export interface Focus {
   setBlockTopic(topicId: string): Promise<void>;
   clearBlockTopic(topicId: string): Promise<void>;
 
+  markTopicRead(topicId: string): Promise<void>;
+  getTopicReadReceipts(topicId: string): Promise<{ guid: string; readTime: number; name?: string; handle?: string; imageUrl?: string }[]>;
+
   addTopicListener(ev: (topics: null | Topic[]) => void): void;
   removeTopicListener(ev: (topics: null | Topic[]) => void): void;
 

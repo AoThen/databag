@@ -84,6 +84,9 @@ const APPPushNotify = "push"
 // APPNotifyView config for notification name for view
 const APPNotifyView = "view"
 
+// APPNotifyTopicRead config for notification name for topic read receipts
+const APPNotifyTopicRead = "topic_read"
+
 // APPTokenAgent config for query param name for self token
 const APPTokenAgent = "agent"
 

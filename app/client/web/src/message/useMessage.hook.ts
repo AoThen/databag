@@ -41,6 +41,19 @@ export function useMessage() {
         await focus.removeTopic(topicId)
       }
     },
+    markAsRead: async (topicId: string) => {
+      const focus = app.state.focus
+      if (focus) {
+        await focus.markTopicRead(topicId)
+      }
+    },
+    getReadReceipts: async (topicId: string) => {
+      const focus = app.state.focus
+      if (focus) {
+        return await focus.getTopicReadReceipts(topicId)
+      }
+      return []
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     saveSubject: async (topicId: string, sealed: boolean, subject: any) => {
       const focus = app.state.focus

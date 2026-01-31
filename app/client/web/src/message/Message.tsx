@@ -183,16 +183,21 @@ export function Message({ topic, card, profile, host }: { topic: Topic; card: Ca
       })
 
   return (
-    <div className={classes.topic}>
+    <div className={classes.topic} data-topic-id={topic.topicId}>
       <div className={classes.content}>
         <Image radius="sm" className={classes.logo} src={logoUrl} />
         <div className={classes.body}>
-          <div className={classes.header}>
+            <div className={classes.header}>
             <div className={classes.name}>
               {name && <span>{name}</span>}
               {!name && handle && <span>{`${handle}${node ? '/' + node : ''}`}</span>}
               {!name && !handle && <span className={classes.unknown}>{state.strings.unknownContact}</span>}
               <span className={classes.timestamp}> {timestamp}</span>
+              {!host && profile && topic.readBy && topic.readBy.length > 0 && (
+                <span className={classes.readReceipts}>
+                  {topic.readBy.length === 1 ? '✓' : '✓✓'}
+                </span>
+              )}
             </div>
             <div className={classes.options}>
               <div className={classes.surface}>

@@ -22,6 +22,7 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&Article{})
 	db.AutoMigrate(&TopicSlot{})
 	db.AutoMigrate(&Topic{})
+	db.AutoMigrate(&TopicRead{})
 	db.AutoMigrate(&Asset{})
 	db.AutoMigrate(&TagSlot{})
 	db.AutoMigrate(&Tag{})
@@ -64,6 +65,20 @@ type Flag struct {
 	GUID          string `gorm:"not null;"`
 	ChannelSlotID string
 	TopicSlotID   string
+}
+
+type TopicRead struct {
+	ID           uint    `gorm:"primaryKey;not null;unique;autoIncrement"`
+	TopicID      uint    `gorm:"not null;index:topicread,unique:topicread"`
+	CardID       uint    `gorm:"not null;index:topicread,unique:topicread"`
+	AccountID    uint    `gorm:"not null;index:topicread"`
+	ReadTime     int64   `gorm:"not null"`
+	ReadRevision int64   `gorm:"not null"`
+	Created      int64   `gorm:"autoCreateTime"`
+	Updated      int64   `gorm:"autoUpdateTime"`
+	Topic        Topic   `gorm:"references:ID"`
+	Card         Card    `gorm:"references:ID"`
+	Account      Account `gorm:"references:ID"`
 }
 
 type Account struct {
@@ -303,6 +318,7 @@ type Topic struct {
 	Created        int64  `gorm:"autoCreateTime"`
 	Updated        int64  `gorm:"autoUpdateTime"`
 	TagRevision    int64  `gorm:"not null"`
+	ReadCount      int64  `gorm:"not null;default:0"`
 	Account        Account
 	Channel        *Channel
 	Assets         []Asset

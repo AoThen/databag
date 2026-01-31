@@ -234,6 +234,11 @@ export function Message({topic, card, profile, host, select}: {topic: Topic; car
           {!name && !handle && <Text numberOfLines={1} style={styles.labelUnknown}>{state.strings.unknownContact}</Text>}
           <View style={styles.headerActions}>
             <Text style={styles.timestamp}> {timestamp}</Text>
+            {!host && profile && topic.readBy && topic.readBy.length > 0 && (
+              <Text style={styles.readReceipts}>
+                {topic.readBy.length === 1 ? '✓' : '✓✓'}
+              </Text>
+            )}
             <Menu
               mode={Platform.OS === 'ios' ? 'flat' : 'elevated'}
               elevation={Platform.OS === 'ios' ? 8 : 2}

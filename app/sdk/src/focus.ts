@@ -19,6 +19,7 @@ import { setChannelTopicSubject } from './net/setChannelTopicSubject';
 import { setContactChannelTopicSubject } from './net/setContactChannelTopicSubject';
 import { removeChannelTopic } from './net/removeChannelTopic';
 import { removeContactChannelTopic } from './net/removeContactChannelTopic';
+import { setChannelTopicRead, getChannelTopicReads, setContactChannelTopicRead, getContactChannelTopicReads } from './net/setChannelTopicRead';
 import { getLegacyData } from './legacy';
 
 const BATCH_COUNT = 32;
@@ -1203,16 +1204,29 @@ export class FocusModule implements Focus {
     }
   }
 
-  private async removeRemoteChannelTopic(topicId: string) {
+  public async markTopicRead(topicId: string): Promise<void> {
     const { cardId, channelId, connection } = this;
     if (!connection) {
       throw new Error('disconnected from channel');
     }
     const { node, secure, token } = connection;
     if (cardId) {
-      return await removeContactChannelTopic(node, secure, token, channelId, topicId);
+      await setContactChannelTopicRead(node, secure, token, channelId, topicId);
     } else {
-      return await removeChannelTopic(node, secure, token, channelId, topicId);
+      await setChannelTopicRead(node, secure, token, channelId, topicId);
+    }
+  }
+
+  public async getTopicReadReceipts(topicId: string): Promise<{ guid: string; readTime: number; name?: string; handle?: string; imageUrl?: string }[]> {
+    const { cardId, channelId, connection } = this;
+    if (!connection) {
+      throw new Error('disconnected from channel');
+    }
+    const { node, secure, token } = connection;
+    if (cardId) {
+      return await getContactChannelTopicReads(node, secure, token, channelId, topicId);
+    } else {
+      return await getChannelTopicReads(node, secure, token, channelId, topicId);
     }
   }
 

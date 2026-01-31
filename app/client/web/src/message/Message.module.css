@@ -185,6 +185,12 @@
             font-style: italic;
             color: var(--mantine-color-text-7);
           }
+
+          .readReceipts {
+            font-size: 0.8rem;
+            color: var(--mantine-color-dbgreen-1);
+            margin-left: 4px;
+          }
         }
       }
     }

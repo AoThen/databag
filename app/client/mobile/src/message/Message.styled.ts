@@ -268,6 +268,11 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  readReceipts: {
+    fontSize: 12,
+    color: Colors.primary,
+    marginLeft: 4,
+  },
   menuButton: {
     backgroundColor: 'transparent',
     padding: 0,

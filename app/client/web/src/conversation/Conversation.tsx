@@ -279,4 +279,36 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
       </AnimateHeight>
     </div>
   )
+
+  // Auto mark messages as read when they become visible
+  useEffect(() => {
+    if (!state.profile || !state.topics.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const topicId = entry.target.getAttribute('data-topic-id')
+            const topic = state.topics.find((t) => t.topicId === topicId)
+            if (topic && topic.guid !== state.profile?.guid && topic.status === 'confirmed') {
+              // Mark as read (don't await to avoid blocking)
+              actions.markAsRead(topicId).catch(() => {})
+            }
+          }
+        })
+      },
+      { threshold: 0.5 }
+    )
+
+    // Observe all message elements
+    setTimeout(() => {
+      document.querySelectorAll('[data-topic-id]').forEach((el) => {
+        observer.observe(el)
+      })
+    }, 100)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [state.topics, state.profile])
 }
