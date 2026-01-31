@@ -91,6 +91,19 @@ const DEFAULT_STRINGS = {
   previewNote: '预览模式下不会实际删除任何数据',
   executeCleanup: '执行清理',
   cleanupPreview: '清理预览',
+  autoCleanupNote: '自动清理将根据设置的间隔执行',
+  enableAutoCleanupDesc: '启用后将自动清理旧数据',
+}
+
+function getString(strings: typeof DEFAULT_STRINGS, key: keyof typeof DEFAULT_STRINGS, fallbackStrings: Record<string, string> = {}): string {
+  return (strings as any)[key] || fallbackStrings[key] || DEFAULT_STRINGS[key] || ''
+}
+
+function replacePlaceholder(text: string, placeholder: string, value: string): string {
+  if (!text || typeof text !== 'string') {
+    return text
+  }
+  return text.replace(placeholder, value)
 }
 
 export function AdminDashboard() {
@@ -112,7 +125,8 @@ export function AdminDashboard() {
   const [settingsOpened, { open: settingsOpen, close: cleanupClose }] = useDisclosure(false)
   const [statusOpened, { open: statusOpen, close: statusClose }] = useDisclosure(false)
 
-  const strings = display.state.strings || DEFAULT_STRINGS
+  const strings = { ...DEFAULT_STRINGS, ...display.state.strings }
+  const str = (key: keyof typeof DEFAULT_STRINGS) => strings[key] || DEFAULT_STRINGS[key] || ''
 
   useEffect(() => {
     if (adminToken) {
@@ -153,8 +167,8 @@ export function AdminDashboard() {
     } catch (err) {
       console.error('Failed to save config:', err)
       modals.openConfirmModal({
-        title: strings.operationFailed,
-        children: <Text>{strings.tryAgain}</Text>,
+        title: str('operationFailed'),
+        children: <Text>{str('tryAgain')}</Text>,
         confirmProps: { display: 'none' },
         cancelProps: { display: 'none' },
       })
@@ -176,33 +190,33 @@ export function AdminDashboard() {
       
       if (!dryRun) {
         modals.openConfirmModal({
-          title: dryRun ? strings.check : strings.success,
+          title: dryRun ? str('check') : str('success'),
           children: (
             <Stack gap="xs">
               <Group justify="space-between">
-                <Text>{strings.deletedMessages}:</Text>
+                <Text>{str('deletedMessages')}:</Text>
                 <Text fw="bold">{result.deletedTopics}</Text>
               </Group>
               <Group justify="space-between">
-                <Text>{strings.deletedFiles}:</Text>
+                <Text>{str('deletedFiles')}:</Text>
                 <Text fw="bold">{result.deletedAssets}</Text>
               </Group>
               <Group justify="space-between">
-                <Text>{strings.freedSpace}:</Text>
+                <Text>{str('freedSpace')}:</Text>
                 <Text fw="bold">{formatBytes(result.freedBytes)}</Text>
               </Group>
               <Group justify="space-between">
-                <Text>{strings.affectedAccounts}:</Text>
+                <Text>{str('affectedAccounts')}:</Text>
                 <Text fw="bold">{result.affectedAccounts}</Text>
               </Group>
               <Group justify="space-between">
-                <Text>{strings.processingTime}:</Text>
+                <Text>{str('processingTime')}:</Text>
                 <Text fw="bold">{result.processingTime}ms</Text>
               </Group>
             </Stack>
           ),
           confirmProps: { display: 'none' },
-          cancelProps: { label: strings.close },
+          cancelProps: { label: str('close') },
         })
         
         loadStatus()
@@ -212,8 +226,8 @@ export function AdminDashboard() {
     } catch (err) {
       console.error('Cleanup failed:', err)
       modals.openConfirmModal({
-        title: strings.operationFailed,
-        children: <Text>{strings.tryAgain}</Text>,
+        title: str('operationFailed'),
+        children: <Text>{str('tryAgain')}</Text>,
         confirmProps: { display: 'none' },
         cancelProps: { display: 'none' },
       })
@@ -224,13 +238,13 @@ export function AdminDashboard() {
 
   const confirmCleanup = () => {
     modals.openConfirmModal({
-      title: strings.confirmCleanup,
+      title: str('confirmCleanup'),
       children: (
         <Text size="sm" c="dimmed">
-          {strings.cleanupWarning.replace('{days}', config.messageRetentionDays.toString())}
+          {replacePlaceholder(str('cleanupWarning'), '{days}', config.messageRetentionDays.toString())}
         </Text>
       ),
-      labels: { confirm: strings.cleanup, cancel: strings.cancel },
+      labels: { confirm: str('cleanup'), cancel: str('cancel') },
       onConfirm: () => executeCleanup(false),
     })
   }
@@ -254,14 +268,14 @@ export function AdminDashboard() {
   return (
     <div className={classes.container}>
       <div className={classes.header}>
-        <Text className={classes.title}>{strings.dataCleanup}</Text>
+        <Text className={classes.title}>{str('dataCleanup')}</Text>
         <Group gap="xs">
           <Button 
             variant="light" 
             leftSection={<TbSettings size={16} />}
             onClick={settingsOpen}
           >
-            {strings.settings}
+            {str('settings')}
           </Button>
           <Button 
             variant="light" 
@@ -269,7 +283,7 @@ export function AdminDashboard() {
             onClick={loadStatus}
             loading={loading}
           >
-            {strings.refresh}
+            {str('refresh')}
           </Button>
         </Group>
       </div>
@@ -277,12 +291,12 @@ export function AdminDashboard() {
       <div className={classes.statsGrid}>
         <Card className={classes.statCard} padding="lg" radius="md" withBorder>
           <Group justify="space-between" mb="xs">
-            <Text className={classes.statLabel}>{strings.totalMessages}</Text>
+            <Text className={classes.statLabel}>{str('totalMessages')}</Text>
             <TbDatabase size={20} className={classes.statIcon} />
           </Group>
           <Text className={classes.statValue}>{status?.totalTopics || 0}</Text>
           <Text className={classes.statSubtext} c="dimmed">
-            {strings.oldDataWarning.replace('{count}', (status?.oldTopics || 0).toString())}
+            {replacePlaceholder(str('oldDataWarning'), '{count}', (status?.oldTopics || 0).toString())}
           </Text>
           <Progress 
             value={estimatedMessagePercent} 
@@ -295,12 +309,12 @@ export function AdminDashboard() {
 
         <Card className={classes.statCard} padding="lg" radius="md" withBorder>
           <Group justify="space-between" mb="xs">
-            <Text className={classes.statLabel}>{strings.totalFiles}</Text>
+            <Text className={classes.statLabel}>{str('totalFiles')}</Text>
             <TbFile size={20} className={classes.statIcon} />
           </Group>
           <Text className={classes.statValue}>{status?.totalAssets || 0}</Text>
           <Text className={classes.statSubtext} c="dimmed">
-            {strings.oldAssetsWarning.replace('{count}', (status?.oldAssets || 0).toString())}
+            {replacePlaceholder(str('oldAssetsWarning'), '{count}', (status?.oldAssets || 0).toString())}
           </Text>
           <Progress 
             value={estimatedAssetPercent} 
@@ -313,25 +327,25 @@ export function AdminDashboard() {
 
         <Card className={classes.statCard} padding="lg" radius="md" withBorder>
           <Group justify="space-between" mb="xs">
-            <Text className={classes.statLabel}>{strings.estimatedSpace}</Text>
+            <Text className={classes.statLabel}>{str('estimatedSpace')}</Text>
             <TbChartBar size={20} className={classes.statIcon} />
           </Group>
           <Text className={classes.statValue}>{formatBytes(status?.estimatedSpace || 0)}</Text>
           <Text className={classes.statSubtext} c="dimmed">
-            {strings.canBeFreed}
+            {str('canBeFreed')}
           </Text>
         </Card>
 
         <Card className={classes.statCard} padding="lg" radius="md" withBorder>
           <Group justify="space-between" mb="xs">
-            <Text className={classes.statLabel}>{strings.lastCleanup}</Text>
+            <Text className={classes.statLabel}>{str('lastCleanup')}</Text>
             <TbClock size={20} className={classes.statIcon} />
           </Group>
           <Text className={classes.statValue} size="lg">
             {formatTime(status?.lastCleanupTime)}
           </Text>
           <Text className={classes.statSubtext} c="dimmed">
-            {strings.autoCleanupStatus.replace('{enabled}', config.cleanupEnabled ? strings.enabled : strings.disabled)}
+            {replacePlaceholder(str('autoCleanupStatus'), '{enabled}', config.cleanupEnabled ? str('enabled') : str('disabled'))}
           </Text>
         </Card>
       </div>
@@ -341,9 +355,9 @@ export function AdminDashboard() {
           <div className={classes.actionHeader}>
             <TbTrash size={24} className={classes.actionIcon} />
             <div>
-              <Text className={classes.actionTitle}>{strings.manualCleanup}</Text>
+              <Text className={classes.actionTitle}>{str('manualCleanup')}</Text>
               <Text className={classes.actionSubtitle}>
-                {strings.cleanupDescription.replace('{days}', config.messageRetentionDays.toString())}
+                {replacePlaceholder(str('cleanupDescription'), '{days}', config.messageRetentionDays.toString())}
               </Text>
             </div>
           </div>
@@ -351,18 +365,18 @@ export function AdminDashboard() {
           <div className={classes.actionConfig}>
             <Group justify="space-between">
               <div>
-                <Text size="sm" fw="500">{strings.messageRetention}</Text>
-                <Text size="xs" c="dimmed">{strings.messageRetentionDesc}</Text>
+                <Text size="sm" fw="500">{str('messageRetention')}</Text>
+                <Text size="xs" c="dimmed">{str('messageRetentionDesc')}</Text>
               </div>
-              <Badge size="lg" variant="light">{config.messageRetentionDays} {strings.days}</Badge>
+              <Badge size="lg" variant="light">{config.messageRetentionDays} {str('days')}</Badge>
             </Group>
             
             <Group justify="space-between" mt="md">
               <div>
-                <Text size="sm" fw="500">{strings.assetRetention}</Text>
-                <Text size="xs" c="dimmed">{strings.assetRetentionDesc}</Text>
+                <Text size="sm" fw="500">{str('assetRetention')}</Text>
+                <Text size="xs" c="dimmed">{str('assetRetentionDesc')}</Text>
               </div>
-              <Badge size="lg" variant="light">{config.assetRetentionDays} {strings.days}</Badge>
+              <Badge size="lg" variant="light">{config.assetRetentionDays} {str('days')}</Badge>
             </Group>
           </div>
 
@@ -376,7 +390,7 @@ export function AdminDashboard() {
               onClick={() => executeCleanup(true)}
               loading={cleaning}
             >
-              {strings.preview}
+              {str('preview')}
             </Button>
             <Button 
               variant="filled" 
@@ -385,7 +399,7 @@ export function AdminDashboard() {
               onClick={confirmCleanup}
               loading={cleaning}
             >
-              {strings.cleanupNow}
+              {str('cleanupNow')}
             </Button>
           </Group>
         </Card>
@@ -393,12 +407,12 @@ export function AdminDashboard() {
         <Card className={classes.infoCard} padding="lg" radius="md" withBorder>
           <div className={classes.infoHeader}>
             <TbSettings size={20} className={classes.infoIcon} />
-            <Text className={classes.infoTitle}>{strings.autoCleanup}</Text>
+            <Text className={classes.infoTitle}>{str('autoCleanup')}</Text>
           </div>
           
           <div className={classes.infoContent}>
             <Group justify="space-between" mb="md">
-              <Text size="sm">{strings.enableAutoCleanup}</Text>
+              <Text size="sm">{str('enableAutoCleanup')}</Text>
               <Switch 
                 checked={config.cleanupEnabled}
                 onChange={(e) => setConfigState({ ...config, cleanupEnabled: e.currentTarget.checked })}
@@ -408,14 +422,14 @@ export function AdminDashboard() {
             {config.cleanupEnabled && (
               <>
                 <Group justify="space-between" mb="xs">
-                  <Text size="sm" c="dimmed">{strings.cleanupInterval}</Text>
+                  <Text size="sm" c="dimmed">{str('cleanupInterval')}</Text>
                   <Text size="sm" fw="500">
-                    {config.cleanupIntervalHours} {strings.hours}
+                    {config.cleanupIntervalHours} {str('hours')}
                   </Text>
                 </Group>
                 
                 <Text size="xs" c="dimmed" mt="xs">
-                  {strings.autoCleanupNote}
+                  {str('autoCleanupNote')}
                 </Text>
               </>
             )}
@@ -430,63 +444,63 @@ export function AdminDashboard() {
             loading={loading}
             disabled={!config.cleanupEnabled}
           >
-            {strings.saveSettings}
+            {str('saveSettings')}
           </Button>
         </Card>
       </div>
 
       <Modal 
         opened={settingsOpened} 
-        onClose={settingsClose} 
-        title={strings.cleanupSettings}
+        onClose={cleanupClose} 
+        title={str('cleanupSettings')}
         size="md"
       >
         <Stack gap="md">
           <div>
             <Switch 
-              label={strings.enableAutoCleanup}
-              description={strings.enableAutoCleanupDesc}
+              label={str('enableAutoCleanup')}
+              description={str('enableAutoCleanupDesc')}
               checked={config.cleanupEnabled}
               onChange={(e) => setConfigState({ ...config, cleanupEnabled: e.currentTarget.checked })}
             />
           </div>
           
           <NumberInput
-            label={strings.cleanupInterval}
-            description={strings.cleanupIntervalDesc}
+            label={str('cleanupInterval')}
+            description={str('cleanupIntervalDesc')}
             value={config.cleanupIntervalHours}
             onChange={(val) => setConfigState({ ...config, cleanupIntervalHours: Number(val) || 24 })}
             min={1}
             max={8760}
-            suffix={` ${strings.hours}`}
+            suffix={` ${str('hours')}`}
           />
           
           <NumberInput
-            label={strings.messageRetentionDays}
-            description={strings.messageRetentionDaysDesc}
+            label={str('messageRetentionDays')}
+            description={str('messageRetentionDaysDesc')}
             value={config.messageRetentionDays}
             onChange={(val) => setConfigState({ ...config, messageRetentionDays: Number(val) || 90 })}
             min={1}
             max={3650}
-            suffix={` ${strings.days}`}
+            suffix={` ${str('days')}`}
           />
           
           <NumberInput
-            label={strings.assetRetentionDays}
-            description={strings.assetRetentionDaysDesc}
+            label={str('assetRetentionDays')}
+            description={str('assetRetentionDaysDesc')}
             value={config.assetRetentionDays}
             onChange={(val) => setConfigState({ ...config, assetRetentionDays: Number(val) || 180 })}
             min={1}
             max={3650}
-            suffix={` ${strings.days}`}
+            suffix={` ${str('days')}`}
           />
           
           <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={settingsClose}>
-              {strings.cancel}
+            <Button variant="default" onClick={cleanupClose}>
+              {str('cancel')}
             </Button>
             <Button variant="filled" onClick={saveConfig} loading={loading}>
-              {strings.save}
+              {str('save')}
             </Button>
           </Group>
         </Stack>
@@ -495,36 +509,36 @@ export function AdminDashboard() {
       <Modal 
         opened={statusOpened} 
         onClose={statusClose} 
-        title={strings.cleanupPreview}
+        title={str('cleanupPreview')}
         size="md"
       >
         {cleanupResult && (
           <Stack gap="md">
             <Card withBorder padding="md" radius="md">
-              <Text fw="500" mb="sm">{strings.estimatedCleanup}</Text>
+              <Text fw="500" mb="sm">{str('estimatedCleanup')}</Text>
               <Stack gap="xs">
                 <Group justify="space-between">
-                  <Text size="sm">{strings.willDeleteMessages}:</Text>
+                  <Text size="sm">{str('willDeleteMessages')}:</Text>
                   <Badge color="red">{cleanupResult.deletedTopics}</Badge>
                 </Group>
                 <Group justify="space-between">
-                  <Text size="sm">{strings.willDeleteFiles}:</Text>
+                  <Text size="sm">{str('willDeleteFiles')}:</Text>
                   <Badge color="orange">{cleanupResult.deletedAssets}</Badge>
                 </Group>
                 <Group justify="space-between">
-                  <Text size="sm">{strings.willFreeSpace}:</Text>
+                  <Text size="sm">{str('willFreeSpace')}:</Text>
                   <Badge color="green">{formatBytes(cleanupResult.freedBytes)}</Badge>
                 </Group>
               </Stack>
             </Card>
             
             <Alert icon={<TbAlertTriangle size={16} />} color="yellow">
-              {strings.previewNote}
+              {str('previewNote')}
             </Alert>
             
             <Group justify="flex-end">
               <Button variant="default" onClick={statusClose}>
-                {strings.close}
+                {str('close')}
               </Button>
               <Button 
                 variant="filled" 
@@ -534,7 +548,7 @@ export function AdminDashboard() {
                   confirmCleanup()
                 }}
               >
-                {strings.executeCleanup}
+                {str('executeCleanup')}
               </Button>
             </Group>
           </Stack>
