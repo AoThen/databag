@@ -17,7 +17,7 @@ export function VideoAsset({ topicId, asset }: { topicId: string; asset: MediaAs
   // 使用统一的资源加载器
   const [loaderState, loaderActions] = useAssetLoader(async (onProgress) => {
     return await assetActions.loadVideo(onProgress);
-  });
+  }, [topicId, asset.video, asset.encrypted]);
   
   // 视频预加载：当有dataUrl时预加载元数据
   useVideoPreload(
@@ -31,13 +31,12 @@ export function VideoAsset({ topicId, asset }: { topicId: string; asset: MediaAs
   
   const hide = () => {
     setShowModal(false)
-    loaderActions.cancel(); // 取消加载
+    loaderActions.cancel();
   }
   
   useEffect(() => {
     if (showModal) {
       setShowVideo(true)
-      // 如果还没有加载，则加载
       if (!assetState.dataUrl && !loaderState.loading) {
         loaderActions.load();
       }
@@ -89,49 +88,6 @@ export function VideoAsset({ topicId, asset }: { topicId: string; asset: MediaAs
           {(assetState.loading || loaderState.loading) && (assetState.loadPercent > 0 || loaderState.loadPercent > 0) && (
             <Progress className={classes.progress} value={Math.max(assetState.loadPercent, loaderState.loadPercent)} />
           )}
-          <ActionIcon className={classes.close} variant="filled" size="lg" onClick={hide}>
-            <TbX size="lg" />
-          </ActionIcon>
-        </div>
-      )}
-    </div>
-  )
-}
-
-  const hide = () => {
-    setShowModal(false)
-  }
-
-  useEffect(() => {
-    if (showModal) {
-      setShowVideo(true)
-      actions.loadVideo()
-    } else {
-      setShowVideo(false)
-      actions.cancelLoad()
-    }
-  }, [showModal])
-
-  return (
-    <div>
-      {state.thumbUrl && (
-        <div className={classes.asset} onClick={show}>
-          <Image radius="sm" className={classes.thumb} src={state.thumbUrl} />
-          <TbPlayerPlay className={classes.play} size={32} />
-        </div>
-      )}
-
-      {showModal && (
-        <div className={classes.modal} style={showVideo ? { opacity: 1 } : { opacity: 0 }}>
-          <div className={classes.frame} style={state.dataUrl ? { opacity: 0 } : { opacity: 1 }}>
-            <Image ref={ref} className={classes.image} fit="contain" src={state.thumbUrl} />
-          </div>
-          {state.dataUrl && (
-            <div className={classes.video} style={{ width, height }}>
-              <video className={classes.image} controls width={width} height={height} src={state.dataUrl} playsInline={true} autoPlay={true} />
-            </div>
-          )}
-          {state.loading && state.loadPercent > 0 && <Progress className={classes.progress} value={state.loadPercent} />}
           <ActionIcon className={classes.close} variant="filled" size="lg" onClick={hide}>
             <TbX size="lg" />
           </ActionIcon>

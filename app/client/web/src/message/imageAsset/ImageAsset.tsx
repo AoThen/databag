@@ -15,7 +15,7 @@ export function ImageAsset({ topicId, asset }: { topicId: string; asset: MediaAs
   // 使用统一的资源加载器
   const [loaderState, loaderActions] = useAssetLoader(async (onProgress) => {
     return await assetActions.loadImage(onProgress);
-  });
+  }, [topicId, asset.image, asset.encrypted]);
   
   // 图片预加载：当有dataUrl时预加载
   useImagePreload(
@@ -29,13 +29,12 @@ export function ImageAsset({ topicId, asset }: { topicId: string; asset: MediaAs
   
   const hide = () => {
     setShowModal(false)
-    loaderActions.cancel(); // 取消加载
+    loaderActions.cancel();
   }
   
   useEffect(() => {
     if (showModal) {
       setShowImage(true)
-      // 如果还没有加载，则加载
       if (!assetState.dataUrl && !loaderState.loading) {
         loaderActions.load();
       }
@@ -79,48 +78,6 @@ export function ImageAsset({ topicId, asset }: { topicId: string; asset: MediaAs
           {(assetState.loading || loaderState.loading) && (assetState.loadPercent > 0 || loaderState.loadPercent > 0) && (
             <Progress className={classes.progress} value={Math.max(assetState.loadPercent, loaderState.loadPercent)} />
           )}
-          <ActionIcon className={classes.close} variant="filled" size="lg" onClick={hide}>
-            <TbX size="lg} />
-          </ActionIcon>
-        </div>
-      )}
-    </div>
-  )
-}
-
-  const hide = () => {
-    setShowModal(false)
-  }
-
-  useEffect(() => {
-    if (showModal) {
-      setShowImage(true)
-      actions.loadImage()
-    } else {
-      setShowImage(false)
-      actions.cancelLoad()
-    }
-  }, [showModal])
-
-  return (
-    <div>
-      {state.thumbUrl && (
-        <div className={classes.asset} onClick={show}>
-          <Image radius="sm" className={classes.thumb} src={state.thumbUrl} />
-        </div>
-      )}
-
-      {showModal && (
-        <div className={classes.modal} style={showImage ? { opacity: 1 } : { opacity: 0 }}>
-          <div className={classes.frame}>
-            <Image className={classes.image} fit="contain" src={state.thumbUrl} />
-          </div>
-          {state.dataUrl && (
-            <div className={classes.frame} style={state.loaded ? { opacity: 1 } : { opacity: 0 }}>
-              <Image className={classes.image} fit="contain" src={state.dataUrl} onLoad={actions.setLoaded} />
-            </div>
-          )}
-          {state.loading && state.loadPercent > 0 && <Progress className={classes.progress} value={state.loadPercent} />}
           <ActionIcon className={classes.close} variant="filled" size="lg" onClick={hide}>
             <TbX size="lg" />
           </ActionIcon>
