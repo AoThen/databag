@@ -1,7 +1,8 @@
-import { useState, useContext, useRef } from 'react'
+import { useState, useContext, useRef, useEffect } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { ContextType } from '../../context/ContextType'
 import { MediaAsset } from '../../conversation/Conversation'
+import { useAssetLoader } from '../../hooks/useAssetLoader'
 
 export function useBinaryAsset(topicId: string, asset: MediaAsset) {
   const app = useContext(AppContext) as ContextType
@@ -10,34 +11,42 @@ export function useBinaryAsset(topicId: string, asset: MediaAsset) {
     loading: false,
     loadPercent: 0,
   })
-  const cancelled = useRef(false)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateState = (value: any) => {
     setState((s) => ({ ...s, ...value }))
   }
 
+  // 使用统一的资源加载器
+  const [loaderState, loaderActions] = useAssetLoader(async (onProgress) => {
+    const { focus } = app.state;
+    const assetId = asset.binary ? asset.binary.data : asset.encrypted ? asset.encrypted.parts : null;
+    
+    if (!focus || assetId == null) {
+      throw new Error('No focus or assetId');
+    }
+    
+    return await focus.getTopicAssetUrl(topicId, assetId, onProgress);
+  }, [topicId, asset.binary, asset.encrypted]); // 使用具体属性而非整个asset对象
+
+  // 同步loader状态到state
+  useEffect(() => {
+    if (loaderState.data) {
+      updateState({ dataUrl: loaderState.data, loaded: true });
+    } else if (loaderState.error) {
+      updateState({ loaded: false, loadPercent: 0 });
+    } else if (loaderState.loading !== state.loading) {
+      updateState({ loading: loaderState.loading });
+    } else if (loaderState.loadPercent !== state.loadPercent) {
+      updateState({ loadPercent: loaderState.loadPercent });
+    }
+  }, [loaderState.data, loaderState.loading, loaderState.loadPercent, loaderState.error]);
+
   const actions = {
-    cancelLoad: () => {
-      cancelled.current = true
-    },
     loadBinary: async () => {
-      const { focus } = app.state
-      const assetId = asset.binary ? asset.binary.data : asset.encrypted ? asset.encrypted.parts : null
-      if (focus && assetId != null && !state.loading && !state.dataUrl) {
-        cancelled.current = false
-        updateState({ loading: true, loadPercent: 0 })
-        try {
-          const dataUrl = await focus.getTopicAssetUrl(topicId, assetId, (loadPercent: number) => {
-            updateState({ loadPercent })
-            return !cancelled.current
-          })
-          updateState({ dataUrl, loading: false })
-        } catch (err) {
-          updateState({ loading: false })
-          console.log(err)
-        }
-      }
+      await loaderActions.load();
+    },
+    cancelLoad: () => {
+      loaderActions.cancel();
     },
   }
 

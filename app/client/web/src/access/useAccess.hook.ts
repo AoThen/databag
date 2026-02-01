@@ -3,6 +3,8 @@ import { DisplayContext } from '../context/DisplayContext'
 import { AppContext } from '../context/AppContext'
 import { ContextType } from '../context/ContextType'
 import { useLocation } from 'react-router-dom'
+import { requestCache } from '../utils/RequestCache'
+import { DEBOUNCE_DELAY } from '../constants/Debounce'
 
 export function useAccess() {
   const debounceAvailable = useRef(setTimeout(() => {}, 0))
@@ -26,6 +28,7 @@ export function useAccess() {
     host: '',
     available: 0,
     taken: false,
+    checking: null as 'server' | 'username' | null, // 添加checking状态
     themes: display.state.themes,
     languages: display.state.languages,
   })
@@ -60,32 +63,41 @@ export function useAccess() {
 
   const getAvailable = (node: string, secure: boolean) => {
     clearTimeout(debounceAvailable.current)
+    const cacheKey = `available:${node}:${secure}`;
+    
     debounceAvailable.current = setTimeout(async () => {
       try {
-        const available = await app.actions.getAvailable(node, secure)
-        updateState({ available })
+        // 使用requestCache进行请求缓存和取消
+        const available = await requestCache.get(
+          cacheKey,
+          (signal?: AbortSignal) => app.actions.getAvailable(node, secure, signal)
+        );
+        updateState({ available, checking: null });
       } catch (err) {
-        console.log(err)
-        updateState({ available: 0 })
+        console.log('[useAccess] getAvailable error:', err);
+        updateState({ available: 0, checking: null });
       }
-    }, 2000)
+    }, DEBOUNCE_DELAY.INPUT) // 从2000ms改为500ms
   }
 
   const checkTaken = (username: string, token: string, node: string, secure: boolean) => {
-    updateState({ taken: false })
-    clearTimeout(debounceTaken.current)
+    updateState({ taken: false, checking: 'username' });
+    clearTimeout(debounceTaken.current);
+    const cacheKey = `taken:${username}:${token}:${node}:${secure}`;
+    
     debounceTaken.current = setTimeout(async () => {
       try {
-	if (username) {
-          const available = await app.actions.getUsername(username, token, node, secure)
-          updateState({ taken: !available })
-	} else {
-	  updateState({ taken: false });
-	}
-      } catch(err) {
-        console.log(err);
+        // 使用requestCache进行请求缓存和取消
+        const available = await requestCache.get(
+          cacheKey,
+          (signal?: AbortSignal) => app.actions.getUsername(username, token, node, secure, signal)
+        );
+        updateState({ taken: !available, checking: null });
+      } catch (err) {
+        console.log('[useAccess] checkTaken error:', err);
+        updateState({ taken: false, checking: null });
       }
-    }, 2000)
+    }, DEBOUNCE_DELAY.INPUT) // 从2000ms改为500ms
   }
 
   useEffect(() => {

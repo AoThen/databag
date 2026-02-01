@@ -13,6 +13,9 @@ import { SketchPicker } from 'react-color'
 import AnimateHeight from 'react-animate-height'
 import { useResizeDetector } from 'react-resize-detector'
 import { Topic } from 'databag-client-sdk'
+import { FixedSizeList as List } from 'react-window'
+import { useVirtualList } from '../hooks/useVirtualList'
+import AutoSizer from 'react-virtualized-auto-sizer'
 
 // Extend Topic type to include readByMe (needed until SDK is updated)
 type TopicWithReadStatus = Topic & { readByMe?: boolean }
@@ -125,12 +128,21 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
     }
   }, [sending])
 
-  const topics = state.topics.map((topic, idx) => {
+  // 虚拟列表渲染单个消息的Row组件
+  const MessageRow = ({ index, style, data }: { index: number; style: React.CSSProperties; data: typeof state.topics }) => {
+    const topic = data[index];
+    if (!topic) return null;
+    
     const { host } = state
     const card = state.cards.get(topic.guid) || null
     const profile = state.profile?.guid === topic.guid ? state.profile : null
-    return <Message key={idx} topic={topic} card={card} profile={profile} host={host} />
-  })
+    
+    return (
+      <div style={style}>
+        <Message topic={topic} card={card} profile={profile} host={host} />
+      </div>
+    );
+  }
 
   const media = state.assets.map((asset, index: number) => {
     if (asset.type === 'image') {
@@ -177,7 +189,22 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
         {state.loaded && (
           <div className={classes.thread}>
             <div className="topicPad" />
-            {topics}
+            {/* 虚拟列表优化：只渲染可见区域的消息 */}
+            <AutoSizer>
+              {({ height, width }) => (
+                <List
+                  height={height}
+                  width={width}
+                  itemCount={state.topics.length}
+                  itemSize={100} // 假设每条消息平均100px高
+                  itemData={state.topics}
+                  style={{ overflow: 'visible' }}
+                  overscanCount={5} // 预渲染5条
+                >
+                  {MessageRow}
+                </List>
+              )}
+            </AutoSizer>
           </div>
         )}
         {state.loadingMore && (
