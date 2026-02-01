@@ -3,6 +3,7 @@ package databag
 import (
 	"databag/internal/store"
 	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 	"net/http"
@@ -63,6 +64,8 @@ func getTopicDetailModelWithReadStatus(slot *store.TopicSlot, account *store.Acc
 	var topicRead store.TopicRead
 	err := store.DB.Where("topic_id = ? AND account_id = ?", slot.Topic.ID, account.ID).First(&topicRead).Error
 	readByMe := (err == nil && topicRead.ReadTime > 0)
+
+	LogMsg(fmt.Sprintf("[ReadReceipt] topicId=%s, accountId=%d, readByMe=%v, err=%v", slot.Topic.TopicSlotID, account.ID, readByMe, err))
 
 	return &TopicDetail{
 		GUID:      slot.Topic.GUID,

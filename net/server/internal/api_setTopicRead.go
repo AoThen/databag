@@ -3,6 +3,7 @@ package databag
 import (
 	"databag/internal/store"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -79,19 +80,20 @@ func SetTopicRead(w http.ResponseWriter, r *http.Request) {
 	err = store.DB.Transaction(func(tx *gorm.DB) error {
 		now := time.Now().Unix()
 
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, gorm.ErrRecordNotFound) || existingRead.ID == 0 {
 			// Create new read record
 			topicRead := &store.TopicRead{
 				TopicID:      topic.ID,
 				CardID:       uint(card.ID),
-				AccountID:    uint(card.ID),
+				AccountID:    act.ID, // 使用当前用户的Account ID
 				ReadTime:     now,
 				ReadRevision: act.ChannelRevision + 1,
 			}
 			if res := tx.Create(topicRead).Error; res != nil {
 				return res
 			}
-			// Increment read count (from 0 to 1)
+			LogMsg(fmt.Sprintf("[SetTopicRead] topicId=%s, accountId=%d, cardId=%d", topic.TopicSlotID, act.ID, card.ID))
+			// Increment read count
 			if res := tx.Model(&store.Topic{}).Where("id = ?", topic.ID).Update("read_count", readCount+1).Error; res != nil {
 				return res
 			}
