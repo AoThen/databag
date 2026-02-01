@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import classes from './Conversation.module.css'
 import { useConversation } from './useConversation.hook'
-import { TbSend, TbTextSize, TbTextColor, TbVideo, TbFile, TbDisc, TbAlertTriangle, TbCamera, TbSettings, TbHome, TbServer, TbShield, TbExclamationCircle } from "react-icons/tb";
+import { TbSend, TbTextSize, TbTextColor, TbVideo, TbFile, TbDisc, TbAlertTriangle, TbCamera, TbSettings, TbHome, TbServer, TbShield, TbExclamationCircle, TbSearch, TbX } from "react-icons/tb";
 import { CloseButton, Menu, Divider, Text, Textarea, ActionIcon, Loader } from '@mantine/core'
 import { Message } from '../message/Message'
 import { modals } from '@mantine/modals'
@@ -145,7 +145,7 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
   //   );
   // }
 
-  const topics = state.topics.map((topic, idx) => {
+  const topics = (state.searchFilter ? state.filteredTopics : state.topics).map((topic, idx) => {
     const { host } = state
     const card = state.cards.get(topic.guid) || null
     const profile = state.profile?.guid === topic.guid ? state.profile : null
@@ -169,7 +169,7 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
   const enableAudio = state.detail?.enableAudio
   const enableBinary = state.detail?.enableBinary
 
-  return (
+      return (
     <div className={classes.conversation}>
       <div className={classes.header}>
         <div className={classes.status}>
@@ -183,6 +183,29 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
           {state.detailSet && state.sealed === true && <TbShield size={24} />}
           {state.detailSet && state.access === false && <TbExclamationCircle className={classes.alert} size={24} />}
         </div>
+        <div className={classes.title}>
+          <div className={classes.titleWrapper}>
+            {state.detailSet && state.subject && <Text className={classes.label}>{state.subject}</Text>}
+            {state.detailSet && state.host && !state.subject && state.subjectNames.length == 0 && <Text className={classes.label}>{state.strings.notes}</Text>}
+            {state.detailSet && state.host && !state.subject && state.subjectNames.length > 0 && <Text className={classes.label}>{state.subjectNames.join(', ')}</Text>}
+            {state.detailSet && !state.host && state.unknownContacts > 0 && <Text className={classes.unknown}>{`, ${state.strings.unknownContact} (${state.unknownContacts})`}</Text>}
+          </div>
+          <div className={classes.searchWrapper}>
+            <div className={classes.searchIcon}><TbSearch size={16} /></div>
+            <input
+              type="text"
+              className={classes.searchInput}
+              placeholder={state.strings.searchTopics}
+              value={state.searchFilter}
+              onChange={(e) => actions.setSearchFilter(e.currentTarget.value)}
+            />
+            {state.searchFilter && <div className={classes.searchClear}><TbX size={14} onClick={() => actions.setSearchFilter('')} /></div>}
+          </div>
+        </div>
+        <div className={classes.control}>
+          <CloseButton className={classes.close} onClick={actions.close} />
+        </div>
+      </div>
         <div className={classes.title}>
           {state.detailSet && state.subject && <Text className={classes.label}>{state.subject}</Text>}
           {state.detailSet && state.host && !state.subject && state.subjectNames.length == 0 && <Text className={classes.label}>{state.strings.notes}</Text>}

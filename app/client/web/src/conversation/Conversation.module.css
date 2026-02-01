@@ -129,6 +129,52 @@
     justify-content: center;
     align-items: center;
     gap: 12px;
+    min-width: 0;
+  }
+
+  .titleWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .searchWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 300px;
+    flex-grow: 1;
+  }
+
+  .searchIcon {
+    color: var(--mantine-color-text-7);
+  }
+
+  .searchInput {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: var(--mantine-color-text-0);
+  }
+
+  .searchInput::placeholder {
+    color: var(--mantine-color-text-7);
+  }
+
+  .searchClear {
+    cursor: pointer;
+    color: var(--mantine-color-text-7);
+    display: flex;
+    align-items: center;
+    padding: 4px;
+  }
+
+  .searchClear:hover {
+    color: var(--mantine-color-text-6);
   }
 
   .unknown {

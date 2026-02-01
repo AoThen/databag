@@ -67,6 +67,18 @@ export function useMessage() {
         )
       }
     },
+    retryTopic: async (topicId: string, subject: any) => {
+      const focus = app.state.focus
+      if (focus) {
+        await focus.setTopicSubject(
+          topicId,
+          subject.sealed ? 'sealedtopic' : 'superbasictopic',
+          () => subject.data,
+          [],
+          () => true
+        )
+      }
+    },
     getTimestamp: (created: number) => {
       const now = Math.floor(new Date().getTime() / 1000)
       const date = new Date(created * 1000)

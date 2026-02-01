@@ -99,6 +99,8 @@ export function useConversation() {
     focus: null as Focus | null,
     layout: null,
     topics: [] as Topic[],
+    filteredTopics: [] as Topic[],
+    searchFilter: '',
     loaded: false,
     loadingMore: false,
     profile: null as Profile | null,
@@ -136,6 +138,20 @@ export function useConversation() {
     const { layout, strings } = display.state
     updateState({ layout, strings })
   }, [display.state])
+
+  useEffect(() => {
+    if (!state.searchFilter) {
+      updateState({ filteredTopics: state.topics })
+      return
+    }
+    
+    const query = state.searchFilter.toLowerCase()
+    const filtered = state.topics.filter((topic) => {
+      if (!topic.data || !topic.data.text) return false
+      return topic.data.text.toLowerCase().includes(query)
+    })
+    updateState({ filteredTopics: filtered })
+  }, [state.searchFilter, state.topics])
 
   useEffect(() => {
     const host = state.cardId == null
@@ -218,6 +234,9 @@ export function useConversation() {
     },
     setMessage: (message: string) => {
       updateState({ message })
+    },
+    setSearchFilter: (filter: string) => {
+      updateState({ searchFilter: filter })
     },
     setTextSize: (textSize: number) => {
       const textSizeSet = true

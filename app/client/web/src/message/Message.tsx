@@ -9,7 +9,7 @@ import { VideoAsset } from './videoAsset/VideoAsset'
 import { BinaryAsset } from './binaryAsset/BinaryAsset'
 import type { MediaAsset } from '../conversation/Conversation'
 import { useMessage } from './useMessage.hook'
-import { TbForbid, TbTrash, TbEdit, TbFlag, TbChevronLeft, TbChevronRight, TbFileAlert } from "react-icons/tb";
+import { TbForbid, TbTrash, TbEdit, TbFlag, TbChevronLeft, TbChevronRight, TbFileAlert, TbRefresh } from "react-icons/tb";
 import { useResizeDetector } from 'react-resize-detector'
 import { modals } from '@mantine/modals'
 import { sanitizeUrl } from '@braintree/sanitize-url'
@@ -20,7 +20,7 @@ type TopicWithReadStatus = Topic & { readByMe?: boolean }
 export function Message({ topic, card, profile, host }: { topic: TopicWithReadStatus; card: Card | null; profile: Profile | null; host: boolean }) {
   const { state, actions } = useMessage()
   const scroll = useRef(null as HTMLDivElement | null)
-  const { locked, data, created, topicId, status, transform } = topic
+  const { locked, data, created, topicId, status, transform, sealed } = topic
   const { name, handle, node } = profile || card || { name: null, handle: null, node: null }
   const { text, textColor, textSize, assets } = data || { text: null, textColor: null, textSize: null }
   const textStyle = { color: textColor ? textColor : undefined, fontSize: textSize ? textSize : undefined }
@@ -30,6 +30,19 @@ export function Message({ topic, card, profile, host }: { topic: TopicWithReadSt
   const [editing, setEditing] = useState(false)
   const [editText, setEditText] = useState('')
   const [saving, setSaving] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+  
+  const retry = async () => {
+    setRetrying(true)
+    try {
+      await actions.retryTopic(topicId, { data: { text, textColor, textSize, assets }, sealed })
+    } catch (err) {
+      console.log(err)
+      showError(state.strings.resendFailed)
+    } finally {
+      setRetrying(false)
+    }
+  }
 
   const remove = async () => {
     modals.openConfirmModal({
@@ -206,6 +219,7 @@ export function Message({ topic, card, profile, host }: { topic: TopicWithReadSt
             </div>
             <div className={classes.options}>
               <div className={classes.surface}>
+                {!locked && status !== 'confirmed' && profile && <TbRefresh className={classes.retry} style={{ animationPlayState: retrying ? 'running' : 'paused' }} onClick={retry} title={retrying ? state.strings.retrying : state.strings.resend} />}
                 {!locked && profile && <TbEdit className={classes.option} onClick={edit} />}
                 {(host || profile) && <TbTrash className={classes.careful} onClick={remove} />}
                 {!profile && <TbForbid className={classes.careful} onClick={block} />}

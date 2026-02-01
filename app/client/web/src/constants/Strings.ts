@@ -385,7 +385,11 @@ export const en = {
   blockTopic: 'Blocking Topic',
   blockTopicPrompt: 'Are you sure you want to block the topic?',
   reportTopic: 'Flag Topic',
-  reportTopicPrompt: 'Are you sure you want to flag the topic for admin review?',
+  reportTopicPrompt: 'Are you sure you want to flag this topic for admin review?',
+
+  retrying: 'Retrying...',
+  resend: 'Resend',
+  resendFailed: 'Failed to resend message',
 
   ignoring: 'Ignoring Contact',
   connfirmIgnoring: 'Are you sure you want to ignore the request?',
@@ -3258,6 +3262,9 @@ export const zh = {
 
   operationFailed: '操作失败',
   tryAgain: '请重试。',
+  retrying: '正在重试...',
+  resend: '重发',
+  resendFailed: '重发消息失败',
 
   add: '添加',
   save: '保存',

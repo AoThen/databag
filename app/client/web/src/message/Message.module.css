@@ -171,6 +171,36 @@
           color: var(--mantine-color-red-2);
         }
 
+        .retry {
+          cursor: pointer;
+          width: 20px;
+          height: 20px;
+          color: var(--mantine-color-orange-6);
+        }
+
+        .retry[style*="running"] {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         .name {
           display: flex;
           flex-direction: row;
