@@ -298,4 +298,20 @@ export const styles = StyleSheet.create({
   serverMenu: {
     marginTop: 50,
   },
+  logButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    opacity: 0.7,
+    elevation: 2,
+  },
+  logButtonIcon: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

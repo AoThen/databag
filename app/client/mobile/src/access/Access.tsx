@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {useAnimatedValue, Platform, Animated, Modal, ScrollView, View, Image, SafeAreaView} from 'react-native';
+import {useAnimatedValue, Platform, Animated, Modal, ScrollView, View, Image, SafeAreaView, TouchableOpacity} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {useAccess} from './useAccess.hook';
 import {styles} from './Access.styled';
@@ -10,6 +10,7 @@ import {InputCode} from '../utils/InputCode';
 import {tos} from '../constants/terms';
 import {Confirm} from '../confirm/Confirm';
 import {Menu, Divider} from 'react-native-paper';
+import {LogViewer} from '../components/LogViewer';
 
 export function Access() {
   const {state, actions} = useAccess();
@@ -19,6 +20,7 @@ export function Access() {
   const [otp, setOtp] = useState(false);
   const [terms, setTerms] = useState(false);
   const [serverMenuVisible, setServerMenuVisible] = useState(false);
+  const [logModalVisible, setLogModalVisible] = useState(false);
   const [alertParams, setAlertParams] = useState({
     title: '',
     prompt: '',
@@ -631,6 +633,19 @@ export function Access() {
         </View>
       </Modal>
       <Confirm show={alert} params={alertParams} />
+      
+      {/* 日志查看器模态框 */}
+      <Modal visible={logModalVisible} animationType="slide">
+        <LogViewer onClose={() => setLogModalVisible(false)} />
+      </Modal>
+      
+      {/* 右上角日志按钮 */}
+      <TouchableOpacity 
+        style={[styles.logButton, { backgroundColor: theme.colors.elevation.level2 }]} 
+        onPress={() => setLogModalVisible(true)}
+      >
+        <Text style={[styles.logButtonIcon, { color: theme.colors.onSurface }]}>🐛</Text>
+      </TouchableOpacity>
     </Surface>
   );
 }

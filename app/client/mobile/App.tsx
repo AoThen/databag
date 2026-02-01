@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {View, StatusBar} from 'react-native';
 import {AppContextProvider} from './src/context/AppContext';
 import {DisplayContextProvider} from './src/context/DisplayContext';
+import {LogContextProvider} from './src/context/LogContext';
+import { testLogSystem } from './src/utils/LogTest';
 import {Routes, Route, MemoryRouter} from 'react-router-dom';
 import {Root} from './src/root/Root';
 import {Access} from './src/access/Access';
@@ -240,6 +242,9 @@ function App(): React.JSX.Element {
   const [share, setShare] = useState(null as null | { filePath: string, mimeType: string });
 
   useEffect(() => {
+    // 测试日志系统
+    testLogSystem();
+    
     ReceiveSharingIntent.getReceivedFiles(files => {
       if (files && files.length) {
         const { filePath, mimeType } = files[0];
@@ -282,22 +287,24 @@ function App(): React.JSX.Element {
   backgroundColor = colorScheme === 'dark' ? databagColors.dark.elevation.level3 : databagColors.light.elevation.level3;
 
   return (
-    <AppContextProvider>
-      <DisplayContextProvider>
-        <PaperProvider settings={{icon: FontMix}} theme={theme}>
-          <MemoryRouter>
-            <StatusBar backgroundColor={colorScheme === 'dark' ? '#191919' : '#8FBEA7'} />
-            <Root />
-            <Routes>
-              <Route path="/" element={<View />} />
-              <Route path="/access" element={<Access />} />
-              <Route path="/service" element={<Service />} />
-              <Route path="/session" element={<Session share={share} />} />
-            </Routes>
-          </MemoryRouter>
-        </PaperProvider>
-      </DisplayContextProvider>
-    </AppContextProvider>
+    <LogContextProvider>
+      <AppContextProvider>
+        <DisplayContextProvider>
+          <PaperProvider settings={{icon: FontMix}} theme={theme}>
+            <MemoryRouter>
+              <StatusBar backgroundColor={colorScheme === 'dark' ? '#191919' : '#8FBEA7'} />
+              <Root />
+              <Routes>
+                <Route path="/" element={<View />} />
+                <Route path="/access" element={<Access />} />
+                <Route path="/service" element={<Service />} />
+                <Route path="/session" element={<Session share={share} />} />
+              </Routes>
+            </MemoryRouter>
+          </PaperProvider>
+        </DisplayContextProvider>
+      </AppContextProvider>
+    </LogContextProvider>
   );
 }
 
