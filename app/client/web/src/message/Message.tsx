@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { avatar } from '../constants/Icons'
 import { Topic, Card, Profile } from 'databag-client-sdk'
-import { ErrorHandler, ErrorCategory } from '../utils/ErrorHandler'
 import classes from './Message.module.css'
 import { Textarea, Button, Image, Skeleton, ActionIcon, Text } from '@mantine/core'
 import { ImageAsset } from './imageAsset/ImageAsset'
@@ -15,10 +14,7 @@ import { useResizeDetector } from 'react-resize-detector'
 import { modals } from '@mantine/modals'
 import { sanitizeUrl } from '@braintree/sanitize-url'
 
-// Extend Topic type to include readByMe (needed until SDK is updated)
-type TopicWithReadStatus = Topic & { readByMe?: boolean }
-
-export function Message({ topic, card, profile, host }: { topic: TopicWithReadStatus; card: Card | null; profile: Profile | null; host: boolean }) {
+export function Message({ topic, card, profile, host }: { topic: Topic; card: Card | null; profile: Profile | null; host: boolean }) {
   const { state, actions } = useMessage()
   const scroll = useRef(null as HTMLDivElement | null)
   const { locked, data, created, topicId, status, transform, sealed } = topic
@@ -216,7 +212,7 @@ export function Message({ topic, card, profile, host }: { topic: TopicWithReadSt
               {!name && !handle && <span className={classes.unknown}>{state.strings.unknownContact}</span>}
               <span className={classes.timestamp}> {timestamp}</span>
               {/* 未读/已读标识 */}
-              {!locked && status === 'confirmed' && (
+              {!host && !locked && status === 'confirmed' && (
                 <div className={classes.readStatus}>
                   {!topic.readByMe && <div className={classes.unreadDot} title="未读">●</div>}
                   {topic.readByMe && <div className={classes.readCheck} title="已读">✓</div>}

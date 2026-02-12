@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { ErrorHandler, ErrorSeverity } from '../utils/ErrorHandler'
 import classes from './Conversation.module.css'
 import { useConversation } from './useConversation.hook'
 import { TbSend, TbTextSize, TbTextColor, TbVideo, TbFile, TbDisc, TbAlertTriangle, TbCamera, TbSettings, TbHome, TbServer, TbShield, TbExclamationCircle, TbSearch, TbX } from "react-icons/tb";
@@ -18,9 +17,6 @@ import { Topic } from 'databag-client-sdk'
 // import { FixedSizeList as List } from 'react-window'
 // import { useVirtualList } from '../hooks/useVirtualList'
 // import AutoSizer from 'react-virtualized-auto-sizer'
-
-// Extend Topic type to include readByMe (needed until SDK is updated)
-type TopicWithReadStatus = Topic & { readByMe?: boolean }
 
 const PAD_HEIGHT = 1024 - 64
 

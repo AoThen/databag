@@ -235,13 +235,13 @@ export function Message({topic, card, profile, host, select}: {topic: Topic; car
            {!name && !handle && <Text numberOfLines={1} style={styles.labelUnknown}>{state.strings.unknownContact}</Text>}
            <View style={styles.headerActions}>
              <Text style={styles.timestamp}> {timestamp}</Text>
-             {/* 未读/已读标识 */}
-             {!locked && status === 'confirmed' && (
-               <View style={styles.readStatus}>
-                 {!topic.readByMe && <View style={styles.unreadDot} />}
-                 {topic.readByMe && <Text style={styles.readCheck}>✓</Text>}
-               </View>
-             )}
+              {/* 未读/已读标识 */}
+              {!host && !locked && status === 'confirmed' && (
+                <View style={styles.readStatus}>
+                  {!topic.readByMe && <View style={styles.unreadDot} />}
+                  {topic.readByMe && <Text style={styles.readCheck}>✓</Text>}
+                </View>
+              )}
              <Menu
               mode={Platform.OS === 'ios' ? 'flat' : 'elevated'}
               elevation={Platform.OS === 'ios' ? 8 : 2}

@@ -7,9 +7,6 @@ import Resizer from 'react-image-file-resizer'
 import { ErrorHandler, ErrorCategory } from '../utils/ErrorHandler'
 import { ErrorCounter } from '../utils/ErrorCounter'
 
-// Extend Topic type to include readByMe (needed until SDK is updated)
-type TopicWithReadStatus = Topic & { readByMe?: boolean }
-
 const IMAGE_SCALE_SIZE = 128 * 1024
 const GIF_TYPE = 'image/gif'
 const WEBP_TYPE = 'image/webp'
@@ -106,8 +103,8 @@ export function useConversation() {
     detailSet: false,
     focus: null as Focus | null,
     layout: null,
-    topics: [] as TopicWithReadStatus[],
-    filteredTopics: [] as TopicWithReadStatus[],
+    topics: [] as Topic[],
+    filteredTopics: [] as Topic[],
     searchFilter: '',
     loaded: false,
     loadingMore: false,
@@ -128,7 +125,7 @@ export function useConversation() {
     progress: 0,
     offsync: false,
     markedReadTopics: new Set<string>(),
-  })
+  } as { [key: string]: any })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateState = (value: any) => {
@@ -183,7 +180,7 @@ export function useConversation() {
     const focus = app.state.focus
     const { contact, identity } = app.state.session || {}
     if (focus && contact && identity) {
-      const setTopics = (topics: TopicWithReadStatus[]) => {
+      const setTopics = (topics: Topic[]) => {
         if (topics) {
           const filtered = topics.filter((topic) => !topic.blocked)
           const sorted = filtered.sort((a, b) => {
@@ -234,7 +231,7 @@ export function useConversation() {
 
   useEffect(() => {
     const focus = app.state.focus
-    if (focus && state.loaded && state.topics.length > 0) {
+    if (focus && state.loaded && state.topics.length > 0 && state.cardId != null) {
       const unreadTopics = state.topics.filter(topic =>
         !topic.readByMe && topic.status === 'confirmed' && !state.markedReadTopics.has(topic.topicId)
       )
@@ -250,15 +247,13 @@ export function useConversation() {
                 component: 'useConversation',
                 action: 'markTopicRead',
                 topicId: topic.topicId,
-                channelId: state.cardId || 'host',
+                channelId: state.cardId,
               })
 
               if (appError.category === ErrorCategory.AUTH || appError.category === ErrorCategory.NETWORK) {
-                // 检查是否应该重试
                 if (errorCounter.shouldRetry('markTopicRead', topic.topicId)) {
                   state.markedReadTopics.delete(topic.topicId)
                 } else {
-                  // 如果不能重试，记录详细错误
                   console.warn('[useConversation] markTopicRead retry timeout, topic:', topic.topicId, 'error:', appError)
                 }
               }
@@ -268,7 +263,7 @@ export function useConversation() {
                 component: 'useConversation',
                 action: 'markTopicRead',
                 topicId: topic.topicId,
-                channelId: state.cardId || 'host',
+                channelId: state.cardId,
               })
 
               if (appError.category === ErrorCategory.AUTH || appError.category === ErrorCategory.NETWORK) {
@@ -280,7 +275,7 @@ export function useConversation() {
         })
       }
     }
-  }, [state.loaded, state.topics, app.state.focus])
+  }, [state.loaded, state.topics, state.cardId, app.state.focus])
 
   const actions = {
     close: () => {

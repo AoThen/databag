@@ -1,4 +1,4 @@
-import { useRef, useState, useContext, useEffect } from 'react'
+import { useRef, useState, useContext, useEffect, useCallback, useMemo } from 'react'
 import { DisplayContext } from '../context/DisplayContext'
 import { AppContext } from '../context/AppContext'
 import { ContextType } from '../context/ContextType'
@@ -207,7 +207,7 @@ export function useAccess() {
       const { appToken } = state
       await app.actions.logout(appToken)
     },
-  }
+  }), [])
 
   return { state, actions }
 }

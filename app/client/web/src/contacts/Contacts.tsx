@@ -36,7 +36,7 @@ const MemoizedAction = memo(function Action({ icon, color, strings, select }: { 
       {icon}
     </ActionIcon>
   )
-}
+})
 
 // 优化Contacts组件导出，使用React.memo避免重渲染
 export const Contacts = memo(function Contacts({
@@ -47,8 +47,6 @@ export const Contacts = memo(function Contacts({
 }: {
   openRegistry: () => void
   openContact: (params: ProfileParams) => void
-  textContact: (cardId: string) => void
-  closeContacts: () => void
   textContact: (cardId: string) => void
   closeContacts: () => void
 }) {
@@ -126,4 +124,4 @@ export const Contacts = memo(function Contacts({
       {cards.length === 0 && <div className={classes.none}>{state.strings.noContacts}</div>}
     </div>
   )
-}
+})
