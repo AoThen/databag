@@ -1248,7 +1248,6 @@ FocusModule.recordSuccess();
           this.emitTopics();
         }
       }
-      }
     } catch (err) {
       FocusModule.recordFailure();
       throw err;
