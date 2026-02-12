@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-//SetOpenMessage delivers connection message to contact
+// SetOpenMessage delivers connection message to contact
 func SetOpenMessage(w http.ResponseWriter, r *http.Request) {
 
 	var message DataMessage
@@ -62,13 +62,13 @@ func SetOpenMessage(w http.ResponseWriter, r *http.Request) {
 		card.Name = connect.Name
 		card.Description = connect.Description
 		card.Location = connect.Location
-    card.Seal = connect.Seal
+		card.Seal = connect.Seal
 		card.Image = connect.Image
 		card.Version = connect.Version
 		card.Node = connect.Node
 		card.ProfileRevision = connect.ProfileRevision
 		card.Status = APPCardPending
-    card.StatusUpdated = time.Now().Unix()
+		card.StatusUpdated = time.Now().Unix()
 		card.NotifiedProfile = connect.ProfileRevision
 		card.NotifiedArticle = connect.ArticleRevision
 		card.NotifiedView = connect.ViewRevision
@@ -101,8 +101,8 @@ func SetOpenMessage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-    // push event
-    SendPushEvent(account, "contact.addCard");
+		// push event
+		SendPushEvent(account, "contact.addCard")
 	} else {
 
 		// update profile if revision changed
@@ -110,7 +110,7 @@ func SetOpenMessage(w http.ResponseWriter, r *http.Request) {
 			card.Username = connect.Handle
 			card.Name = connect.Name
 			card.Description = connect.Description
-      card.Seal = connect.Seal
+			card.Seal = connect.Seal
 			card.Location = connect.Location
 			card.Image = connect.Image
 			card.Version = connect.Version
@@ -131,11 +131,11 @@ func SetOpenMessage(w http.ResponseWriter, r *http.Request) {
 		}
 		if card.Status == APPCardConfirmed {
 			card.Status = APPCardRequested
-      card.StatusUpdated = time.Now().Unix()
+			card.StatusUpdated = time.Now().Unix()
 		}
 		if card.Status == APPCardConnecting {
 			card.Status = APPCardConnected
-      card.StatusUpdated = time.Now().Unix()
+			card.StatusUpdated = time.Now().Unix()
 		}
 		card.OutToken = connect.Token
 		card.DetailRevision = account.CardRevision + 1
@@ -145,7 +145,7 @@ func SetOpenMessage(w http.ResponseWriter, r *http.Request) {
 			if res := tx.Save(&card).Error; res != nil {
 				return res
 			}
-			slot = &card.CardSlot
+			slot = card.CardSlot
 			slot.Revision = account.CardRevision + 1
 			if res := tx.Preload("Card").Save(slot).Error; res != nil {
 				return res
@@ -160,8 +160,8 @@ func SetOpenMessage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-    // push event
-    SendPushEvent(account, "contact.updateCard");
+		// push event
+		SendPushEvent(account, "contact.updateCard")
 	}
 
 	status := &ContactStatus{

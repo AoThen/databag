@@ -227,13 +227,22 @@ type Card struct {
 	Node            string `gorm:"not null"`
 	ProfileRevision int64  `gorm:"not null"`
 	DetailRevision  int64  `gorm:"not null;default:1"`
+	ViewRevision    int64  `gorm:"not null;default:1"`
+	NotifiedProfile int64  `gorm:"not null;default:0"`
+	NotifiedArticle int64  `gorm:"not null;default:0"`
+	NotifiedChannel int64  `gorm:"not null;default:0"`
+	NotifiedView    int64  `gorm:"not null;default:0"`
 	Status          string `gorm:"not null;index:idx_card_status"`
 	StatusUpdated   int64
 	InToken         string `gorm:"not null;index:cardguid,unique;index:idx_card_in_token"`
 	OutToken        string
 	Notes           string
-	Created         int64 `gorm:"autoCreateTime"`
-	Updated         int64 `gorm:"autoUpdateTime"`
+	Created         int64   `gorm:"autoCreateTime"`
+	Updated         int64   `gorm:"autoUpdateTime"`
+	Account         Account `gorm:"references:GUID"`
+	CardSlot        *CardSlot
+	Groups          []Group
+	Members         []Member
 }
 
 type ArticleSlot struct {

@@ -1,7 +1,6 @@
 package databag
 
 import (
-  "time"
 	"databag/internal/store"
 	"encoding/hex"
 	"errors"
@@ -9,9 +8,10 @@ import (
 	"github.com/theckman/go-securerandom"
 	"gorm.io/gorm"
 	"net/http"
+	"time"
 )
 
-//AddCard adds contact to account specified by agent query param
+// AddCard adds contact to account specified by agent query param
 func AddCard(w http.ResponseWriter, r *http.Request) {
 
 	account, code, err := ParamAgentToken(r, false)
@@ -33,21 +33,21 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domain := getStrConfigValue(CNFDomain, "");
+	domain := getStrConfigValue(CNFDomain, "")
 	if domain == "" {
-	  if identity.Node != "" {
-	    ErrResponse(w, http.StatusMethodNotAllowed, err)
-	    return
-	  }
-	  var account store.Account
-	  if err := store.DB.Where("guid = ?", guid).First(&account).Error; err != nil {
-	    ErrResponse(w, http.StatusMethodNotAllowed, err)
-	    return
-	  }
+		if identity.Node != "" {
+			ErrResponse(w, http.StatusMethodNotAllowed, err)
+			return
+		}
+		var account store.Account
+		if err := store.DB.Where("guid = ?", guid).First(&account).Error; err != nil {
+			ErrResponse(w, http.StatusMethodNotAllowed, err)
+			return
+		}
 	}
 	if domain != "" && identity.Node == "" {
-	  ErrResponse(w, http.StatusNotAcceptable, err)
-	  return
+		ErrResponse(w, http.StatusNotAcceptable, err)
+		return
 	}
 
 	slot := &store.CardSlot{}
@@ -73,10 +73,10 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 			Image:           identity.Image,
 			Version:         identity.Version,
 			Node:            identity.Node,
-      Seal:            identity.Seal,
+			Seal:            identity.Seal,
 			ProfileRevision: identity.Revision,
 			Status:          APPCardConfirmed,
-      StatusUpdated:   time.Now().Unix(),
+			StatusUpdated:   time.Now().Unix(),
 			ViewRevision:    0,
 			InToken:         hex.EncodeToString(data),
 			AccountID:       account.GUID,
@@ -128,15 +128,16 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 			if res := tx.Save(&card).Error; res != nil {
 				return res
 			}
-			slot = &card.CardSlot
+			slot = card.CardSlot
 			if slot == nil {
-				slot = &store.CardSlot{
+				newSlot := &store.CardSlot{
 					CardSlotID: uuid.New().String(),
 					AccountID:  account.ID,
 					Revision:   account.CardRevision + 1,
 					CardID:     card.ID,
 					Card:       &card,
 				}
+				slot = newSlot
 			} else {
 				slot.Revision = account.CardRevision + 1
 			}

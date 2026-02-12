@@ -1,5 +1,7 @@
 package store
 
+import "gorm.io/gorm"
+
 // CardTypes fixes for frontend type compatibility
 // This addresses the LSP errors where frontend expects card.Account but backend returns different structure
 
