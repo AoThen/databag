@@ -1,0 +1,37 @@
+name: Android Build Test 1.5
+
+on:
+  workflow_dispatch: # 添加手动触发
+  push:
+    branches: [ bulid ]
+    paths:
+      - 'app/mobile/**'
+      - '.github/workflows/android-build.yml'
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install npm dependencies
+        working-directory: ./app/mobile
+        run: npm install --legacy-peer-deps
+
+      - name: Build Android Release
+        working-directory: ./app/mobile/android
+        run: ./gradlew assembleRelease

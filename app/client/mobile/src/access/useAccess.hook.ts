@@ -1,0 +1,195 @@
+import {useRef, useState, useContext, useEffect} from 'react';
+import {DisplayContext} from '../context/DisplayContext';
+import {AppContext} from '../context/AppContext';
+import {ContextType} from '../context/ContextType';
+import SplashScreen from 'react-native-splash-screen';
+import {handleAppError} from '../utils/AppErrorHandler';
+
+// 预设服务器列表
+const PRESET_SERVERS = [
+  { label: 'Databag Official', value: 'databag.com' },
+  { label: 'Local Server', value: '192.168.1.100' },
+  { label: 'Test Server', value: 'test.databag.com' },
+];
+
+const DEBOUNCE_DELAY = 500;
+const REQUEST_CACHE_TTL = 30000;
+
+interface CacheEntry {
+  result: any;
+  timestamp: number;
+}
+
+const requestCache = new Map<string, CacheEntry>();
+
+export function useAccess() {
+  const debounceAvailable = useRef(setTimeout(() => {}, 0));
+  const debounceTaken = useRef(setTimeout(() => {}, 0));
+  const pendingRequests = useRef<Map<string, AbortController>>(new Map());
+  const app = useContext(AppContext) as ContextType;
+  const display = useContext(DisplayContext) as ContextType;
+  const [state, setState] = useState({
+    layout: null,
+    strings: display.state.strings,
+    mode: 'splash',
+    username: '',
+    handle: '',
+    password: '',
+    confirm: '',
+    token: '',
+    code: '',
+    loading: false,
+    secure: false,
+    node: '',
+    available: 0,
+    taken: false,
+    checking: null as 'server' | 'username' | null,
+  });
+
+  const updateState = (value: any) => {
+    setState(s => ({...s, ...value}));
+  };
+
+  // SplashScreen.hide() 已移至 useRoot.hook 基于初始化状态调用，避免重复调用
+
+  useEffect(() => {
+    const {username, token, node, secure, mode} = state;
+    if (mode === 'create') {
+      checkTaken(username, token, node, secure);
+      getAvailable(node, secure);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.mode, state.username, state.token, state.node, state.secure]);
+
+  const getAvailable = (node: string, secure: boolean) => {
+    clearTimeout(debounceAvailable.current);
+    const cacheKey = `available:${node}:${secure}`;
+    if (requestCache.has(cacheKey)) {
+      const cached = requestCache.get(cacheKey)!;
+      if (Date.now() - cached.timestamp < REQUEST_CACHE_TTL) {
+        updateState({available: cached.result, checking: null});
+        return;
+      }
+    }
+    debounceAvailable.current = setTimeout(async () => {
+      if (pendingRequests.current.has('available')) {
+        pendingRequests.current.get('available')?.abort();
+      }
+      const controller = new AbortController();
+      pendingRequests.current.set('available', controller);
+      updateState({checking: 'server'});
+      try {
+        if (node) {
+          const available = await app.actions.getAvailable(node, secure, controller.signal);
+          requestCache.set(cacheKey, {result: available, timestamp: Date.now()});
+          updateState({available, checking: null});
+        } else {
+          updateState({available: 0, checking: null});
+        }
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          handleAppError(err, 'getAvailable');
+          updateState({available: 0, checking: null});
+        }
+      } finally {
+        pendingRequests.current.delete('available');
+      }
+    }, DEBOUNCE_DELAY);
+  };
+
+  const checkTaken = (username: string, token: string, node: string, secure: boolean) => {
+    updateState({taken: false, checking: 'username'});
+    clearTimeout(debounceTaken.current);
+    const cacheKey = `taken:${username}:${token}:${node}:${secure}`;
+    if (requestCache.has(cacheKey)) {
+      const cached = requestCache.get(cacheKey)!;
+      if (Date.now() - cached.timestamp < REQUEST_CACHE_TTL) {
+        updateState({taken: !cached.result, checking: null});
+        return;
+      }
+    }
+    debounceTaken.current = setTimeout(async () => {
+      if (pendingRequests.current.has('taken')) {
+        pendingRequests.current.get('taken')?.abort();
+      }
+      const controller = new AbortController();
+      pendingRequests.current.set('taken', controller);
+      updateState({checking: 'username'});
+      try {
+        if (node && username) {
+          const available = await app.actions.getUsername(username, token, node, secure, controller.signal);
+          requestCache.set(cacheKey, {result: available, timestamp: Date.now()});
+          updateState({taken: !available, checking: null});
+        } else {
+          updateState({taken: false, checking: null});
+        }
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          handleAppError(err, 'getUsername');
+          updateState({taken: false, checking: null});
+        }
+      } finally {
+        pendingRequests.current.delete('taken');
+      }
+    }, DEBOUNCE_DELAY);
+  };
+
+  useEffect(() => {
+    const {layout, strings} = display.state;
+    updateState({layout, strings});
+  }, [display.state]);
+
+  const actions = {
+    setMode: (mode: string) => {
+      updateState({mode});
+    },
+    setUsername: (login: string) => {
+      const username = login.replace(/\s/g, '.');
+      updateState({username});
+    },
+    setPassword: (password: string) => {
+      updateState({password});
+    },
+    setConfirm: (confirm: string) => {
+      updateState({confirm});
+    },
+    setToken: (token: string) => {
+      updateState({token});
+    },
+    setCode: (code: string) => {
+      updateState({code});
+    },
+    setNode: (server: string) => {
+      const node = server.replace(/\s/g, '.');
+      const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(node);
+      updateState({node, secure: !insecure});
+    },
+    setLoading: (loading: boolean) => {
+      updateState({loading});
+    },
+    accountLogin: async () => {
+      const {username, password, node, secure, code} = state;
+      await app.actions.accountLogin(username, password, node, secure, code);
+    },
+    accountCreate: async () => {
+      const {username, password, node, secure, token} = state;
+      await app.actions.accountCreate(username, password, node, secure, token);
+    },
+    accountAccess: async () => {
+      const {node, secure, token} = state;
+      await app.actions.accountAccess(node, secure, token);
+    },
+    adminLogin: async () => {
+      const {password, node, secure, code} = state;
+      await app.actions.adminLogin(password, node, secure, code);
+    },
+    requestPermission: () => {
+      app.actions.requestPermission();
+    },
+    getPresetServers: () => {
+      return PRESET_SERVERS;
+    },
+  };
+
+  return {state, actions};
+}
