@@ -13,6 +13,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// secureStringCompare provides timing-safe string comparison to prevent timing attacks
+func secureStringCompare(expected, actual string) bool {
+	expectedBytes := []byte(expected)
+	actualBytes := []byte(actual)
+
+	if len(expectedBytes) != len(actualBytes) {
+		return false
+	}
+
+	return subtle.ConstantTimeCompare(expectedBytes, actualBytes) == 1
+}
+
 // AccountLogin retrieves account specified by username and password
 func AccountLogin(r *http.Request) (*store.Account, error) {
 
@@ -128,7 +140,7 @@ func ParamAdminToken(r *http.Request) (int, error) {
 
 	// check session token (CNFAdminSession)
 	sessionToken := getStrConfigValue(CNFAdminSession, "")
-	if sessionToken != "" && subtle.ConstantTimeCompare([]byte(sessionToken), []byte(token)) == 1 {
+	if sessionToken != "" && secureStringCompare(sessionToken, token) {
 		return http.StatusOK, nil
 	}
 
@@ -152,9 +164,11 @@ func ParamSessionToken(r *http.Request) (int, error) {
 		return http.StatusUnauthorized, errors.New("node not configured")
 	}
 
-	// compare password
+	// compare password using timing-safe comparison
 	value := getStrConfigValue(CNFAdminSession, "")
-	if value != token {
+	if !secureStringCompare(value, token) {
+		clientIP := getClientIP(r)
+		RecordIPAuthFailure(clientIP)
 		return http.StatusUnauthorized, errors.New("invalid session token")
 	}
 

@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState, ReactNode, memo } from 'react'
 import { useContacts } from './useContacts.hook'
 import { Text, ActionIcon, TextInput, Button } from '@mantine/core'
 import { TbUserCheck, TbCancel, TbRefresh, TbSearch, TbUserPlus, TbSortAscending, TbSortDescending, TbMessage2, TbPhone } from "react-icons/tb";
@@ -8,7 +8,8 @@ import { ProfileParams } from '../profile/Profile'
 import { Colors } from '../constants/Colors'
 import { modals } from '@mantine/modals'
 
-function Action({ icon, color, strings, select }: { icon: ReactNode; color: string; strings: { operationFailed: string; tryAgain: string }; select: () => Promise<void> }) {
+// 优化Action组件，使用React.memo避免不必要的重渲染
+const MemoizedAction = memo(function Action({ icon, color, strings, select }: { icon: ReactNode; color: string; strings: { operationFailed: string; tryAgain: string }; select: () => Promise<void> }) {
   const [loading, setLoading] = useState(false)
   const onClick = async () => {
     setLoading(true)
@@ -37,7 +38,8 @@ function Action({ icon, color, strings, select }: { icon: ReactNode; color: stri
   )
 }
 
-export function Contacts({
+// 优化Contacts组件导出，使用React.memo避免重渲染
+export const Contacts = memo(function Contacts({
   openRegistry,
   openContact,
   textContact,
@@ -45,6 +47,8 @@ export function Contacts({
 }: {
   openRegistry: () => void
   openContact: (params: ProfileParams) => void
+  textContact: (cardId: string) => void
+  closeContacts: () => void
   textContact: (cardId: string) => void
   closeContacts: () => void
 }) {

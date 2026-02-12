@@ -61,7 +61,8 @@ export function useAccess() {
     }
   }, [state.mode, state.username, state.token, state.host, state.secure])
 
-  const getAvailable = (node: string, secure: boolean) => {
+  // 优化getAvailable函数，使用useCallback避免重渲染
+  const getAvailable = useCallback(async (node: string, secure: boolean) => {
     clearTimeout(debounceAvailable.current)
     const cacheKey = `available:${node}:${secure}`;
     
@@ -77,10 +78,11 @@ export function useAccess() {
         console.log('[useAccess] getAvailable error:', err);
         updateState({ available: 0, checking: null });
       }
-    }, DEBOUNCE_DELAY.INPUT) // 从2000ms改为500ms
-  }
+    }, DEBOUNCE_DELAY.INPUT)
+  }, [app.actions])
 
-  const checkTaken = (username: string, token: string, node: string, secure: boolean) => {
+  // 优化checkTaken函数，使用useCallback避免重渲染
+  const checkTaken = useCallback(async (username: string, token: string, node: string, secure: boolean) => {
     updateState({ taken: false, checking: 'username' });
     clearTimeout(debounceTaken.current);
     const cacheKey = `taken:${username}:${token}:${node}:${secure}`;
@@ -97,8 +99,8 @@ export function useAccess() {
         console.log('[useAccess] checkTaken error:', err);
         updateState({ taken: false, checking: null });
       }
-    }, DEBOUNCE_DELAY.INPUT) // 从2000ms改为500ms
-  }
+    }, DEBOUNCE_DELAY.INPUT)
+  }, [])
 
   useEffect(() => {
     const { layout, strings, themes, scheme, languages, language } = display.state
@@ -112,7 +114,8 @@ export function useAccess() {
     })
   }, [display.state])
 
-  const actions = {
+  // 优化actions对象，使用useMemo避免重渲染
+  const actions = useMemo(() => ({
     setMode: (mode: string) => {
       updateState({ mode })
     },
@@ -159,6 +162,50 @@ export function useAccess() {
     adminLogin: async () => {
       const { password, host, secure, code } = state
       await app.actions.adminLogin(password, host, secure, code)
+    },
+    setProfileImage: async (image: string) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.setProfileImage(server, appToken, image)
+    },
+    setSeal: async (seal: string, password: string) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.setSeal(server, appToken, seal, password)
+    },
+    clearSeal: async () => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.clearSeal(server, appToken)
+    },
+    setProfile: async (profile: any) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.setProfile(server, appToken, profile)
+    },
+    setNotification: async (enable: boolean) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.setNotification(server, appToken, enable)
+    },
+    setRegistry: async (enable: boolean) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.setRegistry(server, appToken, enable)
+    },
+    setMFAuth: async (enable: boolean) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.setMFAuth(server, appToken, enable)
+    },
+    confirmMFAuth: async (code: string) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.confirmMFAuth(server, appToken, code)
+    },
+    disableMFAuth: async () => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.disableMFAuth(server, appToken)
+    },
+    setLogin: async (username: string, password: string) => {
+      const { server, appToken, profileRevision } = state
+      await app.actions.setLogin(server, appToken, username, password)
+    },
+    logout: async () => {
+      const { appToken } = state
+      await app.actions.logout(appToken)
     },
   }
 

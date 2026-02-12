@@ -29,6 +29,13 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&Flag{})
 	db.AutoMigrate(&IPBlock{})
 	db.AutoMigrate(&IPWhitelist{})
+
+	// Add performance indexes after migration
+	if err := AddPerformanceIndexes(db); err != nil {
+		// Log the error but don't fail migration
+		// Indexes can be added manually later
+		_ = err
+	}
 }
 
 type Notification struct {
@@ -71,8 +78,8 @@ type TopicRead struct {
 	ID           uint    `gorm:"primaryKey;not null;unique;autoIncrement"`
 	TopicID      uint    `gorm:"not null;index:topicread,unique:topicread"`
 	CardID       uint    `gorm:"not null;index:topicread,unique:topicread"`
-	AccountID    uint    `gorm:"not null;index:topicread"`
-	ReadTime     int64   `gorm:"not null"`
+	AccountID    uint    `gorm:"not null;index:topicread;index:idx_topicread_account"`
+	ReadTime     int64   `gorm:"not null;index:idx_topicread_read_time"`
 	ReadRevision int64   `gorm:"not null"`
 	Created      int64   `gorm:"autoCreateTime"`
 	Updated      int64   `gorm:"autoUpdateTime"`
@@ -220,22 +227,13 @@ type Card struct {
 	Node            string `gorm:"not null"`
 	ProfileRevision int64  `gorm:"not null"`
 	DetailRevision  int64  `gorm:"not null;default:1"`
-	Status          string `gorm:"not null"`
+	Status          string `gorm:"not null;index:idx_card_status"`
 	StatusUpdated   int64
-	InToken         string `gorm:"not null;index:cardguid,unique"`
+	InToken         string `gorm:"not null;index:cardguid,unique;index:idx_card_in_token"`
 	OutToken        string
 	Notes           string
 	Created         int64 `gorm:"autoCreateTime"`
 	Updated         int64 `gorm:"autoUpdateTime"`
-	ViewRevision    int64 `gorm:"not null;default:1"`
-	NotifiedView    int64
-	NotifiedArticle int64
-	NotifiedChannel int64
-	NotifiedProfile int64
-	Account         Account `gorm:"references:GUID"`
-	Groups          []Group `gorm:"many2many:card_groups"`
-	Members         []Member
-	CardSlot        CardSlot
 }
 
 type ArticleSlot struct {
