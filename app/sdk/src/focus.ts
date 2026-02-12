@@ -1080,6 +1080,7 @@ export class FocusModule implements Focus {
       return entry;
     }     
     const item = JSON.parse(JSON.stringify(defaultTopicItem));
+    
     const topic = this.setTopic(topicId, item);
     const topicEntry = { item, topic };
     this.topicEntries.set(topicId, topicEntry);
@@ -1237,13 +1238,16 @@ export class FocusModule implements Focus {
       } else {
         await setChannelTopicRead(node, secure, token, channelId, topicId);
       }
-      FocusModule.recordSuccess();
+FocusModule.recordSuccess();
       
-      const entry = this.topicEntries.get(topicId);
-      if (entry) {
-        entry.item.detail.readByMe = true;
-        entry.topic = this.setTopic(topicId, entry.item);
-        this.emitTopics();
+      if (cardId) {
+        const entry = this.topicEntries.get(topicId);
+        if (entry) {
+          entry.item.detail.readByMe = true;
+          entry.topic = this.setTopic(topicId, entry.item);
+          this.emitTopics();
+        }
+      }
       }
     } catch (err) {
       FocusModule.recordFailure();
