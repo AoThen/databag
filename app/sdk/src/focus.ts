@@ -1238,6 +1238,13 @@ export class FocusModule implements Focus {
         await setChannelTopicRead(node, secure, token, channelId, topicId);
       }
       FocusModule.recordSuccess();
+      
+      const entry = this.topicEntries.get(topicId);
+      if (entry) {
+        entry.item.detail.readByMe = true;
+        entry.topic = this.setTopic(topicId, entry.item);
+        this.emitTopics();
+      }
     } catch (err) {
       FocusModule.recordFailure();
       throw err;
