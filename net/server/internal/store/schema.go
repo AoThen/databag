@@ -241,7 +241,7 @@ type Card struct {
 	Updated         int64   `gorm:"autoUpdateTime"`
 	Account         Account `gorm:"references:GUID"`
 	CardSlot        *CardSlot
-	Groups          []Group
+	Groups          []Group `gorm:"many2many:card_groups"`
 	Members         []Member
 }
 
