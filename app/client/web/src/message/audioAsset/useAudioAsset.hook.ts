@@ -1,18 +1,25 @@
-import { useState, useContext, useRef, useEffect } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { ContextType } from '../../context/ContextType'
 import { MediaAsset } from '../../conversation/Conversation'
 import { useAssetLoader } from '../../hooks/useAssetLoader'
 
+interface AudioAssetState {
+  dataUrl: string | null
+  loading: boolean
+  loadPercent: number
+  loaded?: boolean
+}
+
 export function useAudioAsset(topicId: string, asset: MediaAsset) {
   const app = useContext(AppContext) as ContextType
-  const [state, setState] = useState({
-    dataUrl: null as string | null,
+  const [state, setState] = useState<AudioAssetState>({
+    dataUrl: null,
     loading: false,
     loadPercent: 0,
   })
 
-  const updateState = (value: any) => {
+  const updateState = (value: Partial<AudioAssetState>) => {
     setState((s) => ({ ...s, ...value }))
   }
 

@@ -128,10 +128,9 @@ export function useConversation() {
     isOneToOne: false,
     maxFetchedReadReceipts: 30,
     myTopicsCount: 0,
-  } as { [key: string]: any })
+  })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateState = (value: any) => {
+  const updateState = (value: Partial<typeof state>) => {
     setState((s) => ({ ...s, ...value }))
   }
 

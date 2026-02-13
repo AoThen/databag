@@ -20,7 +20,7 @@ export interface AppError {
     component?: string
     action?: string
     topicId?: string
-    [key: string]: any
+    [key: string]: unknown
   }
   timestamp: number
 }

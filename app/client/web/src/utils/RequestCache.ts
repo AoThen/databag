@@ -4,9 +4,9 @@ export interface CacheEntry<T> {
 }
 
 export class RequestCache {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private pending = new Map<string, AbortController>();
-  private readonly DEFAULT_TTL = 30000; // 30秒缓存
+  private readonly DEFAULT_TTL = 30000
 
   /**
    * 获取缓存或发起新请求

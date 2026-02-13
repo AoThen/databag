@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { LightTheme, DarkTheme, SepiaTheme, BlueTheme, PurpleTheme } from '../constants/Colors'
 import { en, fr, es, pt, de, ru, el, zh } from '../constants/Strings'
+import { DisplayState } from './DisplayContext'
 
 export function useDisplayContext() {
-  const [state, setState] = useState({
+  const [state, setState] = useState<DisplayState>({
     layout: null,
     themes: [
       { value: 'dark', label: 'Dark' },
@@ -38,8 +39,7 @@ export function useDisplayContext() {
 
   const SMALL_LARGE = 650
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateState = (value: any) => {
+  const updateState = (value: Partial<DisplayState>) => {
     setState((s) => ({ ...s, ...value }))
   }
 

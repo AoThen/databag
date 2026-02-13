@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import classes from './Accounts.module.css'
 import { useAccounts } from './useAccounts.hook'
 import { Modal, Text, ActionIcon, Button, Tooltip } from '@mantine/core'
-import { TbUserPlus, TbUserCheck, TbCopy, TbCheck, TbReload, TbSettings, TbLockOpen2, TbUserCancel, TbTrash, TbShield, TbDatabase } from "react-icons/tb";
+import { TbUserPlus, TbUserCheck, TbCopy, TbCheck, TbReload, TbSettings, TbLockOpen2, TbUserCancel, TbTrash, TbShield } from "react-icons/tb";
 import { Card } from '../card/Card'
 import { Colors } from '../constants/Colors'
 import { modals } from '@mantine/modals'

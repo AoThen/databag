@@ -1,44 +1,40 @@
-import { useRef, useEffect, MutableRefObject } from 'react';
+import { useRef, useEffect, RefObject } from 'react'
 
-/**
- * 统一的虚拟化列表Hook
- * 封装react-window的常见用法
- */
+interface VirtualListRef {
+  scrollToItem: (index: number, align: 'auto' | 'start' | 'center' | 'end') => void
+}
+
 export function useVirtualList<T>(
   items: T[],
   itemSize: number,
   containerHeight: number,
-  overscanCount: number = 5
+  _overscanCount: number = 5
 ): {
-  listRef: MutableRefObject<any>;
-  listHeight: number;
-  scrollToTop: () => void;
-  scrollToIndex: (index: number) => void;
+  listRef: RefObject<VirtualListRef>
+  listHeight: number
+  scrollToTop: () => void
+  scrollToIndex: (index: number) => void
 } {
-  const listRef = useRef<any>(null);
+  const listRef = useRef<VirtualListRef>(null)
 
   useEffect(() => {
-    // 当items变化时，滚动到顶部
     if (listRef.current) {
-      listRef.current.scrollToItem(0, 'start');
+      listRef.current.scrollToItem(0, 'start')
     }
-  }, [items]);
+  }, [items])
 
   return {
     listRef,
-    // 计算列表高度
     listHeight: Math.min(containerHeight, items.length * itemSize),
-    // 滚动到顶部
     scrollToTop: () => {
       if (listRef.current) {
-        listRef.current.scrollToItem(0, 'start');
+        listRef.current.scrollToItem(0, 'start')
       }
     },
-    // 滚动到指定索引
     scrollToIndex: (index: number) => {
       if (listRef.current) {
-        listRef.current.scrollToItem(Math.min(index, items.length - 1), 'start');
+        listRef.current.scrollToItem(Math.min(index, items.length - 1), 'start')
       }
     },
-  };
+  }
 }

@@ -12,7 +12,6 @@ import { BinaryFile } from './binaryFile/BinaryFile'
 import { SketchPicker } from 'react-color'
 import AnimateHeight from 'react-animate-height'
 import { useResizeDetector } from 'react-resize-detector'
-import { Topic } from 'databag-client-sdk'
 // TODO: 虚拟列表暂时注释，构建通过后再启用
 // import { FixedSizeList as List } from 'react-window'
 // import { useVirtualList } from '../hooks/useVirtualList'

@@ -1,18 +1,25 @@
-import { useState, useContext, useRef, useEffect } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { ContextType } from '../../context/ContextType'
 import { MediaAsset } from '../../conversation/Conversation'
 import { useAssetLoader } from '../../hooks/useAssetLoader'
 
+interface BinaryAssetState {
+  dataUrl: string
+  loading: boolean
+  loadPercent: number
+  loaded?: boolean
+}
+
 export function useBinaryAsset(topicId: string, asset: MediaAsset) {
   const app = useContext(AppContext) as ContextType
-  const [state, setState] = useState({
+  const [state, setState] = useState<BinaryAssetState>({
     dataUrl: '',
     loading: false,
     loadPercent: 0,
   })
 
-  const updateState = (value: any) => {
+  const updateState = (value: Partial<BinaryAssetState>) => {
     setState((s) => ({ ...s, ...value }))
   }
 

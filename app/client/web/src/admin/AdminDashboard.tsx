@@ -4,17 +4,17 @@ import { DisplayContext } from '../context/DisplayContext'
 import { ContextType } from '../context/ContextType'
 import { cleanupData, getCleanupStatus, getCleanupConfig, setCleanupConfig } from '../api/cleanupApi'
 import classes from './AdminDashboard.module.css'
-import { 
-  Modal, TextInput, PasswordInput, Button, Select, Switch, 
-  NumberInput, Text, Divider, Badge, Progress, Card, Group, 
-  Stack, ActionIcon, Tooltip
+import {
+  Modal, Button, Switch,
+  NumberInput, Text, Divider, Badge, Progress, Card, Group,
+  Stack
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
-import { 
-  TbTrash, TbClock, TbDatabase, TbFile, TbRefresh, 
-  TbSettings, TbCheck, TbAlertTriangle, TbInfoCircle,
-  TbArchive, TbChartBar
+import {
+  TbTrash, TbClock, TbDatabase, TbFile, TbRefresh,
+  TbSettings, TbAlertTriangle, TbInfoCircle,
+  TbChartBar
 } from 'react-icons/tb'
 
 interface CleanupStatus {

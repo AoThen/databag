@@ -3,17 +3,22 @@ import { DisplayContext } from '../context/DisplayContext'
 import { AppContext } from '../context/AppContext'
 import { ContextType } from '../context/ContextType'
 
+interface MessageState {
+  strings: Record<string, string>
+  timeFormat: string
+  dateFormat: string
+}
+
 export function useMessage() {
   const app = useContext(AppContext) as ContextType
   const display = useContext(DisplayContext) as ContextType
-  const [state, setState] = useState({
+  const [state, setState] = useState<MessageState>({
     strings: display.state.strings,
     timeFormat: display.state.timeFormat,
     dateFormat: display.state.dateFormat,
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateState = (value: any) => {
+  const updateState = (value: Partial<MessageState>) => {
     setState((s) => ({ ...s, ...value }))
   }
 

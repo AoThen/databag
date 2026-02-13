@@ -47,9 +47,10 @@ export function useIPBlock(app: typeof AppContext extends React.Context<infer T>
   });
 
   const getToken = (): string => {
-    const service = (app as any).state.service as { token?: string } | null | undefined;
-    return service?.token || '';
-  };
+    const appState = app as { state?: { service?: { token?: string } } }
+    const service = appState.state?.service
+    return service?.token || ''
+  }
 
   const actions: IPBlockActions = {
     setShowIPBlocks: (show: boolean) => {

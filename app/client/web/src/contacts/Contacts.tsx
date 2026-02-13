@@ -8,8 +8,7 @@ import { ProfileParams } from '../profile/Profile'
 import { Colors } from '../constants/Colors'
 import { modals } from '@mantine/modals'
 
-// 优化Action组件，使用React.memo避免不必要的重渲染
-const MemoizedAction = memo(function Action({ icon, color, strings, select }: { icon: ReactNode; color: string; strings: { operationFailed: string; tryAgain: string }; select: () => Promise<void> }) {
+const Action = memo(function Action({ icon, color, strings, select }: { icon: ReactNode; color: string; strings: { operationFailed: string; tryAgain: string }; select: () => Promise<void> }) {
   const [loading, setLoading] = useState(false)
   const onClick = async () => {
     setLoading(true)

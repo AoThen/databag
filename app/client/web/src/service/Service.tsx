@@ -1,9 +1,9 @@
 import React, { useState, useContext } from 'react'
-import { Drawer, Tooltip, ActionIcon } from '@mantine/core'
+import { Drawer, Tooltip } from '@mantine/core'
 import classes from './Service.module.css'
 import { useService } from './useService.hook'
 import { useIPBlock } from './useIPBlock'
-import { TbAddressBook, TbSettings, TbShield, TbTrash, TbDatabase } from "react-icons/tb";
+import { TbAddressBook, TbSettings, TbShield, TbTrash } from "react-icons/tb";
 import { Accounts } from '../accounts/Accounts'
 import { Setup } from '../setup/Setup'
 import { IPBlockModal } from './IPBlockModal'

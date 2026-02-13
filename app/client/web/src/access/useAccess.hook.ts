@@ -1,16 +1,40 @@
 import { useRef, useState, useContext, useEffect, useCallback, useMemo } from 'react'
 import { DisplayContext } from '../context/DisplayContext'
-import { AppContext } from '../context/AppContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayState, DisplayActions } from '../context/DisplayContext'
 import { requestCache } from '../utils/RequestCache'
 import { DEBOUNCE_DELAY } from '../constants/Debounce'
+
+interface AccessState {
+  layout: string | null
+  strings: Record<string, string>
+  mode: string
+  username: string
+  password: string
+  confirm: string
+  token: string
+  code: string
+  scheme: string | null
+  language: string | null
+  loading: boolean
+  secure: boolean
+  host: string
+  available: number
+  taken: boolean
+  checking: 'server' | 'username' | null
+  themes: Array<{ value: string; label: string }>
+  languages: Array<{ value: string; label: string }>
+  server?: string
+  appToken?: string
+  profileRevision?: number
+}
 
 export function useAccess() {
   const debounceAvailable = useRef(setTimeout(() => {}, 0))
   const debounceTaken = useRef(setTimeout(() => {}, 0))
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
-  const [state, setState] = useState({
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
+  const display = useContext(DisplayContext) as { state: DisplayState; actions: DisplayActions }
+  const [state, setState] = useState<AccessState>({
     layout: null,
     strings: display.state.strings,
     mode: '',
@@ -26,13 +50,12 @@ export function useAccess() {
     host: '',
     available: 0,
     taken: false,
-    checking: null as 'server' | 'username' | null, // 添加checking状态
+    checking: null,
     themes: display.state.themes,
     languages: display.state.languages,
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateState = (value: any) => {
+  const updateState = (value: Partial<AccessState>) => {
     setState((s) => ({ ...s, ...value }))
   }
 
@@ -68,12 +91,11 @@ export function useAccess() {
     
     debounceAvailable.current = setTimeout(async () => {
       try {
-        // 使用requestCache进行请求缓存和取消
         const available = await requestCache.get(
           cacheKey,
           (signal?: AbortSignal) => app.actions.getAvailable(node, secure, signal)
         );
-        updateState({ available, checking: null });
+        updateState({ available: available ? 1 : 0, checking: null });
       } catch (err) {
         console.log('[useAccess] getAvailable error:', err);
         updateState({ available: 0, checking: null });
@@ -176,48 +198,58 @@ export function useAccess() {
       await app.actions.adminLogin(password, host, secure, code)
     },
     setProfileImage: async (image: string) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.setProfileImage(server, appToken, image)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.setProfileImage(server, appToken, image)
+      }
     },
     setSeal: async (seal: string, password: string) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.setSeal(server, appToken, seal, password)
-    },
-    clearSeal: async () => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.clearSeal(server, appToken)
-    },
-    setProfile: async (profile: any) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.setProfile(server, appToken, profile)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.setSeal(server, appToken, seal, password)
+      }
     },
     setNotification: async (enable: boolean) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.setNotification(server, appToken, enable)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.setNotification(server, appToken, enable)
+      }
     },
     setRegistry: async (enable: boolean) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.setRegistry(server, appToken, enable)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.setRegistry(server, appToken, enable)
+      }
     },
     setMFAuth: async (enable: boolean) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.setMFAuth(server, appToken, enable)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.setMFAuth(server, appToken, enable)
+      }
     },
     confirmMFAuth: async (code: string) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.confirmMFAuth(server, appToken, code)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.confirmMFAuth(server, appToken, code)
+      }
     },
     disableMFAuth: async () => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.disableMFAuth(server, appToken)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.disableMFAuth(server, appToken)
+      }
     },
     setLogin: async (username: string, password: string) => {
-      const { server, appToken, profileRevision } = state
-      await app.actions.setLogin(server, appToken, username, password)
+      const { server, appToken } = state
+      if (server && appToken) {
+        await app.actions.setLogin(server, appToken, username, password)
+      }
     },
     logout: async () => {
       const { appToken } = state
-      await app.actions.logout(appToken)
+      if (appToken) {
+        await app.actions.logout(appToken)
+      }
     },
   }), [])
 
