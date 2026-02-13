@@ -13,15 +13,17 @@ export function checkResponse(response) {
 }
 
 export async function fetchWithTimeout(url, options) {
+  const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
   return Promise.race([
-    fetch(url, options).catch(err => { throw new Error(url + ' failed'); }),
+    fetch(fullUrl, options).catch(err => { throw new Error(fullUrl + ' failed'); }),
     new Promise((_, reject) => setTimeout(() => reject(new Error(url + ' timeout')), TIMEOUT))
   ]);
 }
 
 export async function fetchWithCustomTimeout(url, options, timeout) {
+  const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
   return Promise.race([
-    fetch(url, options).catch(err => { throw new Error(url + ' failed'); }),
+    fetch(fullUrl, options).catch(err => { throw new Error(fullUrl + ' failed'); }),
     new Promise((_, reject) => setTimeout(() => reject(new Error(url + ' timeout')), timeout))
   ]);
 }
