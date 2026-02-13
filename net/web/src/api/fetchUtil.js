@@ -13,7 +13,16 @@ export function checkResponse(response) {
 }
 
 export async function fetchWithTimeout(url, options) {
-  const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+  let fullUrl = url;
+  
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const portStr = port ? `:${port}` : '';
+    fullUrl = `${protocol}//${hostname}${portStr}${url}`;
+  }
+  
   return Promise.race([
     fetch(fullUrl, options).catch(err => { throw new Error(fullUrl + ' failed'); }),
     new Promise((_, reject) => setTimeout(() => reject(new Error(url + ' timeout')), TIMEOUT))
@@ -21,7 +30,16 @@ export async function fetchWithTimeout(url, options) {
 }
 
 export async function fetchWithCustomTimeout(url, options, timeout) {
-  const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+  let fullUrl = url;
+  
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const portStr = port ? `:${port}` : '';
+    fullUrl = `${protocol}//${hostname}${portStr}${url}`;
+  }
+  
   return Promise.race([
     fetch(fullUrl, options).catch(err => { throw new Error(fullUrl + ' failed'); }),
     new Promise((_, reject) => setTimeout(() => reject(new Error(url + ' timeout')), timeout))
