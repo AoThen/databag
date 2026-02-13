@@ -441,6 +441,8 @@ interface Focus {
         handle?: string;
         imageUrl?: string;
     }[]>;
+    fetchMoreReadReceipts(limit?: number): Promise<void>;
+    getFetchedReadReceiptCount(): number;
     addTopicListener(ev: (topics: null | Topic[]) => void): void;
     removeTopicListener(ev: (topics: null | Topic[]) => void): void;
     addOffsyncListener(ev: (offsync: boolean) => void): void;

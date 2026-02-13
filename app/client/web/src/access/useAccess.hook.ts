@@ -2,7 +2,6 @@ import { useRef, useState, useContext, useEffect, useCallback, useMemo } from 'r
 import { DisplayContext } from '../context/DisplayContext'
 import { AppContext } from '../context/AppContext'
 import { ContextType } from '../context/ContextType'
-import { useLocation } from 'react-router-dom'
 import { requestCache } from '../utils/RequestCache'
 import { DEBOUNCE_DELAY } from '../constants/Debounce'
 
@@ -11,7 +10,6 @@ export function useAccess() {
   const debounceTaken = useRef(setTimeout(() => {}, 0))
   const app = useContext(AppContext) as ContextType
   const display = useContext(DisplayContext) as ContextType
-  const url = useLocation();
   const [state, setState] = useState({
     layout: null,
     strings: display.state.strings,
@@ -39,17 +37,19 @@ export function useAccess() {
   }
 
   useEffect(() => {
-    const params = new URLSearchParams(location.href)
-    const search = url?.search;
-    if (search && search.startsWith('?add=')) {
+    const urlObj = new URL(location.href)
+    const search = urlObj.search
+
+    if (search.startsWith('?add=')) {
       updateState({ mode: 'create', token: search.substring(5) })
-    } else if (search && search.startsWith('?reset=')) {
+    } else if (search.startsWith('?reset=')) {
       updateState({ mode: 'reset', token: search.substring(7) })
     } else {
       updateState({ mode: 'account' })
     }
 
-    const { protocol, host } = location
+    const { protocol, hostname, port } = location
+    const host = port ? `${hostname}:${port}` : hostname
     updateState({ host, secure: protocol === 'https:' })
   }, [])
 
@@ -135,8 +135,20 @@ export function useAccess() {
       updateState({ code })
     },
     setNode: (host: string) => {
-      const insecure = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/.test(host)
-      updateState({ host, secure: !insecure })
+      const trimmedHost = host.trim()
+      if (!trimmedHost) {
+        return
+      }
+
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*(\.[a-zA-Z0-9][a-zA-Z0-9-]*)*\.[a-zA-Z]{2,}$/
+      const ipRegex = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|:\d+$|$)){4}$/
+
+      const isValidIP = ipRegex.test(trimmedHost)
+      if (!isValidIP && !domainRegex.test(trimmedHost)) {
+        return
+      }
+
+      updateState({ host: trimmedHost, secure: state.secure })
     },
     setLanguage: (code: string) => {
       display.actions.setLanguage(code)

@@ -823,7 +823,10 @@ var defaultTopicItem = {
     transform: ""
   },
   unsealedDetail: null,
-  position: 0
+  position: 0,
+  readBy: [],
+  readCount: 0,
+  readByFetched: false
 };
 
 // src/net/getChannelTopics.ts
@@ -1254,6 +1257,9 @@ var _FocusModule = class _FocusModule {
             this.unsealAll = false;
             this.emitTopics();
           }
+          yield this.fetchReadReceiptsBatch(
+            this.getUnfetchedReadReceiptTopics(0, 30)
+          );
         }
         if (this.offsync) {
           this.offsync = false;
@@ -2030,7 +2036,9 @@ var _FocusModule = class _FocusModule {
         const { assetId, hosting } = asset;
         return { assetId, hosting };
       }),
-      readByMe: item.detail.readByMe
+      readByMe: item.detail.readByMe,
+      readBy: item.readBy,
+      readCount: item.readCount
     };
   }
   getTopicDetail(entity, revision) {
@@ -2218,6 +2226,14 @@ var _FocusModule = class _FocusModule {
           yield setChannelTopicRead(node, secure, token, channelId, topicId);
         }
         _FocusModule.recordSuccess();
+        if (cardId) {
+          const entry = this.topicEntries.get(topicId);
+          if (entry) {
+            entry.item.detail.readByMe = true;
+            entry.topic = this.setTopic(topicId, entry.item);
+            this.emitTopics();
+          }
+        }
       } catch (err) {
         _FocusModule.recordFailure();
         throw err;
@@ -2263,6 +2279,79 @@ var _FocusModule = class _FocusModule {
         return yield getChannelTopicReads(node, secure, token, channelId, topicId);
       }
     });
+  }
+  fetchReadReceipts(topicId, item) {
+    return __async(this, null, function* () {
+      if (item.readByFetched) {
+        return;
+      }
+      try {
+        const readBy = yield this.getTopicReadReceipts(topicId);
+        item.readBy = readBy;
+        item.readCount = readBy.length;
+        item.readByFetched = true;
+      } catch (err) {
+        this.log.warn("[fetchReadReceipts] failed:", err);
+        item.readBy = [];
+        item.readCount = 0;
+        item.readByFetched = true;
+      }
+    });
+  }
+  fetchReadReceiptsBatch(topicIds) {
+    return __async(this, null, function* () {
+      if (!this.connection) {
+        return;
+      }
+      const fetchPromises = topicIds.map((topicId) => __async(this, null, function* () {
+        const entry = this.topicEntries.get(topicId);
+        if (entry && entry.item.detail.guid === this.guid) {
+          yield this.fetchReadReceipts(topicId, entry.item);
+          const updatedEntry = this.topicEntries.get(topicId);
+          if (updatedEntry) {
+            updatedEntry.topic = this.setTopic(topicId, updatedEntry.item);
+          }
+        }
+      }));
+      yield Promise.all(fetchPromises);
+      this.emitTopics();
+    });
+  }
+  getUnfetchedReadReceiptTopics(offset, limit) {
+    const myTopics = [];
+    for (const [topicId, entry] of this.topicEntries.entries()) {
+      if (entry.item.detail.guid === this.guid && !entry.item.readByFetched) {
+        myTopics.push({ topicId, created: entry.item.detail.created });
+      }
+    }
+    myTopics.sort((a, b) => b.created - a.created);
+    return myTopics.slice(offset, offset + limit).map((t) => t.topicId);
+  }
+  fetchMoreReadReceipts(limit = 30) {
+    return __async(this, null, function* () {
+      if (!this.connection) {
+        return;
+      }
+      let fetchedCount = 0;
+      for (const [, entry] of this.topicEntries.entries()) {
+        if (entry.item.detail.guid === this.guid && entry.item.readByFetched) {
+          fetchedCount++;
+        }
+      }
+      const topicIds = this.getUnfetchedReadReceiptTopics(fetchedCount, limit);
+      if (topicIds.length > 0) {
+        yield this.fetchReadReceiptsBatch(topicIds);
+      }
+    });
+  }
+  getFetchedReadReceiptCount() {
+    let count = 0;
+    for (const [, entry] of this.topicEntries.entries()) {
+      if (entry.item.detail.guid === this.guid && entry.item.readByFetched) {
+        count++;
+      }
+    }
+    return count;
   }
   parse(data) {
     if (data) {
@@ -7170,6 +7259,9 @@ function addAccount(node, secure, username, password, token) {
 // src/net/setAdmin.ts
 function setAdmin(node, secure, token, mfaCode) {
   return __async(this, null, function* () {
+    if (!node || !node.trim()) {
+      throw new Error("Invalid node parameter");
+    }
     const mfa = mfaCode ? `&code=${mfaCode}` : "";
     const endpoint = `http${secure ? "s" : ""}://${node}/admin/access?token=${encodeURIComponent(token)}${mfa}`;
     const admin = yield fetchWithTimeout(endpoint, { method: "PUT" });
