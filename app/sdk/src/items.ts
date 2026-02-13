@@ -162,6 +162,15 @@ export type TopicItem = {
   detail: TopicDetail;
   unsealedDetail: string | null;
   position: number;
+  readBy?: {
+    guid: string;
+    readTime: number;
+    name?: string;
+    handle?: string;
+    imageUrl?: string;
+  }[];
+  readCount?: number;
+  readByFetched?: boolean;
 };
 
 export type AssetItem = {
@@ -186,4 +195,7 @@ export const defaultTopicItem = {
   },
   unsealedDetail: null,
   position: 0,
+  readBy: [],
+  readCount: 0,
+  readByFetched: false,
 };

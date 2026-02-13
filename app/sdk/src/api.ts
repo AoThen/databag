@@ -157,6 +157,8 @@ export interface Focus {
 
   markTopicRead(topicId: string): Promise<void>;
   getTopicReadReceipts(topicId: string): Promise<{ guid: string; readTime: number; name?: string; handle?: string; imageUrl?: string }[]>;
+  fetchMoreReadReceipts(limit?: number): Promise<void>;
+  getFetchedReadReceiptCount(): number;
 
   addTopicListener(ev: (topics: null | Topic[]) => void): void;
   removeTopicListener(ev: (topics: null | Topic[]) => void): void;

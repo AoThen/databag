@@ -16,7 +16,7 @@ import {BlurView} from '@react-native-community/blur';
 import {sanitizeUrl} from '@braintree/sanitize-url';
 import {handleAppError} from '../utils/AppErrorHandler';
 
-export function Message({topic, card, profile, host, select}: {topic: Topic; card: Card | null; profile: Profile | null; host: boolean; select: (id: null | string) => void}) {
+export function Message({topic, card, profile, host, select, isOneToOne}: {topic: Topic; card: Card | null; profile: Profile | null; host: boolean; select: (id: null | string) => void; isOneToOne: boolean}) {
   const {state, actions} = useMessage();
   const {locked, data, created, topicId, status, transform} = topic;
   const {name, handle, node} = profile || card || {name: null, handle: null, node: null};
@@ -234,15 +234,15 @@ export function Message({topic, card, profile, host, select}: {topic: Topic; car
           {!name && handle && <Text numberOfLines={1} style={styles.labelHandle}>{`${handle}${node ? '@' + node : ''}`}</Text>}
            {!name && !handle && <Text numberOfLines={1} style={styles.labelUnknown}>{state.strings.unknownContact}</Text>}
            <View style={styles.headerActions}>
-             <Text style={styles.timestamp}> {timestamp}</Text>
-              {/* 未读/已读标识 */}
-              {!host && !locked && status === 'confirmed' && (
-                <View style={styles.readStatus}>
-                  {!topic.readByMe && <View style={styles.unreadDot} />}
-                  {topic.readByMe && <Text style={styles.readCheck}>✓</Text>}
-                </View>
-              )}
-             <Menu
+              <Text style={styles.timestamp}> {timestamp}</Text>
+               {/* 未读/已读标识 */}
+               {host && topic.guid === profile?.guid && isOneToOne && (
+                 <View style={styles.readStatus}>
+                   {(!topic.readBy || topic.readBy.length === 0) && <View style={styles.unreadDot} />}
+                   {topic.readBy && topic.readBy.length > 0 && <Text style={styles.readCheck}>✓</Text>}
+                 </View>
+               )}
+              <Menu
               mode={Platform.OS === 'ios' ? 'flat' : 'elevated'}
               elevation={Platform.OS === 'ios' ? 8 : 2}
               contentStyle={styles.menuContent}

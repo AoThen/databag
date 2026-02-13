@@ -67,6 +67,9 @@ export function useConversation() {
     keyboardOffset: 0,
     validShare: true,
     offsync: false,
+    isOneToOne: false,
+    maxFetchedReadReceipts: 30,
+    myTopicsCount: 0,
   });
 
   const updateState = (value: any) => {
@@ -174,8 +177,19 @@ export function useConversation() {
     const subjectCards = contactCards.filter(member => Boolean(member));
     const subjectNames = subjectCards.map(member => (member?.name ? member.name : member?.handle));
     const unknownContacts = contactCards.length - subjectCards.length;
-    updateState({host, sealed, access, subject, subjectNames, unknownContacts, detailSet: state.detail !== undefined});
+    
+    const members = state.detail?.members || [];
+    const isOneToOne = state.cardId != null && members.length <= 2;
+    
+    updateState({host, sealed, access, subject, subjectNames, unknownContacts, detailSet: state.detail !== undefined, isOneToOne});
   }, [state.detail, state.cards, state.profile, state.cardId]);
+
+  useEffect(() => {
+    if (state.profile && state.topics.length > 0 && state.cardId != null) {
+      const myTopicsCount = state.topics.filter(t => t.guid === state.profile?.guid).length;
+      updateState({myTopicsCount});
+    }
+  }, [state.topics, state.cardId, state.profile]);
 
   useEffect(() => {
     const focus = app.state.focus;
@@ -249,6 +263,19 @@ export function useConversation() {
         updateState({message: ''});
       } else {
         updateState({message});
+      }
+    },
+    loadMoreReadReceipts: async () => {
+      const focus = app.state.focus;
+      if (focus && state.isOneToOne) {
+        const fetchedCount = focus.getFetchedReadReceiptCount();
+        if (fetchedCount < state.myTopicsCount) {
+          try {
+            await focus.fetchMoreReadReceipts(30);
+            updateState({maxFetchedReadReceipts: fetchedCount + 30});
+          } catch (err) {
+          }
+        }
       }
     },
     setTextSize: (textSize: number) => {

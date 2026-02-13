@@ -111,6 +111,10 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
           }
         }
       }
+      
+      if (scrollTop < clientHeight * 2 && state.isOneToOne && state.myTopicsCount > state.maxFetchedReadReceipts) {
+        actions.loadMoreReadReceipts();
+      }
     }
   }
 
@@ -146,7 +150,7 @@ export function Conversation({ openDetails }: { openDetails: () => void }) {
     const { host } = state
     const card = state.cards.get(topic.guid) || null
     const profile = state.profile?.guid === topic.guid ? state.profile : null
-    return <Message key={idx} topic={topic} card={card} profile={profile} host={host} />
+    return <Message key={idx} topic={topic} card={card} profile={profile} host={host} isOneToOne={state.isOneToOne} />
   })
 
   const media = state.assets.map((asset, index: number) => {

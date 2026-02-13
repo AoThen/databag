@@ -14,7 +14,7 @@ import { useResizeDetector } from 'react-resize-detector'
 import { modals } from '@mantine/modals'
 import { sanitizeUrl } from '@braintree/sanitize-url'
 
-export function Message({ topic, card, profile, host }: { topic: Topic; card: Card | null; profile: Profile | null; host: boolean }) {
+export function Message({ topic, card, profile, host, isOneToOne }: { topic: Topic; card: Card | null; profile: Profile | null; host: boolean; isOneToOne: boolean }) {
   const { state, actions } = useMessage()
   const scroll = useRef(null as HTMLDivElement | null)
   const { locked, data, created, topicId, status, transform, sealed } = topic
@@ -212,10 +212,10 @@ export function Message({ topic, card, profile, host }: { topic: Topic; card: Ca
               {!name && !handle && <span className={classes.unknown}>{state.strings.unknownContact}</span>}
               <span className={classes.timestamp}> {timestamp}</span>
               {/* 未读/已读标识 */}
-              {!host && !locked && status === 'confirmed' && (
+              {host && topic.guid === profile?.guid && isOneToOne && (
                 <div className={classes.readStatus}>
-                  {!topic.readByMe && <div className={classes.unreadDot} title="未读">●</div>}
-                  {topic.readByMe && <div className={classes.readCheck} title="已读">✓</div>}
+                  {(!topic.readBy || topic.readBy.length === 0) && <div className={classes.unreadDot} title="未读">●</div>}
+                  {topic.readBy && topic.readBy.length > 0 && <div className={classes.readCheck} title="已读">✓</div>}
                 </div>
               )}
             </div>

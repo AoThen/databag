@@ -257,6 +257,10 @@ export class FocusModule implements Focus {
           this.unsealAll = false;
           this.emitTopics();
         }
+
+        await this.fetchReadReceiptsBatch(
+          this.getUnfetchedReadReceiptTopics(0, 30)
+        );
       }
       if (this.offsync) {
         this.offsync = false;
@@ -1054,6 +1058,8 @@ export class FocusModule implements Focus {
         return { assetId, hosting };
       }),
       readByMe: item.detail.readByMe,
+      readBy: item.readBy,
+      readCount: item.readCount,
     }
   }   
 
@@ -1298,6 +1304,87 @@ FocusModule.recordSuccess();
     } else {
       return await getChannelTopicReads(node, secure, token, channelId, topicId);
     }
+  }
+
+  private async fetchReadReceipts(topicId: string, item: TopicItem): Promise<void> {
+    if (item.readByFetched) {
+      return;
+    }
+
+    try {
+      const readBy = await this.getTopicReadReceipts(topicId);
+      item.readBy = readBy;
+      item.readCount = readBy.length;
+      item.readByFetched = true;
+    } catch (err) {
+      this.log.warn('[fetchReadReceipts] failed:', err);
+      item.readBy = [];
+      item.readCount = 0;
+      item.readByFetched = true;
+    }
+  }
+
+  private async fetchReadReceiptsBatch(topicIds: string[]): Promise<void> {
+    if (!this.connection) {
+      return;
+    }
+
+    const fetchPromises = topicIds.map(async (topicId) => {
+      const entry = this.topicEntries.get(topicId);
+      if (entry && entry.item.detail.guid === this.guid) {
+        await this.fetchReadReceipts(topicId, entry.item);
+        const updatedEntry = this.topicEntries.get(topicId);
+        if (updatedEntry) {
+          updatedEntry.topic = this.setTopic(topicId, updatedEntry.item);
+        }
+      }
+    });
+
+    await Promise.all(fetchPromises);
+    this.emitTopics();
+  }
+
+  private getUnfetchedReadReceiptTopics(offset: number, limit: number): string[] {
+    const myTopics: Array<{ topicId: string; created: number }> = [];
+
+    for (const [topicId, entry] of this.topicEntries.entries()) {
+      if (entry.item.detail.guid === this.guid && !entry.item.readByFetched) {
+        myTopics.push({ topicId, created: entry.item.detail.created });
+      }
+    }
+
+    myTopics.sort((a, b) => b.created - a.created);
+
+    return myTopics.slice(offset, offset + limit).map(t => t.topicId);
+  }
+
+  public async fetchMoreReadReceipts(limit: number = 30): Promise<void> {
+    if (!this.connection) {
+      return;
+    }
+
+    let fetchedCount = 0;
+    for (const [, entry] of this.topicEntries.entries()) {
+      if (entry.item.detail.guid === this.guid && entry.item.readByFetched) {
+        fetchedCount++;
+      }
+    }
+
+    const topicIds = this.getUnfetchedReadReceiptTopics(fetchedCount, limit);
+
+    if (topicIds.length > 0) {
+      await this.fetchReadReceiptsBatch(topicIds);
+    }
+  }
+
+  public getFetchedReadReceiptCount(): number {
+    let count = 0;
+    for (const [, entry] of this.topicEntries.entries()) {
+      if (entry.item.detail.guid === this.guid && entry.item.readByFetched) {
+        count++;
+      }
+    }
+    return count;
   }
 
   private parse(data: string | null): any {

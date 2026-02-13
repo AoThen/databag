@@ -136,6 +136,9 @@ export function Conversation({layout, close, openDetails}: {layotu: string; clos
     if (!more) {
       setMore(true);
       await actions.more();
+      if (state.isOneToOne && state.myTopicsCount > state.maxFetchedReadReceipts) {
+        await actions.loadMoreReadReceipts();
+      }
       setMore(false);
     }
   };
@@ -337,7 +340,7 @@ export function Conversation({layout, close, openDetails}: {layotu: string; clos
               const {host} = state;
               const card = state.cards.get(item.guid) || null;
               const profile = state.profile?.guid === item.guid ? state.profile : null;
-              return <Message topic={item} card={card} profile={profile} host={host} select={id => setSelected(id)} selected={selected} />;
+              return <Message topic={item} card={card} profile={profile} host={host} select={id => setSelected(id)} selected={selected} isOneToOne={state.isOneToOne} />;
             }}
             keyExtractor={topic => topic.topicId}
           />
