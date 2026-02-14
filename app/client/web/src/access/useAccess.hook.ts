@@ -251,7 +251,7 @@ export function useAccess() {
         await app.actions.logout(appToken)
       }
     },
-  }), [])
+  }), [state, app.actions, display.actions])
 
   return { state, actions }
 }
