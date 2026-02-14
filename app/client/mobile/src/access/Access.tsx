@@ -133,6 +133,7 @@ export function Access() {
   }, [state.strings]);
 
   const login = async () => {
+    actions.clearError();
     if (!state.loading) {
       actions.setLoading(true);
       try {
@@ -183,6 +184,15 @@ export function Access() {
             <View style={styles.header}>
               <Text variant="titleLarge">Databag</Text>
             </View>
+            {state.error && (
+              <View style={[styles.block, { backgroundColor: theme.colors.errorContainer, borderColor: theme.colors.error, borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 16 }]}>
+                <View style={styles.linkline}>
+                  <IconButton icon="alert-circle" size={20} iconColor={theme.colors.error} style={{ margin: 0 }} />
+                  <Text style={{ flex: 1, color: theme.colors.error, fontSize: 14 }}>{state.error}</Text>
+                  <IconButton icon="close" size={20} iconColor={theme.colors.error} onPress={actions.clearError} style={{ margin: 0 }} />
+                </View>
+              </View>
+            )}
             {state.mode === 'splash' && (
               <Animated.View style={[styles.header, {opacity: switching}]}>
                 <Text style={styles.headline} variant="titleSmall">

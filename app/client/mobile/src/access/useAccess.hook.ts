@@ -14,6 +14,7 @@ const PRESET_SERVERS = [
 
 const DEBOUNCE_DELAY = 500;
 const REQUEST_CACHE_TTL = 30000;
+const LOGIN_TIMEOUT = 30000;
 
 interface CacheEntry {
   result: any;
@@ -44,10 +45,20 @@ export function useAccess() {
     available: 0,
     taken: false,
     checking: null as 'server' | 'username' | null,
+    error: null as string | null,
   });
 
   const updateState = (value: any) => {
     setState(s => ({...s, ...value}));
+  };
+
+  const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => 
+        setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+      )
+    ]);
   };
 
   // SplashScreen.hide() 已移至 useRoot.hook 基于初始化状态调用，避免重复调用
@@ -169,22 +180,73 @@ export function useAccess() {
     },
     accountLogin: async () => {
       const {username, password, node, secure, code} = state;
-      await app.actions.accountLogin(username, password, node, secure, code);
+      try {
+        await withTimeout(
+          app.actions.accountLogin(username, password, node, secure, code),
+          LOGIN_TIMEOUT,
+          'timeout'
+        );
+      } catch (err: any) {
+        if (err.message === 'timeout') {
+          updateState({error: 'Connection timeout. Please check your server address and try again.'});
+        } else {
+          throw err;
+        }
+      }
     },
     accountCreate: async () => {
       const {username, password, node, secure, token} = state;
-      await app.actions.accountCreate(username, password, node, secure, token);
+      try {
+        await withTimeout(
+          app.actions.accountCreate(username, password, node, secure, token),
+          LOGIN_TIMEOUT,
+          'timeout'
+        );
+      } catch (err: any) {
+        if (err.message === 'timeout') {
+          updateState({error: 'Connection timeout. Please check your server address and try again.'});
+        } else {
+          throw err;
+        }
+      }
     },
     accountAccess: async () => {
       const {node, secure, token} = state;
-      await app.actions.accountAccess(node, secure, token);
+      try {
+        await withTimeout(
+          app.actions.accountAccess(node, secure, token),
+          LOGIN_TIMEOUT,
+          'timeout'
+        );
+      } catch (err: any) {
+        if (err.message === 'timeout') {
+          updateState({error: 'Connection timeout. Please check your server address and try again.'});
+        } else {
+          throw err;
+        }
+      }
     },
     adminLogin: async () => {
       const {password, node, secure, code} = state;
-      await app.actions.adminLogin(password, node, secure, code);
+      try {
+        await withTimeout(
+          app.actions.adminLogin(password, node, secure, code),
+          LOGIN_TIMEOUT,
+          'timeout'
+        );
+      } catch (err: any) {
+        if (err.message === 'timeout') {
+          updateState({error: 'Connection timeout. Please check your server address and try again.'});
+        } else {
+          throw err;
+        }
+      }
     },
     requestPermission: () => {
       app.actions.requestPermission();
+    },
+    clearError: () => {
+      updateState({error: null});
     },
     getPresetServers: () => {
       return PRESET_SERVERS;

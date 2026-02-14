@@ -1,3 +1,4 @@
+import { ErrorUtils } from 'react-native';
 import { LogCollector } from './LogCollector';
 import { LogEntry, LogLevel } from '../types/LogTypes';
 
