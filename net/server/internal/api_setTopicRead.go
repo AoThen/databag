@@ -64,20 +64,30 @@ func SetTopicRead(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Find the topic - first try topic_slot_id, then try GUID
+	// Find the topic - try both topic_slot_id and GUID
 	var topicSlot store.TopicSlot
-	err = store.DB.Preload("Topic").Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// Try GUID if topic_slot_id not found
-		err = store.DB.Preload("Topic").Where("channel_id = ? AND guid = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error
-	}
+
+	// Try GUID first (most common case from frontend)
+	err = store.DB.Preload("Topic").Where("channel_id = ? AND guid = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ErrResponse(w, http.StatusNotFound, err)
-		} else {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			ErrResponse(w, http.StatusInternalServerError, err)
+			return
 		}
-		return
+
+		// Try topic_slot_id if GUID not found
+		var topicSlotID uint
+		if _, err = fmt.Sscanf(topicID, "%d", &topicSlotID); err == nil {
+			err = store.DB.Preload("Topic").Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicSlotID).First(&topicSlot).Error
+		}
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ErrResponse(w, http.StatusNotFound, errors.New("topic not found"))
+			} else {
+				ErrResponse(w, http.StatusInternalServerError, err)
+			}
+			return
+		}
 	}
 
 	if topicSlot.Topic == nil {
