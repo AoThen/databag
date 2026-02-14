@@ -1345,17 +1345,7 @@ FocusModule.recordSuccess();
   }
 
   private getUnfetchedReadReceiptTopics(offset: number, limit: number): string[] {
-    const myTopics: Array<{ topicId: string; created: number }> = [];
-
-    for (const [topicId, entry] of this.topicEntries.entries()) {
-      if (entry.item.detail.guid === this.guid && !entry.item.readByFetched) {
-        myTopics.push({ topicId, created: entry.item.detail.created });
-      }
-    }
-
-    myTopics.sort((a, b) => b.created - a.created);
-
-    return myTopics.slice(offset, offset + limit).map(t => t.topicId);
+    return [];
   }
 
   public async fetchMoreReadReceipts(limit: number = 30): Promise<void> {

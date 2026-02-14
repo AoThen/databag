@@ -278,40 +278,6 @@ export function useConversation() {
       if (unreadTopics.length > 0) {
         unreadTopics.forEach(topic => {
           state.markedReadTopics.add(topic.topicId)
-          focus.markTopicRead(topic.topicId)
-            .then(() => {
-              errorCounter.clearRetrySchedule('markTopicRead', topic.topicId)
-            })
-            .catch((err: unknown) => {
-              const appError = errorHandler.handle(err, {
-                component: 'useConversation',
-                action: 'markTopicRead',
-                topicId: topic.topicId,
-                channelId: state.cardId,
-              })
-
-              if (appError.category === ErrorCategory.AUTH || appError.category === ErrorCategory.NETWORK) {
-                if (errorCounter.shouldRetry('markTopicRead', topic.topicId)) {
-                  state.markedReadTopics.delete(topic.topicId)
-                } else {
-                  console.warn('[useConversation] markTopicRead retry timeout, topic:', topic.topicId, 'error:', appError)
-                }
-              }
-            })
-            .catch((err: unknown) => {
-              const appError = errorHandler.handle(err, {
-                component: 'useConversation',
-                action: 'markTopicRead',
-                topicId: topic.topicId,
-                channelId: state.cardId,
-              })
-
-              if (appError.category === ErrorCategory.AUTH || appError.category === ErrorCategory.NETWORK) {
-                if (errorCounter.shouldRetry('markTopicRead', topic.topicId)) {
-                  state.markedReadTopics.delete(topic.topicId)
-                }
-              }
-            })
         })
       }
     }
@@ -337,10 +303,7 @@ export function useConversation() {
       app.actions.clearFocus()
     },
     markAsRead: async (topicId: string) => {
-      const focus = app.state.focus
-      if (focus) {
-        await focus.markTopicRead(topicId)
-      }
+      // 已读功能已禁用
     },
     loadMoreReadReceipts: async () => {
       const focus = app.state.focus

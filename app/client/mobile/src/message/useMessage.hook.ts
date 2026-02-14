@@ -48,18 +48,7 @@ export function useMessage() {
       }
     },
     markAsRead: async (topicId: string) => {
-      const focus = app.state.focus;
-      if (focus) {
-        try {
-          await focus.markTopicRead(topicId);
-        } catch (err) {
-          errorHandler.handle(err, {
-            component: 'useMessage',
-            action: 'markTopicRead',
-            topicId,
-          });
-        }
-      }
+      // 已读功能已禁用
     },
     getReadReceipts: async (topicId: string) => {
       const focus = app.state.focus;
