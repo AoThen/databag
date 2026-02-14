@@ -211,8 +211,8 @@ export function Message({ topic, card, profile, host, isOneToOne }: { topic: Top
               {!name && handle && <span>{`${handle}${node ? '/' + node : ''}`}</span>}
               {!name && !handle && <span className={classes.unknown}>{state.strings.unknownContact}</span>}
               <span className={classes.timestamp}> {timestamp}</span>
-              {/* 未读/已读标识 */}
-              {host && topic.guid === profile?.guid && isOneToOne && (
+              {/* 已读标识 - 仅在用户自己发送的消息且为一对一聊天时显示 */}
+              {topic.guid === profile?.guid && isOneToOne && (
                 <div className={classes.readStatus}>
                   {(!topic.readBy || topic.readBy.length === 0) && <div className={classes.unreadDot} title="未读">●</div>}
                   {topic.readBy && topic.readBy.length > 0 && <div className={classes.readCheck} title="已读">✓</div>}

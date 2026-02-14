@@ -28,9 +28,10 @@ func GetChannelTopicDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// load topic
+	// load topic using topic_slot_id (which is the UUID from frontend)
 	var topicSlot store.TopicSlot
-	if err = store.DB.Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error; err != nil {
+	err = store.DB.Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			code = http.StatusNotFound
 		} else {

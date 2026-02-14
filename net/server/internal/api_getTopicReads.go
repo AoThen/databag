@@ -3,7 +3,6 @@ package databag
 import (
 	"databag/internal/store"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -30,35 +29,24 @@ func GetTopicReads(w http.ResponseWriter, r *http.Request) {
 
 	act := &channelSlot.Account
 
-	// Find the topic - try both topic_slot_id and GUID
-	var topic store.Topic
-	var topicSlotID uint
-	parsed := false
-
-	// Try GUID first (most common case from frontend)
-	err = store.DB.Where("channel_id = ? AND guid = ?", channelSlot.Channel.ID, topicID).First(&topic).Error
+	// Find the topic using topic_slot_id (which is the UUID from frontend)
+	var topicSlot store.TopicSlot
+	err = store.DB.Preload("Topic").Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			ErrResponse(w, http.StatusInternalServerError, err)
-			return
-		}
-
-		// Try topic_slot_id if GUID not found
-		if _, err = fmt.Sscanf(topicID, "%d", &topicSlotID); err == nil {
-			parsed = true
-			err = store.DB.Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicSlotID).First(&topic).Error
-		}
-		if err != nil {
-			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				ErrResponse(w, http.StatusInternalServerError, err)
-				return
-			}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ErrResponse(w, http.StatusNotFound, errors.New("topic not found"))
-			return
+		} else {
+			ErrResponse(w, http.StatusInternalServerError, err)
 		}
+		return
 	}
 
-	_ = parsed // suppress unused warning
+	if topicSlot.Topic == nil {
+		ErrResponse(w, http.StatusNotFound, errors.New("topic not found"))
+		return
+	}
+
+	topic := *topicSlot.Topic
 
 	// Only topic author can view read receipts
 	if topic.GUID != act.GUID {
