@@ -33,8 +33,7 @@ import {
 import { modals } from '@mantine/modals'
 import { useDisclosure } from '@mantine/hooks'
 import React, { useCallback, useState, useRef } from 'react'
-import Cropper from 'react-easy-crop'
-import { Area } from 'react-easy-crop/types'
+import Cropper, { type Area } from 'react-easy-crop'
 
 export function Settings({ showLogout }: { showLogout: boolean }) {
   const imageFile = useRef(null as null | HTMLInputElement)

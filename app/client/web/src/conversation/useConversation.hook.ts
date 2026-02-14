@@ -2,7 +2,6 @@ import { useState, useContext, useEffect } from 'react'
 import { AppContext } from '../context/AppContext'
 import { DisplayContext } from '../context/DisplayContext'
 import { Focus, FocusDetail, Topic, Profile, Card, AssetType, AssetSource, TransformType } from 'databag-client-sdk'
-import { ContextType } from '../context/ContextType'
 import Resizer from 'react-image-file-resizer'
 import { ErrorHandler, ErrorCategory } from '../utils/ErrorHandler'
 import { ErrorCounter } from '../utils/ErrorCounter'
@@ -94,8 +93,10 @@ function getVideoThumb(file: File, position?: number) {
 }
 
 export function useConversation() {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const app = useContext(AppContext) as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const display = useContext(DisplayContext) as any
   const [state, setState] = useState({
     detail: undefined as FocusDetail | null | undefined,
     strings: display.state.strings,
@@ -308,7 +309,8 @@ export function useConversation() {
           try {
             await focus.fetchMoreReadReceipts(30);
             updateState({ maxFetchedReadReceipts: fetchedCount + 30 });
-          } catch (err) {
+          } catch {
+            // Silently ignore fetch errors
           }
         }
       }

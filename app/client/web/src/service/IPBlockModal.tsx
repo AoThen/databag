@@ -9,7 +9,6 @@ import {
   Text, 
   Stack, 
   ActionIcon,
-  Tooltip,
   Alert,
 } from '@mantine/core';
 import { TbShield, TbTrash, TbAlertCircle } from 'react-icons/tb';
@@ -77,38 +76,6 @@ export function IPBlockModal({ opened, onClose, strings, state, actions }: IPBlo
     }
     return `${hours} ${strings.hours || 'Hours'}`;
   };
-
-  const blockColumns = [
-    { title: strings.ip, dataIndex: 'ip', key: 'ip' },
-    { title: strings.reason, dataIndex: 'reason', key: 'reason' },
-    { title: strings.blocked, dataIndex: 'blockedAt', key: 'blockedAt', 
-      render: (_: unknown, record: IPBlock) => formatDate(record.blockedAt) },
-    { title: strings.expires, dataIndex: 'expiresAt', key: 'expiresAt', 
-      render: (_: unknown, record: IPBlock) => formatDate(record.expiresAt) },
-    { title: strings.action, key: 'action', 
-      render: (_: unknown, record: IPBlock) => (
-        <Tooltip label={strings.unblock}>
-          <ActionIcon variant="subtle" color="red" onClick={() => actions.removeBlock(record.ip)}>
-            <TbTrash size={16} />
-          </ActionIcon>
-        </Tooltip>
-      )},
-  ];
-
-  const whitelistColumns = [
-    { title: strings.ip, dataIndex: 'ip', key: 'ip' },
-    { title: strings.note, dataIndex: 'note', key: 'note' },
-    { title: strings.added, dataIndex: 'createdAt', key: 'createdAt', 
-      render: (_: unknown, record: IPWhitelist) => formatDate(record.createdAt) },
-    { title: strings.action, key: 'action', 
-      render: (_: unknown, record: IPWhitelist) => (
-        <Tooltip label={strings.remove}>
-          <ActionIcon variant="subtle" color="red" onClick={() => actions.removeWhitelist(record.ip)}>
-            <TbTrash size={16} />
-          </ActionIcon>
-        </Tooltip>
-      )},
-  ];
 
   return (
     <Modal 

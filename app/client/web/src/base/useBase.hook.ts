@@ -1,12 +1,22 @@
 import { useState, useContext, useEffect } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { Card, Channel, Profile } from 'databag-client-sdk'
 
+interface SessionWithListeners {
+  addProfileListener: (fn: (profile: Profile) => void) => void
+  removeProfileListener: (fn: (profile: Profile) => void) => void
+  addCardListener: (fn: (cards: Card[]) => void) => void
+  removeCardListener: (fn: (cards: Card[]) => void) => void
+  addChannelListener: (fn: (data: { channels: Channel[]; cardId: string | null }) => void) => void
+  addLoadedListener: (fn: (loaded: boolean) => void) => void
+  removeChannelListener: (fn: (data: { channels: Channel[]; cardId: string | null }) => void) => void
+  removeLoadedListener: (fn: (loaded: boolean) => void) => void
+}
+
 export function useBase() {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
+  const display = useContext(DisplayContext) as { state: DisplayState }
   const [state, setState] = useState({
     strings: display.state.strings,
     scheme: display.state.scheme,
@@ -40,17 +50,18 @@ export function useBase() {
       updateState({ contentSet: loaded })
     }
 
-    const { identity, contact, content } = app.state.session
-    identity.addProfileListener(setProfile)
-    contact.addCardListener(setCards)
-    content.addChannelListener(setChannels)
-    content.addLoadedListener(setContent)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { identity, contact, content } = (app.state.session as SessionWithListeners | null | any) || {}
+    identity?.addProfileListener(setProfile)
+    contact?.addCardListener(setCards)
+    content?.addChannelListener(setChannels)
+    content?.addLoadedListener(setContent)
 
     return () => {
-      identity.removeProfileListener(setProfile)
-      contact.removeCardListener(setCards)
-      content.removeChannelListener(setChannels)
-      content.removeLoadedListener(setContent)
+      identity?.removeProfileListener(setProfile)
+      contact?.removeCardListener(setCards)
+      content?.removeChannelListener(setChannels)
+      content?.removeLoadedListener(setContent)
     }
   }, [])
 

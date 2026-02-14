@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react'
-import { DisplayContext } from '../context/DisplayContext'
-import { AppContext } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
+import { AppContext, AppState } from '../context/AppContext'
 import { ContextType } from '../context/ContextType'
 
 interface MessageState {
@@ -10,8 +10,8 @@ interface MessageState {
 }
 
 export function useMessage() {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as ContextType<AppState, unknown>
+  const display = useContext(DisplayContext) as ContextType<DisplayState, unknown>
   const [state, setState] = useState<MessageState>({
     strings: display.state.strings,
     timeFormat: display.state.timeFormat,
@@ -72,6 +72,7 @@ export function useMessage() {
         )
       }
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     retryTopic: async (topicId: string, subject: any) => {
       const focus = app.state.focus
       if (focus) {

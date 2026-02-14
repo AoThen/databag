@@ -1,12 +1,11 @@
 import { useState, useContext, useEffect } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { FocusDetail, Card, Profile } from 'databag-client-sdk'
 
 export function useDetails() {
-  const display = useContext(DisplayContext) as ContextType
-  const app = useContext(AppContext) as ContextType
+  const display = useContext(DisplayContext) as { state: DisplayState }
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
   const [state, setState] = useState({
     cardId: null as null | string,
     channelId: '',
@@ -76,7 +75,8 @@ export function useDetails() {
 
   useEffect(() => {
     const focus = app.state.focus
-    const { contact, identity } = app.state.session || {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { contact, identity } = (app.state.session as any) || {}
     if (focus && contact && identity) {
       const setCards = (cards: Card[]) => {
         const filtered = cards.filter((card) => !card.blocked)
@@ -119,30 +119,42 @@ export function useDetails() {
 
   const actions = {
     remove: async () => {
-      const content = app.state.session.getContent()
+      const session = app.state.session
+      if (!session) return
+      const content = session.getContent()
       await content.removeChannel(state.channelId)
       app.actions.clearFocus()
     },
     leave: async () => {
-      const content = app.state.session.getContent()
-      await content.leaveChannel(state.cardId, state.channelId)
+      const session = app.state.session
+      if (!session) return
+      const content = session.getContent()
+      await content.leaveChannel(state.cardId || '', state.channelId)
       app.actions.clearFocus()
     },
     block: async () => {
-      const content = app.state.session.getContent()
-      await content.setBlockedChannel(state.cardId, state.channelId, true)
+      const session = app.state.session
+      if (!session) return
+      const content = session.getContent()
+      await content.setBlockedChannel(state.cardId || '', state.channelId, true)
       app.actions.clearFocus()
     },
     report: async () => {
-      const content = app.state.session.getContent()
-      await content.flagChannel(state.cardId, state.channelId)
+      const session = app.state.session
+      if (!session) return
+      const content = session.getContent()
+      await content.flagChannel(state.cardId || '', state.channelId)
     },
     setMember: async (cardId: string) => {
-      const content = app.state.session.getContent()
+      const session = app.state.session
+      if (!session) return
+      const content = session.getContent()
       await content.setChannelCard(state.channelId, cardId)
     },
     clearMember: async (cardId: string) => {
-      const content = app.state.session.getContent()
+      const session = app.state.session
+      if (!session) return
+      const content = session.getContent()
       await content.clearChannelCard(state.channelId, cardId)
     },
     setEditSubject: (editSubject: string) => {
@@ -152,7 +164,9 @@ export function useDetails() {
       updateState({ editSubject: state.subject })
     },
     saveSubject: async () => {
-      const content = app.state.session.getContent()
+      const session = app.state.session
+      if (!session) return
+      const content = session.getContent()
       await content.setChannelSubject(state.channelId, state.sealed ? 'sealed' : 'superbasic', { subject: state.editSubject })
     },
   }

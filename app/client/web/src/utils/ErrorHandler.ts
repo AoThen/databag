@@ -101,7 +101,8 @@ export class ErrorHandler {
     return ErrorCategory.UNKNOWN
   }
 
-  private determineSeverity(category: ErrorCategory, message: string): ErrorSeverity {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private determineSeverity(category: ErrorCategory, _message: string): ErrorSeverity {
     if (category === ErrorCategory.NETWORK || category === ErrorCategory.AUTH) {
       return ErrorSeverity.WARNING
     }

@@ -24,3 +24,6 @@ app/client/web/node_modules
 .opencode/*
 app/client/mobile/node_modules
 app/sdk/dist/*
+net/server/server
+.gitignore
+net/server/testdata/databag.db

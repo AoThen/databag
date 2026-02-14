@@ -1,11 +1,10 @@
 import { useEffect, useState, useContext } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 
 export function useService() {
-  const display = useContext(DisplayContext) as ContextType
-  const app = useContext(AppContext) as ContextType
+  const display = useContext(DisplayContext) as { state: DisplayState }
+  const app = useContext(AppContext) as { state: AppState }
 
   const [state, setState] = useState({
     layout: null,

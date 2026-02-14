@@ -1,12 +1,11 @@
 import { useState, useContext, useEffect } from 'react'
-import { DisplayContext } from '../context/DisplayContext'
-import { AppContext } from '../context/AppContext'
-import { ContextType } from '../context/ContextType'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
 import { Profile } from 'databag-client-sdk'
 
 export function useIdentity() {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
+  const display = useContext(DisplayContext) as { state: DisplayState }
   const [state, setState] = useState({
     all: false,
     strings: display.state.strings,

@@ -18,12 +18,13 @@ const notifications = [
 
 export function useAppContext() {
   const sdk = useRef(databag)
-  const [state, setState] = useState({
-    session: null as null | Session,
-    focus: null as null | Focus,
+  const [state, setState] = useState<{ session: Session | null; focus: Focus | null; service?: ({ token?: string } & { getMembers: () => Promise<import('databag-client-sdk').Member[]>; createMemberAccess: () => Promise<string>; resetMemberAccess: (accountId: number) => Promise<string>; blockMember: (accountId: number, disabled: boolean) => Promise<void>; removeMember: (accountId: number) => Promise<void>; }) | null }>({
+    session: null,
+    focus: null,
+    service: null,
   })
 
-  const updateState = (value: Partial<typeof state>) => {
+  const updateState = (value: { session?: Session | null; focus?: Focus | null; service?: ({ token?: string } & { getMembers: () => Promise<import('databag-client-sdk').Member[]>; createMemberAccess: () => Promise<string>; resetMemberAccess: (accountId: number) => Promise<string>; blockMember: (accountId: number, disabled: boolean) => Promise<void>; removeMember: (accountId: number) => Promise<void>; }) | null }) => {
     setState((s) => ({ ...s, ...value }))
   }
 
@@ -109,12 +110,57 @@ export function useAppContext() {
     getUsername: async (username: string, token: string, node: string, secure: boolean) => {
       return await sdk.current.username(username, token, node, secure)
     },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setProfileImage: async (_server: string, _appToken: string, _image: string) => {
+      console.log('[AppContext] setProfileImage not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setSeal: async (_server: string, _appToken: string, _seal: string, _password: string) => {
+      console.log('[AppContext] setSeal not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    clearSeal: async (_server: string, _appToken: string) => {
+      console.log('[AppContext] clearSeal not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setProfile: async (_server: string, _appToken: string, _profile: unknown) => {
+      console.log('[AppContext] setProfile not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setNotification: async (_server: string, _appToken: string, _enable: boolean) => {
+      console.log('[AppContext] setNotification not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setRegistry: async (_server: string, _appToken: string, _enable: boolean) => {
+      console.log('[AppContext] setRegistry not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setMFAuth: async (_server: string, _appToken: string, _enable: boolean) => {
+      console.log('[AppContext] setMFAuth not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    confirmMFAuth: async (_server: string, _appToken: string, _code: string) => {
+      console.log('[AppContext] confirmMFAuth not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    disableMFAuth: async (_server: string, _appToken: string) => {
+      console.log('[AppContext] disableMFAuth not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setLogin: async (_server: string, _appToken: string, _username: string, _password: string) => {
+      console.log('[AppContext] setLogin not implemented')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    logout: async (_appToken: string) => {
+      console.log('[AppContext] logout not implemented')
+    },
     adminLogin: async (token: string, node: string, secure: boolean, code: string) => {
-      const service = await sdk.current.configure(node, secure, token, code)
-      updateState({ service })
+      const configuredService = await sdk.current.configure(node, secure, token, code)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updateState({ session: state.session, focus: state.focus, service: configuredService as any })
     },
     adminLogout: async () => {
-      updateState({ service: null })
+      updateState({ session: state.session, focus: state.focus, service: null })
     },
   }
 

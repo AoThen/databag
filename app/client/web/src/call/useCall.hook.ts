@@ -1,12 +1,11 @@
 import { useState, useContext, useEffect, useRef } from 'react'
-import { RingContext } from '../context/RingContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { RingContext, RingState, RingActions } from '../context/RingContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { Card } from 'databag-client-sdk'
 
 export function useCall() {
-  const ring = useContext(RingContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const ring = useContext(RingContext) as { state: RingState; actions: RingActions }
+  const display = useContext(DisplayContext) as { state: DisplayState }
   const offsetTime = useRef(0)
   const offset = useRef(false)
 

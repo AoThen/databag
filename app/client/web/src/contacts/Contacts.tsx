@@ -66,22 +66,22 @@ export const Contacts = memo(function Contacts({
               await actions.call(card)
               closeContacts()
             }}
-            strings={state.strings}
+            strings={state.strings as { operationFailed: string; tryAgain: string }}
           />,
-          <Action key="text" icon={text} color={Colors.connected} select={async () => textContact(card.cardId)} strings={state.strings} />,
+          <Action key="text" icon={text} color={Colors.connected} select={async () => textContact(card.cardId)} strings={state.strings as { operationFailed: string; tryAgain: string }} />,
         ]
       } else if (status === 'offsync') {
         const resync = <TbRefresh size={24} />
-        return [<Action key="resync" icon={resync} color={Colors.offsync} select={() => actions.resync(card.cardId)} strings={state.strings} />]
+        return [<Action key="resync" icon={resync} color={Colors.offsync} select={() => actions.resync(card.cardId)} strings={state.strings as { operationFailed: string; tryAgain: string }} />]
       } else if (status === 'requested') {
         const accept = <TbUserCheck size={24} />
-        return [<Action key="accept" icon={accept} color={Colors.requested} select={() => actions.accept(card.cardId)} strings={state.strings} />]
+        return [<Action key="accept" icon={accept} color={Colors.requested} select={() => actions.accept(card.cardId)} strings={state.strings as { operationFailed: string; tryAgain: string }} />]
       } else if (status === 'connecting') {
         const cancel = <TbCancel size={24} />
-        return [<Action key="cancel" icon={cancel} color={Colors.connecting} select={() => actions.cancel(card.cardId)} strings={state.strings} />]
+        return [<Action key="cancel" icon={cancel} color={Colors.connecting} select={() => actions.cancel(card.cardId)} strings={state.strings as { operationFailed: string; tryAgain: string }} />]
       } else if (status === 'pending') {
         const accept = <TbUserCheck size={24} />
-        return [<Action key="accept" icon={accept} color={Colors.pending} select={() => actions.accept(card.cardId)} strings={state.strings} />]
+        return [<Action key="accept" icon={accept} color={Colors.pending} select={() => actions.accept(card.cardId)} strings={state.strings as { operationFailed: string; tryAgain: string }} />]
       } else {
         return []
       }

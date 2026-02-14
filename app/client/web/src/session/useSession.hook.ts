@@ -1,12 +1,11 @@
 import { useState, useContext, useEffect } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { Focus } from 'databag-client-sdk'
 
 export function useSession() {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
+  const display = useContext(DisplayContext) as { state: DisplayState }
   const [state, setState] = useState({
     focus: null as Focus | null,
     layout: null,
@@ -20,20 +19,19 @@ export function useSession() {
   }
 
   useEffect(() => {
-    const setStatus = (status: string) => {
-      if (status === 'disconnected') {
-        updateState({ disconnected: true })
+      const session = app.state.session
+      if (session) {
+        const setStatus = (status: string) => {
+          if (status === 'disconnected') {
+            updateState({ disconnected: true })
+          } else if (status === 'connected') {
+            updateState({ disconnected: false })
+          }
+        }
+        session.addStatusListener(setStatus)
+        return () => session.removeStatusListener(setStatus)
       }
-      if (status === 'connected') {
-        updateState({ disconnected: false })
-      }
-    }
-    const session = app.state.session
-    if (session) {
-      session.addStatusListener(setStatus)
-      return () => session.removeStatusListener()
-    }
-  }, [app.state.session])
+    }, [app.state.session])
 
   useEffect(() => {
     const { layout, strings } = display.state

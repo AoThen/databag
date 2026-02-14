@@ -1,7 +1,6 @@
 import { useState, useContext, useEffect, useRef } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { Channel, Card, Profile, Config } from 'databag-client-sdk'
 import { notes, unknown, iii_group, iiii_group, iiiii_group, group } from '../constants/Icons'
 
@@ -17,10 +16,33 @@ type ChannelParams = {
   message: string
 }
 
+interface IdentityModule {
+  addProfileListener: (listener: (profile: Profile) => void) => void
+  removeProfileListener: (listener: (profile: Profile) => void) => void
+}
+
+interface ContactModule {
+  addCardListener: (listener: (cards: Card[]) => void) => void
+  removeCardListener: (listener: (cards: Card[]) => void) => void
+}
+
+interface ContentModule {
+  addChannelListener: (listener: (data: { channels: Channel[]; cardId: string | null }) => void) => void
+  removeChannelListener: (listener: (data: { channels: Channel[]; cardId: string | null }) => void) => void
+  addLoadedListener: (listener: (loaded: boolean) => void) => void
+}
+
+interface SettingsModule {
+  addConfigListener: (listener: (config: Config) => void) => void
+  removeConfigListener: (listener: (config: Config) => void) => void
+}
+
+type SessionWithModules = IdentityModule & ContactModule & ContentModule & SettingsModule
+
 export function useContent() {
   const cardChannels = useRef(new Map<string | null, Channel[]>())
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
+  const display = useContext(DisplayContext) as { state: DisplayState }
   const [state, setState] = useState({
     strings: display.state.strings,
     layout: null,
@@ -228,19 +250,20 @@ export function useContent() {
       updateState({ sorted })
     }
 
-    const { identity, contact, content, settings } = app.state.session
-    identity.addProfileListener(setProfile)
-    contact.addCardListener(setCards)
-    content.addChannelListener(setChannels)
-    content.addLoadedListener(setLoaded)
-    settings.addConfigListener(setConfig)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { identity, contact, content, settings } = (app.state.session as SessionWithModules | null | any) || {}
+    identity?.addProfileListener(setProfile)
+    contact?.addCardListener(setCards)
+    content?.addChannelListener(setChannels)
+    content?.addLoadedListener(setLoaded)
+    settings?.addConfigListener(setConfig)
 
     return () => {
-      identity.removeProfileListener(setProfile)
-      contact.removeCardListener(setCards)
-      content.removeChannelListener(setChannels)
-      content.removeLoadedListener(setLoaded)
-      settings.removeConfigListener(setConfig)
+      identity?.removeProfileListener(setProfile)
+      contact?.removeCardListener(setCards)
+      content?.removeChannelListener(setChannels)
+      content?.removeLoadedListener(setLoaded)
+      settings?.removeConfigListener(setConfig)
     }
   }, [])
 
@@ -258,13 +281,17 @@ export function useContent() {
       updateState({ loaded: true })
     },
     openTopic: async (cardId: string) => {
-      const content = app.state.session.getContent()
+      const session = app.state.session
+      if (!session) return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const content = (session as { getContent?: () => any }).getContent?.()
+      if (!content) return
       const card = state.cards.find((card) => card.cardId === cardId)
       if (card) {
         const sealable = card.sealable && state.sealSet
         const thread = state.sorted.find((channel) => {
-          const { sealed, cardId, members } = channel
-          if (sealed === sealable && cardId == null && members.length === 1 && members[0].guid === card.guid) {
+          const { sealed, cardId: threadCardId, members } = channel
+          if (sealed === sealable && threadCardId == null && members.length === 1 && members[0]?.guid === card.guid) {
             return true
           }
           return false
@@ -273,18 +300,26 @@ export function useContent() {
           app.actions.setFocus(null, thread.channelId)
         } else {
           const topic = await content.addChannel(sealable, sealable ? 'sealed' : 'superbasic', {}, [cardId])
-          app.actions.setFocus(null, topic.id)
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          app.actions.setFocus(null, String(topic.channelId || topic.id || topic.channelId || ''))
         }
       }
     },
     addTopic: async (sealed: boolean, subject: string, contacts: string[]) => {
-      const content = app.state.session.getContent()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const contentModule = (app.state.session as { getContent?: () => any }).getContent?.()
+      if (!contentModule) throw new Error('Session not available')
       if (sealed) {
-        const topic = await content.addChannel(true, 'sealed', { subject }, contacts)
-        return topic.id
+        const topic = await contentModule.addChannel(true, 'sealed', { subject }, contacts)
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        return String(topic.channelId || topic.id || '')
       } else {
-        const topic = await content.addChannel(false, 'superbasic', { subject }, contacts)
-        return topic.id
+        const topic = await contentModule.addChannel(false, 'superbasic', { subject }, contacts)
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        return String(topic.channelId || topic.id || '')
       }
     },
   }

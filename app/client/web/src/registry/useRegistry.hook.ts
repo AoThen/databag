@@ -1,15 +1,14 @@
 import { useState, useContext, useEffect, useRef } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { Profile } from 'databag-client-sdk'
 
 export function useRegistry() {
   const updating = useRef(false)
   const update = useRef(null as { username: string; server: string } | null)
   const debounce = useRef(setTimeout(() => {}, 0))
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState }
+  const display = useContext(DisplayContext) as { state: DisplayState }
   const [state, setState] = useState({
     strings: display.state.strings,
     username: '',

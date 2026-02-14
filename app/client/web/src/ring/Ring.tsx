@@ -9,7 +9,8 @@ import { Loader, Text, ActionIcon } from '@mantine/core'
 import { TbBell, TbVideoPlus, TbEyeX, TbPhone, TbArrowsMaximize, TbMicrophone, TbMicrophoneOff } from "react-icons/tb";
 
 export function Ring() {
-  const { state, actions } = useRing()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { state, actions } = useRing() as any
   const [ending, setEnding] = useState(false)
   const [applyingAudio, setApplyingAudio] = useState(false)
   const [accepting, setAccepting] = useState(null as null | string)

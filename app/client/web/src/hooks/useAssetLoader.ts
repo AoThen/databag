@@ -7,7 +7,7 @@ export interface AssetLoaderState<T> {
   loadPercent: number;
 }
 
-export interface AssetLoaderActions<T> {
+export interface AssetLoaderActions {
   load: () => Promise<void>;
   cancel: () => void;
 }

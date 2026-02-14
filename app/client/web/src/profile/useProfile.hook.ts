@@ -1,13 +1,12 @@
 import { useState, useContext, useEffect } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { Card, Profile } from 'databag-client-sdk'
 import { ProfileParams } from './Profile'
 
 export function useProfile(params: ProfileParams) {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
+  const display = useContext(DisplayContext) as { state: DisplayState }
   const [state, setState] = useState({
     strings: display.state.strings,
     cards: [] as Card[],
@@ -89,65 +88,78 @@ export function useProfile(params: ProfileParams) {
     const setProfile = (profile: Profile) => {
       updateState({ profile })
     }
-    contact.addCardListener(setCards)
-    identity.addProfileListener(setProfile)
+    contact?.addCardListener(setCards)
+    identity?.addProfileListener(setProfile)
     return () => {
-      contact.removeCardListener(setCards)
-      identity.removeProfileListener(setProfile)
+      contact?.removeCardListener(setCards)
+      identity?.removeProfileListener(setProfile)
     }
   }, [])
 
   const actions = {
     save: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact) return
       await contact.addCard(state.node, state.guid)
     },
     saveAndConnect: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact) return
       await contact.addAndConnectCard(state.node, state.guid)
     },
     remove: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.removeCard(state.cardId)
     },
     connect: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.connectCard(state.cardId)
     },
     disconnect: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.disconnectCard(state.cardId)
     },
     ignore: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.ignoreCard(state.cardId)
     },
     deny: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.denyCard(state.cardId)
     },
     confirm: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.confirmCard(state.cardId)
     },
     cancel: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.disconnectCard(state.cardId)
     },
     accept: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.connectCard(state.cardId)
     },
     resync: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.resyncCard(state.cardId)
     },
     block: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.setBlockedCard(state.cardId, true)
     },
     report: async () => {
       const contact = app.state.session?.getContact()
+      if (!contact || !state.cardId) return
       await contact.flagCard(state.cardId)
     },
   }

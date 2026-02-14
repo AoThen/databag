@@ -8,7 +8,8 @@ export function useVirtualList<T>(
   items: T[],
   itemSize: number,
   containerHeight: number,
-  _overscanCount: number = 5
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  overscanCount: number = 5
 ): {
   listRef: RefObject<VirtualListRef>
   listHeight: number

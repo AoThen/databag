@@ -1,10 +1,9 @@
 import { useState, useContext, useEffect } from 'react'
-import { AppContext } from '../context/AppContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState } from '../context/AppContext'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 export function useRoot() {
-  const app = useContext(AppContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState }
   const location = useLocation()
   const navigate = useNavigate()
   const [state, setState] = useState({

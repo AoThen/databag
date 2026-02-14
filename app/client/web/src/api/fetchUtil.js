@@ -13,7 +13,7 @@ export async function fetchWithTimeout(url, options) {
   return response
 }
 
-export async function fetchWithCustomTimeout(url, options, _timeout) {
+export async function fetchWithCustomTimeout(url, options) {
   const response = await fetch(url, options)
   return response
 }

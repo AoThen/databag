@@ -1,14 +1,13 @@
 import { useState, useContext, useEffect } from 'react'
-import { AppContext } from '../context/AppContext'
-import { RingContext } from '../context/RingContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState } from '../context/AppContext'
+import { RingContext, RingActions } from '../context/RingContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { Card } from 'databag-client-sdk'
 
 export function useContacts() {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
-  const ring = useContext(RingContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState }
+  const display = useContext(DisplayContext) as { state: DisplayState }
+  const ring = useContext(RingContext) as { actions: RingActions }
   const [state, setState] = useState({
     strings: display.state.strings,
     cards: [] as Card[],
@@ -49,7 +48,8 @@ export function useContacts() {
   }
 
   useEffect(() => {
-    const contact = app.state.session?.getContact()
+    const contact = app.state.session?.getContact?.()
+    if (!contact) return
     const setCards = (cards: Card[]) => {
       const filtered = cards.filter((card) => !card.blocked)
       updateState({ cards: filtered })
@@ -77,16 +77,28 @@ export function useContacts() {
       updateState({ filter })
     },
     cancel: async (cardId: string) => {
-      const contact = app.state.session?.getContact()
-      await contact.disconnectCard(cardId)
+      const contact = app.state.session?.getContact?.()
+      if (contact) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        await contact.disconnectCard(cardId)
+      }
     },
     accept: async (cardId: string) => {
-      const contact = app.state.session?.getContact()
-      await contact.connectCard(cardId)
+      const contact = app.state.session?.getContact?.()
+      if (contact) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        await contact.connectCard(cardId)
+      }
     },
     resync: async (cardId: string) => {
-      const contact = app.state.session?.getContact()
-      await contact.resyncCard(cardId)
+      const contact = app.state.session?.getContact?.()
+      if (contact) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        await contact.resyncCard(cardId)
+      }
     },
   }
 

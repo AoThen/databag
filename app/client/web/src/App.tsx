@@ -10,7 +10,6 @@ import '@mantine/core/styles.css'
 import { createHashRouter, RouterProvider } from 'react-router-dom'
 import classes from './App.module.css'
 import { DisplayContext } from './context/DisplayContext'
-import { ContextType } from './context/ContextType'
 import { IconContext } from "react-icons";
 import { LightTheme, DarkTheme, SepiaTheme, BlueTheme, PurpleTheme } from './constants/Colors';
 
@@ -188,9 +187,9 @@ const router = createHashRouter([
 ])
 
 export function App() {
-  const display = useContext(DisplayContext) as ContextType
-  const scheme = display.state ? display.state.scheme : undefined
-  const themeKey = display.state ? display.state.theme : 'light'
+  const display = useContext(DisplayContext) as { state: { scheme?: string | null; theme?: string | null } }
+  const scheme = (display.state?.scheme || 'light') as 'light' | 'dark'
+  const themeKey = display.state?.theme || 'light'
   const themeColors = themeColorsMap[themeKey] || LightTheme
 
   const isCustomTheme = ['sepia', 'blue', 'purple'].includes(themeKey)

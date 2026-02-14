@@ -5,7 +5,13 @@ import { ContextType } from './ContextType'
 export interface AppState {
   session: null | import('databag-client-sdk').Session
   focus: null | import('databag-client-sdk').Focus
-  service?: unknown
+  service?: ({ token?: string } & {
+    getMembers: () => Promise<import('databag-client-sdk').Member[]>
+    createMemberAccess: () => Promise<string>
+    resetMemberAccess: (accountId: number) => Promise<string>
+    blockMember: (accountId: number, disabled: boolean) => Promise<void>
+    removeMember: (accountId: number) => Promise<void>
+  }) | null
 }
 
 export interface AppActions {
@@ -15,7 +21,7 @@ export interface AppActions {
   accountAccess: (node: string, secure: boolean, token: string) => Promise<void>
   setFocus: (cardId: string | null, channelId: string) => Promise<void>
   clearFocus: () => void
-  getAvailable: (node: string, secure: boolean, signal?: AbortSignal) => Promise<boolean>
+  getAvailable: (node: string, secure: boolean, signal?: AbortSignal) => Promise<number>
   getUsername: (username: string, token: string, node: string, secure: boolean, signal?: AbortSignal) => Promise<boolean>
   adminLogin: (token: string, node: string, secure: boolean, code: string) => Promise<void>
   adminLogout: () => Promise<void>

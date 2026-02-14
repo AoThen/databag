@@ -18,13 +18,13 @@ export class RequestCache {
   async get<T>(key: string, fetcher: (signal?: AbortSignal) => Promise<T>, ttl: number = this.DEFAULT_TTL): Promise<T> {
     // 1. 检查缓存
     if (this.cache.has(key)) {
-      const cached = this.cache.get(key)!;
+      const cached = this.cache.get(key)!
       if (Date.now() - cached.timestamp < ttl) {
-        console.log('[RequestCache] Cache hit:', key);
-        return cached.value;
+        console.log('[RequestCache] Cache hit:', key)
+        return cached.value as T
       } else {
         // 缓存过期，删除
-        this.cache.delete(key);
+        this.cache.delete(key)
       }
     }
 

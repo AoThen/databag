@@ -1,9 +1,8 @@
 import { useEffect, useState, useContext, useRef } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
-import { ContextType } from '../context/ContextType'
-import { type Profile, type Config, PushType } from 'databag-client-sdk'
-import { Point, Area } from 'react-easy-crop/types'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayContext, DisplayState, DisplayActions } from '../context/DisplayContext'
+import { type Profile, type Config, type Point, type Area } from 'react-easy-crop'
+import { PushType } from 'databag-client-sdk'
 
 const IMAGE_DIM = 192
 const DEBOUNCE_MS = 1000
@@ -22,8 +21,8 @@ function urlB64ToUint8Array(b64: string) {
 }
 
 export function useSettings() {
-  const display = useContext(DisplayContext) as ContextType
-  const app = useContext(AppContext) as ContextType
+  const display = useContext(DisplayContext) as { state: DisplayState; actions: DisplayActions }
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
   const debounce = useRef(setTimeout(() => {}, 0))
 
   const [state, setState] = useState({

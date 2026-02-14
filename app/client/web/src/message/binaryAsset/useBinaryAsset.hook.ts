@@ -1,6 +1,5 @@
 import { useState, useContext, useEffect } from 'react'
-import { AppContext } from '../../context/AppContext'
-import { ContextType } from '../../context/ContextType'
+import { AppContext, AppState } from '../../context/AppContext'
 import { MediaAsset } from '../../conversation/Conversation'
 import { useAssetLoader } from '../../hooks/useAssetLoader'
 
@@ -12,7 +11,7 @@ interface BinaryAssetState {
 }
 
 export function useBinaryAsset(topicId: string, asset: MediaAsset) {
-  const app = useContext(AppContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState }
   const [state, setState] = useState<BinaryAssetState>({
     dataUrl: '',
     loading: false,

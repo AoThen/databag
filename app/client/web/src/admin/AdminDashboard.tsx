@@ -1,6 +1,6 @@
-import { useEffect, useState, useContext } from 'react'
-import { AppContext } from '../context/AppContext'
-import { DisplayContext } from '../context/DisplayContext'
+import React, { useEffect, useState, useContext } from 'react'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
+import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { ContextType } from '../context/ContextType'
 import { cleanupData, getCleanupStatus, getCleanupConfig, setCleanupConfig } from '../api/cleanupApi'
 import classes from './AdminDashboard.module.css'
@@ -95,10 +95,6 @@ const DEFAULT_STRINGS = {
   enableAutoCleanupDesc: '启用后将自动清理旧数据',
 }
 
-function getString(strings: typeof DEFAULT_STRINGS, key: keyof typeof DEFAULT_STRINGS, fallbackStrings: Record<string, string> = {}): string {
-  return (strings as any)[key] || fallbackStrings[key] || DEFAULT_STRINGS[key] || ''
-}
-
 function replacePlaceholder(text: string, placeholder: string, value: string): string {
   if (!text || typeof text !== 'string') {
     return text
@@ -107,10 +103,10 @@ function replacePlaceholder(text: string, placeholder: string, value: string): s
 }
 
 export function AdminDashboard() {
-  const app = useContext(AppContext) as ContextType
-  const display = useContext(DisplayContext) as ContextType
+  const app = useContext(AppContext) as ContextType<AppState, AppActions>
+  const display = useContext(DisplayContext) as ContextType<DisplayState, unknown>
 
-  const adminToken = app.state.service?.getToken?.() || (app.state.service as any)?.token || ''
+  const adminToken = app.state.service?.token || ''
 
   const [status, setStatus] = useState<CleanupStatus | null>(null)
   const [config, setConfigState] = useState<CleanupConfig>({
@@ -121,6 +117,7 @@ export function AdminDashboard() {
   })
   const [loading, setLoading] = useState(false)
   const [cleaning, setCleaning] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [cleanupResult, setCleanupResult] = useState<any>(null)
   const [settingsOpened, { open: settingsOpen, close: cleanupClose }] = useDisclosure(false)
   const [statusOpened, { open: statusOpen, close: statusClose }] = useDisclosure(false)
@@ -558,7 +555,7 @@ export function AdminDashboard() {
   )
 }
 
-function Alert({ children, icon, color }: { children: React.ReactNode; icon: any; color: string }) {
+function Alert({ children, icon, color }: { children: React.ReactNode; icon: React.ReactNode; color: string }) {
   return (
     <div style={{ 
       padding: '12px', 

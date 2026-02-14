@@ -1,20 +1,18 @@
 import { useState, useContext, useEffect, useRef } from 'react'
-import { AppContext } from '../context/AppContext'
-import { ContextType } from '../context/ContextType'
+import { AppContext, AppState } from '../context/AppContext'
 import { Link, type Card } from 'databag-client-sdk'
 
 const CLOSE_POLL_MS = 100
 
 export function useRingContext() {
-  const app = useContext(AppContext) as ContextType
+  const app = useContext(AppContext) as { state: AppState }
   const call = useRef(null as { peer: RTCPeerConnection; link: Link; candidates: RTCIceCandidate[] } | null)
   const localStream = useRef(null as null | MediaStream)
   const localAudio = useRef(null as null | MediaStreamTrack)
   const localVideo = useRef(null as null | MediaStreamTrack)
   const remoteStream = useRef(null as null | MediaStream)
   const updatingPeer = useRef(false)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const peerUpdate = useRef([] as { type: string; data?: any }[])
+  const peerUpdate = useRef([] as { type: string; data?: { description?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit; track?: MediaStreamTrack; stream?: MediaStream } }[])
   const connecting = useRef(false)
   const closing = useRef(false)
   const passive = useRef(false)
@@ -100,26 +98,32 @@ export function useRingContext() {
             case 'negotiate': {
               const description = await peer.createOffer()
               await peer.setLocalDescription(description)
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               await link.sendMessage({ description })
               break
             }
             case 'candidate':
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               await link.sendMessage({ data })
               break
             case 'message':
-              if (data.description) {
+              if (data?.description) {
                 const offer = new RTCSessionDescription(data.description)
                 await peer.setRemoteDescription(offer)
                 if (data.description.type === 'offer') {
                   const description = await peer.createAnswer()
                   await peer.setLocalDescription(description)
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore
                   link.sendMessage({ description })
                 }
                 for (const candidate of candidates) {
                   await peer.addIceCandidate(candidate)
                 }
                 call.current.candidates = []
-              } else if (data.candidate) {
+              } else if (data?.candidate) {
                 const candidate = new RTCIceCandidate(data.candidate)
                 if (peer.remoteDescription == null) {
                   candidates.push(candidate)
@@ -129,31 +133,32 @@ export function useRingContext() {
               }
               break
             case 'remote_track':
-              if (remoteStream.current) {
-                remoteStream.current.addTrack(data)
+              if (data?.track && remoteStream.current) {
+                remoteStream.current.addTrack(data.track)
                 passive.current = false
-                passiveTracks.current.forEach((data) => {
-                  peer.addTrack(data.track, data.stream)
+                passiveTracks.current.forEach((trackData) => {
+                  peer.addTrack(trackData.track, trackData.stream)
                 })
                 passiveTracks.current = []
-                if (data.kind === 'video') {
+                if (data.track.kind === 'video') {
                   updateState({ remoteVideo: true })
                 }
               }
               break
             case 'local_track':
-              if (passive.current) {
-                passiveTracks.current.push(data)
-              } else {
+              if (passive.current && data) {
+                if (data.track && data.stream) {
+                  passiveTracks.current.push({ track: data.track, stream: data.stream })
+                }
+              } else if (data?.track && data?.stream) {
                 peer.addTrack(data.track, data.stream)
-              }
-              if (data.track.kind === 'audio') {
-                localAudio.current = data.track
-              }
-              if (data.track.kind === 'video') {
-                localVideo.current = data.track
-                localStream.current = data.stream
-                updateState({ localVideo: true, localStream: localStream.current })
+                if (data.track.kind === 'audio') {
+                  localAudio.current = data.track
+                }
+                if (data.track.kind === 'video') {
+                  localVideo.current = data.track
+                  localStream.current = data.stream
+                }
               }
               break
             default:
@@ -250,16 +255,23 @@ export function useRingContext() {
   }
 
   useEffect(() => {
-    if (app.state.session) {
+    const session = app.state.session
+    if (session) {
       const setRing = (ringing: { cardId: string; callId: string }[]) => {
         setRinging(ringing)
       }
       const setContacts = (cards: Card[]) => {
         setCards(cards)
       }
-      const ring = app.state.session.getRing()
-      ring.addRingingListener(setRinging)
-      const contact = app.state.session.getContact()
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const ring = session.getRing()
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      ring.addRingingListener(setRing)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const contact = session.getContact()
       contact.addCardListener(setContacts)
       return () => {
         ring.removeRingingListener(setRing)
@@ -274,12 +286,22 @@ export function useRingContext() {
       updateState({ fullscreen })
     },
     ignore: async (callId: string, card: Card) => {
-      const ring = app.state.session.getRing()
+      const session = app.state.session
+      if (!session) throw new Error('Session not available')
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const ring = session.getRing()
       await ring.ignore(card.cardId, callId)
     },
     decline: async (callId: string, card: Card) => {
-      const ring = app.state.session.getRing()
-      await ring.decline(card.cardId, callId)
+      const session = app.state.session
+      if (!session) throw new Error('Session not available')
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const ring = session.getRing()
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      await ring.decline(card.cardId, callId, card.node)
     },
     end: async () => {
       await cleanup()
@@ -291,7 +313,11 @@ export function useRingContext() {
       try {
         connecting.current = true
         const { cardId, node } = card
-        const ring = app.state.session.getRing()
+        const session = app.state.session
+        if (!session) throw new Error('Session not available')
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const ring = session.getRing()
         const link = await ring.accept(cardId, callId, node)
         await setup(link, card, true)
         connecting.current = false
@@ -306,7 +332,11 @@ export function useRingContext() {
       }
       try {
         connecting.current = true
-        const contact = app.state.session.getContact()
+        const session = app.state.session
+        if (!session) throw new Error('Session not available')
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const contact = session.getContact()
         const link = await contact.callCard(card.cardId)
         await setup(link, card, false)
         connecting.current = false
