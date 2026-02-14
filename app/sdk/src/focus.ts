@@ -1387,6 +1387,10 @@ FocusModule.recordSuccess();
     return count;
   }
 
+  public getChannelRevision(): number | null {
+    return this.storeView.revision;
+  }
+
   private parse(data: string | null): any {
     if (data) {
       try {

@@ -129,6 +129,7 @@ export function useConversation() {
     isOneToOne: false,
     maxFetchedReadReceipts: 30,
     myTopicsCount: 0,
+    lastReadReceiptRevision: null as number | null,
   })
 
   const updateState = (value: Partial<typeof state>) => {
@@ -189,6 +190,24 @@ export function useConversation() {
       updateState({ myTopicsCount });
     }
   }, [state.topics, state.cardId, state.profile])
+
+  useEffect(() => {
+    const focus = app.state.focus
+    if (focus && state.loaded && state.topics.length > 0 && state.isOneToOne && state.myTopicsCount > 0) {
+      const tryRefreshReadReceipts = async () => {
+        try {
+          const currentRevision = focus.getChannelRevision()
+          if (currentRevision && state.lastReadReceiptRevision !== currentRevision) {
+            await focus.fetchMoreReadReceipts(30)
+            updateState({ lastReadReceiptRevision: currentRevision, maxFetchedReadReceipts: 30 })
+          }
+        } catch {
+          // Silently ignore fetch errors
+        }
+      }
+      tryRefreshReadReceipts()
+    }
+  }, [state.topics, state.isOneToOne, state.myTopicsCount])
 
   useEffect(() => {
     const focus = app.state.focus
@@ -290,6 +309,21 @@ export function useConversation() {
       }
     }
   }, [state.loaded, state.topics, state.cardId, app.state.focus])
+
+  useEffect(() => {
+    const focus = app.state.focus
+    if (focus && state.loaded && state.topics.length > 0 && state.isOneToOne && state.myTopicsCount > 0) {
+      const loadInitialReadReceipts = async () => {
+        try {
+          await focus.fetchMoreReadReceipts(30)
+          updateState({ maxFetchedReadReceipts: 30 })
+        } catch {
+          // Silently ignore fetch errors
+        }
+      }
+      loadInitialReadReceipts()
+    }
+  }, [state.loaded, state.isOneToOne, state.myTopicsCount])
 
   const actions = {
     close: () => {

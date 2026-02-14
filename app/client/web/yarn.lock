@@ -1806,10 +1806,10 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
-databag-client-sdk@^0.0.44:
+"databag-client-sdk@file:../../sdk/databag-client-sdk-0.0.44.tgz":
   version "0.0.44"
-  resolved "https://registry.npmjs.org/databag-client-sdk/-/databag-client-sdk-0.0.44.tgz"
-  integrity sha512-jsQ6ttaT08MfjkrxGg3Q7v2Wub1hdzXv07+8T4iGakUTer36tk1YPyhRp7a2gUyG+orF8ZDFr1ANklZskexsrA==
+  resolved "file:../../sdk/databag-client-sdk-0.0.44.tgz"
+  integrity sha512-+iiG9V5JsQGqOvetMbhFtvcd2i3PYGN2vYUi4lF9SrIfAdXIon0mxPbKWMj5Bq3+ab7yjX5hI+k1c+wWE2wbaA==
   dependencies:
     eventemitter3 "^5.0.1"
     prettier "^3.3.3"

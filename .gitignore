@@ -14,6 +14,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+app/sdk/dist/*
 dev_database/
 AGENTS.md
 net/repeater/repeater
@@ -23,7 +24,7 @@ app/sdk/node_modules
 app/client/web/node_modules
 .opencode/*
 app/client/mobile/node_modules
-app/sdk/dist/*
 net/server/server
 .gitignore
 net/server/testdata/databag.db
+app/sdk/*.tgz
