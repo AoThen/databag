@@ -1,3 +1,3 @@
 #!/bin/sh
-convert -strip $1 -auto-orient $2
+magick convert -strip $1 -auto-orient $2
 

@@ -64,9 +64,14 @@ func SetTopicRead(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Find the topic to mark as read
+	// Find the topic - first try topic_slot_id, then try GUID
 	var topicSlot store.TopicSlot
-	if err = store.DB.Preload("Topic").Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error; err != nil {
+	err = store.DB.Preload("Topic").Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Try GUID if topic_slot_id not found
+		err = store.DB.Preload("Topic").Where("channel_id = ? AND guid = ?", channelSlot.Channel.ID, topicID).First(&topicSlot).Error
+	}
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ErrResponse(w, http.StatusNotFound, err)
 		} else {

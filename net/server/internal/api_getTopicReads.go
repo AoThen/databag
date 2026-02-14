@@ -29,9 +29,14 @@ func GetTopicReads(w http.ResponseWriter, r *http.Request) {
 
 	act := &channelSlot.Account
 
-	// Find the topic
+	// Find the topic - first try topic_slot_id, then try GUID
 	var topic store.Topic
-	if err = store.DB.Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topic).Error; err != nil {
+	err = store.DB.Where("channel_id = ? AND topic_slot_id = ?", channelSlot.Channel.ID, topicID).First(&topic).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Try GUID if topic_slot_id not found
+		err = store.DB.Where("channel_id = ? AND guid = ?", channelSlot.Channel.ID, topicID).First(&topic).Error
+	}
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ErrResponse(w, http.StatusNotFound, err)
 		} else {
