@@ -26,9 +26,13 @@ export function useAccess() {
   }
 
   useEffect(() => {
-    if (app.state.status || app.state.adminToken) {
-      navigate('/');
-    }
+    const timer = setTimeout(() => {
+      if (app.state.status || app.state.adminToken) {
+        navigate('/');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, [app.state, navigate]);
 
   useEffect(() => {

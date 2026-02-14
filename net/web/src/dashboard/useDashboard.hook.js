@@ -63,13 +63,17 @@ export function useDashboard(token) {
   }
 
   useEffect(() => {
-    if (!app.state.adminToken) {
-      navigate('/');
-    }
-    else {
-      syncConfig();
-      syncAccounts();
-    }
+    const timer = setTimeout(() => {
+      if (!app.state.adminToken) {
+        navigate('/');
+      }
+      else {
+        syncConfig();
+        syncAccounts();
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
     // eslint-disable-next-line
   }, [app]);
 

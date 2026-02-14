@@ -94,9 +94,19 @@ export function useAppContext(websocket) {
       await appCreate(username, password, token)
     },
     setAdmin: (token) => {
+      try {
+        sessionStorage.setItem("admin_token", token);
+      } catch (err) {
+        console.log("Failed to store admin token:", err);
+      }
       updateState({ adminToken: token });
     },
     clearAdmin: () => {
+      try {
+        sessionStorage.removeItem("admin_token");
+      } catch (err) {
+        console.log("Failed to clear admin token:", err);
+      }
       updateState({ adminToken: null });
     },
   }
@@ -252,6 +262,12 @@ export function useAppContext(websocket) {
         console.log(err)
       }
     }
+
+    const adminToken = sessionStorage.getItem('admin_token');
+    if (adminToken) {
+      updateState({ adminToken });
+    }
+
     checked.current = true;
     // eslint-disable-next-line
   }, []);

@@ -18,6 +18,7 @@ export function useAdmin() {
     mfaModal: false,
     mfaCode: null,
     mfaError: null,
+    loginCompleted: false,
   });
 
   const navigate = useNavigate();
@@ -57,7 +58,8 @@ export function useAdmin() {
           }
           try {
             const session = await setNodeAccess(state.password, state.mfaCode);
-            app.actions.setAdmin(session);          
+            app.actions.setAdmin(session);
+            updateState({ loginCompleted: true });          
           }
           catch (err) {
             const msg = err?.message;

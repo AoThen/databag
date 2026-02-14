@@ -8,15 +8,19 @@ export function Root() {
   const app = useContext(AppContext);
 
   useEffect(() => {
-    if (app.state.adminToken) {
-      navigate('/dashboard');
-    }
-    else if (app.state.status) {
-      navigate('/session');
-    }
-    else {
-      navigate('/login');
-    }
+    const timer = setTimeout(() => {
+      if (app.state.adminToken) {
+        navigate('/dashboard');
+      }
+      else if (app.state.status) {
+        navigate('/session');
+      }
+      else {
+        navigate('/login');
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [app.state, navigate]);
 
   return <></>
