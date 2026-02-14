@@ -15,6 +15,7 @@ RUN sed -i 's|file:../sdk/databag-client-sdk-0.0.44.tgz|file:/tmp/sdk.tgz|' pack
 # Download the node dependencies first before adding the rest for caching
 WORKDIR /app
 COPY ./app/client/web/package.json ./
+RUN sed -i 's|file:../../sdk/databag-client-sdk-0.0.44.tgz|file:/tmp/sdk.tgz|' package.json
 RUN rm -f yarn.lock
 
 # Install dependencies (yarn will regenerate yarn.lock based on modified package.json)
