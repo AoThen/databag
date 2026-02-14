@@ -23,7 +23,8 @@ export function useRoot() {
   }, [location.pathname])
 
   useEffect(() => {
-    const { pathname, service, session } = app.state || {}
+    const appState = app.state as AppState & { pathname?: string; service?: AppState['service']; session?: AppState['session'] }
+    const { pathname, service, session } = appState || {}
     const path = pathname === '/session' || pathname === '/service' || pathname === '/access' ? pathname : '/'
     if (path === '/session' && !session) {
       navigate('/')

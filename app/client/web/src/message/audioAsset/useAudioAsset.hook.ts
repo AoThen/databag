@@ -25,9 +25,9 @@ export function useAudioAsset(topicId: string, asset: MediaAsset) {
   // 使用统一的资源加载器
   const [loaderState, loaderActions] = useAssetLoader(async (onProgress) => {
     const { focus } = app.state;
-    const assetId = asset.audio ? asset.audio.full : asset.encrypted ? asset.encrypted.parts : null;
+    const assetId = asset.audio ? asset.audio.full : asset.encrypted ? asset.encrypted.parts?.[0]?.partId : null;
     
-    if (!focus || assetId == null) {
+    if (!focus || !assetId) {
       throw new Error('No focus or assetId');
     }
     

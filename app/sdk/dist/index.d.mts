@@ -443,6 +443,7 @@ interface Focus {
     }[]>;
     fetchMoreReadReceipts(limit?: number): Promise<void>;
     getFetchedReadReceiptCount(): number;
+    getChannelRevision(): number | null;
     addTopicListener(ev: (topics: null | Topic[]) => void): void;
     removeTopicListener(ev: (topics: null | Topic[]) => void): void;
     addOffsyncListener(ev: (offsync: boolean) => void): void;

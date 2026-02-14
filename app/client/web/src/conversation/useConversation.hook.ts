@@ -6,6 +6,13 @@ import Resizer from 'react-image-file-resizer'
 import { ErrorHandler, ErrorCategory } from '../utils/ErrorHandler'
 import { ErrorCounter } from '../utils/ErrorCounter'
 
+interface UploadAsset {
+  type: string
+  file: File
+  position?: number
+  label?: string
+}
+
 const IMAGE_SCALE_SIZE = 128 * 1024
 const GIF_TYPE = 'image/gif'
 const WEBP_TYPE = 'image/webp'
@@ -118,7 +125,7 @@ export function useConversation() {
     subjectNames: [],
     unknownContacts: 0,
     message: '',
-    assets: [] as { type: string; file: File; position?: number; label?: string }[],
+    assets: [] as UploadAsset[],
     textColor: '#444444',
     textColorSet: false,
     textSize: 16,
@@ -136,7 +143,7 @@ export function useConversation() {
     setState((s) => ({ ...s, ...value }))
   }
 
-  const updateAsset = (index: number, value: Partial<AssetType>) => {
+  const updateAsset = (index: number, value: Partial<UploadAsset>) => {
     setState((s) => ({
       ...s,
       assets: s.assets.map((asset, i) => 

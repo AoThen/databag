@@ -44,8 +44,8 @@ export function useImageAsset(topicId: string, asset: MediaAsset) {
     },
     loadImage: async () => {
       const { focus } = app.state
-      const assetId = asset.image ? asset.image.full : asset.encrypted ? asset.encrypted.parts : null
-      if (focus && assetId != null && !state.loading && !state.dataUrl) {
+      const assetId = asset.image ? asset.image.full : asset.encrypted ? asset.encrypted.parts?.[0]?.partId : null
+      if (focus && assetId && !state.loading && !state.dataUrl) {
         cancelled.current = false
         updateState({ loading: true, loadPercent: 0 })
         try {

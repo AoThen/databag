@@ -104,7 +104,7 @@ export function Message({ topic, card, profile, host, isOneToOne }: { topic: Top
     })
   }
 
-  const showError = () => {
+  const showError = (message?: string) => {
     modals.openConfirmModal({
       title: state.strings.operationFailed,
       withCloseButton: true,
@@ -112,7 +112,7 @@ export function Message({ topic, card, profile, host, isOneToOne }: { topic: Top
         backgroundOpacity: 0.55,
         blur: 3,
       },
-      children: <Text>{state.strings.tryAgain}</Text>,
+      children: <Text>{message || state.strings.tryAgain}</Text>,
       cancelProps: { display: 'none' },
       confirmProps: { display: 'none' },
     })

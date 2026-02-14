@@ -1,17 +1,14 @@
 import React, { ReactNode, createContext } from 'react'
 import { useAppContext } from './useAppContext.hook'
 import { ContextType } from './ContextType'
+import type { Service } from 'databag-client-sdk'
+
+export type AppService = { token?: string } & Partial<Service> & Pick<Service, 'getMembers' | 'createMemberAccess' | 'resetMemberAccess' | 'blockMember' | 'removeMember'>
 
 export interface AppState {
   session: null | import('databag-client-sdk').Session
   focus: null | import('databag-client-sdk').Focus
-  service?: ({ token?: string } & {
-    getMembers: () => Promise<import('databag-client-sdk').Member[]>
-    createMemberAccess: () => Promise<string>
-    resetMemberAccess: (accountId: number) => Promise<string>
-    blockMember: (accountId: number, disabled: boolean) => Promise<void>
-    removeMember: (accountId: number) => Promise<void>
-  }) | null
+  service?: AppService | null
 }
 
 export interface AppActions {

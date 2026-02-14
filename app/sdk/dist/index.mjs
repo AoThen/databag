@@ -2353,6 +2353,9 @@ var _FocusModule = class _FocusModule {
     }
     return count;
   }
+  getChannelRevision() {
+    return this.storeView.revision;
+  }
   parse(data) {
     if (data) {
       try {

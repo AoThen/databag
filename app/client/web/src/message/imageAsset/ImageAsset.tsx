@@ -13,8 +13,8 @@ export function ImageAsset({ topicId, asset }: { topicId: string; asset: MediaAs
   const [showImage, setShowImage] = useState(false)
   
   // 使用统一的资源加载器
-  const [loaderState, loaderActions] = useAssetLoader(async (onProgress) => {
-    return await assetActions.loadImage(onProgress);
+  const [loaderState, loaderActions] = useAssetLoader(async () => {
+    return await assetActions.loadImage();
   }, [topicId, asset.image, asset.encrypted]);
   
   // 图片预加载：当有dataUrl时预加载

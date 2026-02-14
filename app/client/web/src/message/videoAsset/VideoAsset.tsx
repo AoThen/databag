@@ -15,8 +15,8 @@ export function VideoAsset({ topicId, asset }: { topicId: string; asset: MediaAs
   const { width, height, ref } = useResizeDetector()
   
   // 使用统一的资源加载器
-  const [loaderState, loaderActions] = useAssetLoader(async (onProgress) => {
-    return await assetActions.loadVideo(onProgress);
+  const [loaderState, loaderActions] = useAssetLoader(async () => {
+    return await assetActions.loadVideo();
   }, [topicId, asset.video, asset.encrypted]);
   
   // 视频预加载：当有dataUrl时预加载元数据

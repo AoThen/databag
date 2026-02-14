@@ -19,7 +19,7 @@ export interface AssetLoaderActions {
 export function useAssetLoader<T>(
   loadFn: (onProgress?: (percent: number) => boolean) => Promise<T>,
   dependencies: unknown[] = []
-): [AssetLoaderState<T>, AssetLoaderActions<T>] {
+): [AssetLoaderState<T>, AssetLoaderActions] {
   const [state, setState] = useState<AssetLoaderState<T>>({
     data: null,
     loading: false,

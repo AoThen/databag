@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext, useRef } from 'react'
-import { AppContext, AppState } from '../context/AppContext'
+import { AppContext, AppState, AppActions } from '../context/AppContext'
 import { DisplayContext, DisplayState } from '../context/DisplayContext'
 import { type Setup, KeyType, ICEService } from 'databag-client-sdk'
 
@@ -11,7 +11,7 @@ export function useSetup() {
   const loading = useRef(false)
   const debounce = useRef(setTimeout(() => {}, 0))
   const setup = useRef(null as null | Setup)
-  const app = useContext(AppContext) as { state: AppState }
+  const app = useContext(AppContext) as { state: AppState; actions: AppActions }
   const display = useContext(DisplayContext) as { state: DisplayState }
   const [state, setState] = useState({
     layout: '',

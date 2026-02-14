@@ -1,8 +1,10 @@
 import { useEffect, useState, useContext, useRef } from 'react'
 import { AppContext, AppState, AppActions } from '../context/AppContext'
 import { DisplayContext, DisplayState, DisplayActions } from '../context/DisplayContext'
-import { type Profile, type Config, type Point, type Area } from 'react-easy-crop'
-import { PushType } from 'databag-client-sdk'
+import { PushType, Profile as SDKProfile, Config as SDKConfig } from 'databag-client-sdk'
+
+type Point = { x: number; y: number }
+type Area = { x: number; y: number; width: number; height: number }
 
 const IMAGE_DIM = 192
 const DEBOUNCE_MS = 1000
@@ -26,8 +28,8 @@ export function useSettings() {
   const debounce = useRef(setTimeout(() => {}, 0))
 
   const [state, setState] = useState({
-    config: {} as Config,
-    profile: {} as Profile,
+    config: {} as SDKConfig,
+    profile: {} as SDKProfile,
     profileSet: false,
     imageUrl: null,
     strings: display.state.strings,
@@ -85,11 +87,11 @@ export function useSettings() {
 
   useEffect(() => {
     const { settings, identity } = getSession()
-    const setConfig = (config: Config) => {
+    const setConfig = (config: SDKConfig) => {
       updateState({ config })
     }
     settings.addConfigListener(setConfig)
-    const setProfile = (profile: Profile) => {
+    const setProfile = (profile: SDKProfile) => {
       const { handle, name, location, description } = profile
       const url = identity.getProfileImageUrl()
       updateState({

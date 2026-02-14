@@ -36,6 +36,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "databag-client-sdk": "file:databag-client-sdk-0.0.44.tgz",
     "eventemitter3": "^5.0.1",
     "prettier": "^3.3.3"
   }
