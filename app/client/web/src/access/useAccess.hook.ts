@@ -60,8 +60,9 @@ export function useAccess() {
   }
 
   useEffect(() => {
-    const urlObj = new URL(location.href)
-    const search = urlObj.search
+    const hash = window.location.hash
+    const hashPart = hash.split('?')[1] || ''
+    const search = hashPart ? '?' + hashPart : ''
 
     if (search.startsWith('?add=')) {
       updateState({ mode: 'create', token: search.substring(5) })
