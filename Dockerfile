@@ -9,15 +9,14 @@ RUN npm install && npm run build && npm pack
 # Pack SDK tgz to a temp location for web build
 RUN cp databag-client-sdk-*.tgz /tmp/sdk.tgz
 
+# Install local SDK tgz (replace npm version)
+RUN sed -i 's|file:../sdk/databag-client-sdk-0.0.44.tgz|file:/tmp/sdk.tgz|' package.json
+
 # Download the node dependencies first before adding the rest for caching
 WORKDIR /app
 COPY ./app/client/web/package.json ./app/client/web/yarn.lock ./
 RUN --mount=type=cache,target=/root/.yarn YARN_CACHE_FOLDER=/root/.yarn \
   yarn --frozen-lockfile
-
-# Install local SDK tgz (replace npm version)
-RUN rm -rf node_modules/databag-client-sdk && \
-    yarn add /tmp/sdk.tgz
 
 COPY ./app/client/web/ ./
 RUN --mount=type=cache,target=/root/.yarn YARN_CACHE_FOLDER=/root/.yarn \

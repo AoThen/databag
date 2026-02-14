@@ -22,7 +22,7 @@
     "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react": "4.3.1",
     "crypto-js": "^4.2.0",
-    "databag-client-sdk": "file:../../sdk/databag-client-sdk-0.0.44.tgz",
+    "databag-client-sdk": "file:../sdk/databag-client-sdk-0.0.44.tgz",
     "jest": "29.1.1",
     "jsencrypt": "^3.3.2",
     "react": "18.3.1",
