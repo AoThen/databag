@@ -172,6 +172,12 @@ func ParamSessionToken(r *http.Request) (int, error) {
 		return http.StatusUnauthorized, errors.New("invalid session token")
 	}
 
+	// check session expiry
+	expiry := getNumConfigValue(CNFAdminSessionExpiry, 0)
+	if expiry > 0 && time.Now().Unix() > expiry {
+		return http.StatusUnauthorized, errors.New("session expired")
+	}
+
 	return http.StatusOK, nil
 }
 

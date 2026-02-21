@@ -8,16 +8,30 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAccountLoginFailureTracking(t *testing.T) {
+	// Create test account in database
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("correctpassword"), bcrypt.DefaultCost)
+	if err != nil {
+		t.Fatalf("failed to hash password: %v", err)
+	}
+
+	account := &store.Account{
+		Username: "testuser",
+		Password: hashedPassword,
+	}
+	if err := store.DB.Create(account).Error; err != nil {
+		t.Fatalf("failed to create test account: %v", err)
+	}
+	defer store.DB.Delete(account)
+
 	tests := []struct {
 		name          string
 		username      string
 		password      string
-		account       *store.Account
-		failCount     uint
-		failPeriod    int64
 		expectLocked  bool
 		expectSuccess bool
 	}{
@@ -25,8 +39,6 @@ func TestAccountLoginFailureTracking(t *testing.T) {
 			name:          "successful login resets failures",
 			username:      "testuser",
 			password:      "correctpassword",
-			account:       &store.Account{ID: 1, Username: "testuser", Password: []byte("$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy")},
-			failCount:     3,
 			expectLocked:  false,
 			expectSuccess: true,
 		},

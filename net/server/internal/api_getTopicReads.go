@@ -54,9 +54,9 @@ func GetTopicReads(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all read records for this topic
+	// Get all read records for this topic with preloaded data
 	var topicReads []store.TopicRead
-	if err = store.DB.Preload("Card.Account").Where("topic_id = ?", topic.ID).Find(&topicReads).Error; err != nil {
+	if err = store.DB.Preload("Card.Account.AccountDetail").Where("topic_id = ?", topic.ID).Find(&topicReads).Error; err != nil {
 		ErrResponse(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -77,13 +77,10 @@ func GetTopicReads(w http.ResponseWriter, r *http.Request) {
 			ReadTime: topicRead.ReadTime,
 		}
 
-		// Add profile information if available
-		if topicRead.Card.AccountID != "" {
-			var accountDetail store.AccountDetail
-			if err := store.DB.Where("id = ?", topicRead.Card.AccountID).First(&accountDetail).Error; err == nil {
-				receipt.Name = accountDetail.Name
-				receipt.ImageURL = accountDetail.Image
-			}
+		// Add profile information from preloaded data
+		if topicRead.Card.Account.AccountDetail.ID > 0 {
+			receipt.Name = topicRead.Card.Account.AccountDetail.Name
+			receipt.ImageURL = topicRead.Card.Account.AccountDetail.Image
 		}
 
 		readReceipts = append(readReceipts, receipt)

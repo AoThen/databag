@@ -216,7 +216,7 @@ export class OfflineStore implements Store {
       `CREATE TABLE IF NOT EXISTS ${this.getTableName('channel_topic', guid)} (channel_id text, topic_id text, position real, detail text, unsealed_detail text, unique(channel_id, topic_id))`,
     );
     await this.sql.set(
-      `CREATE TABLE IF NOT EXISTS ${this.getTableName('card', guid)} (card_id text, revision integer, detail text, profile text, profile_revision, article_revision, channel_revision, unique(card_id))`,
+      `CREATE TABLE IF NOT EXISTS ${this.getTableName('card', guid)} (card_id text, revision integer, detail text, profile text, profile_revision integer, article_revision integer, channel_revision integer, unique(card_id))`,
     );
     await this.sql.set(
       `CREATE TABLE IF NOT EXISTS ${this.getTableName('card_channel', guid)} (card_id text, channel_id text, detail text, unsealed_detail text, summary text, unsealed_summary text, sync text, unique(card_id, channel_id))`,

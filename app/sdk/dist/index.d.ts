@@ -462,7 +462,7 @@ interface Focus {
 interface Service {
     getMembers(): Promise<Member[]>;
     createMemberAccess(): Promise<string>;
-    resetMemberAccess(accontId: number): Promise<string>;
+    resetMemberAccess(accountId: number): Promise<string>;
     blockMember(accountId: number, flag: boolean): Promise<void>;
     removeMember(accountId: number): Promise<void>;
     getSetup(): Promise<Setup>;

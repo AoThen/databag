@@ -28,3 +28,4 @@ net/server/server
 .gitignore
 net/server/testdata/databag.db
 app/sdk/*.tgz
+net/server/internal/testdata/databag.db

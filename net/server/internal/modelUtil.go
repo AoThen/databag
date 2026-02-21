@@ -16,7 +16,7 @@ func getProfileModel(account *store.Account) *Profile {
 		Revision:    account.ProfileRevision,
 		Version:     APPVersion,
 		Node:        getStrConfigValue(CNFDomain, ""),
-    Seal:        account.AccountDetail.SealPublic,
+		Seal:        account.AccountDetail.SealPublic,
 	}
 }
 
@@ -76,11 +76,11 @@ func getCardDetailModel(slot *store.CardSlot) *CardDetail {
 	}
 
 	return &CardDetail{
-		Status: slot.Card.Status,
-    StatusUpdated: slot.Card.StatusUpdated,
-		Token:  slot.Card.OutToken,
-		Notes:  slot.Card.Notes,
-		Groups: groups,
+		Status:        slot.Card.Status,
+		StatusUpdated: slot.Card.StatusUpdated,
+		Token:         slot.Card.OutToken,
+		Notes:         slot.Card.Notes,
+		Groups:        groups,
 	}
 }
 
@@ -95,7 +95,7 @@ func getCardProfileModel(slot *store.CardSlot) *CardProfile {
 		ImageSet:    slot.Card.Image != "",
 		Version:     slot.Card.Version,
 		Node:        slot.Card.Node,
-    Seal:        slot.Card.Seal,
+		Seal:        slot.Card.Seal,
 	}
 }
 
@@ -182,27 +182,31 @@ func getChannelDetailModel(slot *store.ChannelSlot, showList bool, image bool, a
 		}
 		var cards []string
 		for _, member := range slot.Channel.Members {
-			cards = append(cards, member.Card.CardSlot.CardSlotID)
+			if member.Card.CardSlot != nil {
+				cards = append(cards, member.Card.CardSlot.CardSlotID)
+			}
 		}
 		contacts = &ChannelContacts{Groups: groups, Cards: cards}
 	}
 
 	members := []string{}
 	for _, member := range slot.Channel.Members {
-		members = append(members, member.Card.GUID)
+		if member.Card.GUID != "" {
+			members = append(members, member.Card.GUID)
+		}
 	}
 
 	return &ChannelDetail{
-		DataType: slot.Channel.DataType,
-		Data:     slot.Channel.Data,
-		Created:  slot.Channel.Created,
-		Updated:  slot.Channel.Updated,
-    EnableImage: image,
-    EnableAudio: audio,
-    EnableVideo: video,
-    EnableBinary: binary,
-		Contacts: contacts,
-		Members:  members,
+		DataType:     slot.Channel.DataType,
+		Data:         slot.Channel.Data,
+		Created:      slot.Channel.Created,
+		Updated:      slot.Channel.Updated,
+		EnableImage:  image,
+		EnableAudio:  audio,
+		EnableVideo:  video,
+		EnableBinary: binary,
+		Contacts:     contacts,
+		Members:      members,
 	}
 }
 

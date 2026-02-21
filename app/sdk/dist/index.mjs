@@ -1077,8 +1077,13 @@ var MIN_LOAD_SIZE = BATCH_COUNT / 2;
 var CLOSE_POLL_MS3 = 100;
 var RETRY_POLL_MS3 = 2e3;
 var ENCRYPT_BLOCK_SIZE = 1048576;
-var _FocusModule = class _FocusModule {
+var FocusModule = class _FocusModule {
   constructor(log, store, crypto, staging, cardId, channelId, guid, connection, channelKey, sealEnabled, revision, markRead, flagChannelTopic) {
+    this.RATE_LIMIT_WINDOW = 6e4;
+    this.RATE_LIMIT_MAX_FAILURES = 5;
+    this.failureCount = 0;
+    this.lastFailureTime = 0;
+    this.rateLimitedUntil = 0;
     this.cardId = cardId;
     this.channelId = channelId;
     this.log = log;
@@ -2318,14 +2323,7 @@ var _FocusModule = class _FocusModule {
     });
   }
   getUnfetchedReadReceiptTopics(offset, limit) {
-    const myTopics = [];
-    for (const [topicId, entry] of this.topicEntries.entries()) {
-      if (entry.item.detail.guid === this.guid && !entry.item.readByFetched) {
-        myTopics.push({ topicId, created: entry.item.detail.created });
-      }
-    }
-    myTopics.sort((a, b) => b.created - a.created);
-    return myTopics.slice(offset, offset + limit).map((t) => t.topicId);
+    return [];
   }
   fetchMoreReadReceipts(limit = 30) {
     return __async(this, null, function* () {
@@ -2370,12 +2368,6 @@ var _FocusModule = class _FocusModule {
     return {};
   }
 };
-_FocusModule.RATE_LIMIT_WINDOW = 6e4;
-_FocusModule.RATE_LIMIT_MAX_FAILURES = 5;
-_FocusModule.failureCount = 0;
-_FocusModule.lastFailureTime = 0;
-_FocusModule.rateLimitedUntil = 0;
-var FocusModule = _FocusModule;
 
 // src/net/addCall.ts
 function addCall(node, secure, token, cardId) {
@@ -6190,7 +6182,7 @@ var OfflineStore = class {
         `CREATE TABLE IF NOT EXISTS ${this.getTableName("channel_topic", guid)} (channel_id text, topic_id text, position real, detail text, unsealed_detail text, unique(channel_id, topic_id))`
       );
       yield this.sql.set(
-        `CREATE TABLE IF NOT EXISTS ${this.getTableName("card", guid)} (card_id text, revision integer, detail text, profile text, profile_revision, article_revision, channel_revision, unique(card_id))`
+        `CREATE TABLE IF NOT EXISTS ${this.getTableName("card", guid)} (card_id text, revision integer, detail text, profile text, profile_revision integer, article_revision integer, channel_revision integer, unique(card_id))`
       );
       yield this.sql.set(
         `CREATE TABLE IF NOT EXISTS ${this.getTableName("card_channel", guid)} (card_id text, channel_id text, detail text, unsealed_detail text, summary text, unsealed_summary text, sync text, unique(card_id, channel_id))`

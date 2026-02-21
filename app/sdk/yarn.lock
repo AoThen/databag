@@ -1034,14 +1034,6 @@ cross-spawn@^7.0.3, cross-spawn@^7.0.6:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-"databag-client-sdk@file:databag-client-sdk-0.0.44.tgz":
-  version "0.0.44"
-  resolved "file:databag-client-sdk-0.0.44.tgz"
-  integrity sha512-+iiG9V5JsQGqOvetMbhFtvcd2i3PYGN2vYUi4lF9SrIfAdXIon0mxPbKWMj5Bq3+ab7yjX5hI+k1c+wWE2wbaA==
-  dependencies:
-    eventemitter3 "^5.0.1"
-    prettier "^3.3.3"
-
 debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.4.0:
   version "4.4.1"
   resolved "https://registry.npmjs.org/debug/-/debug-4.4.1.tgz"

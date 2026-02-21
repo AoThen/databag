@@ -94,11 +94,20 @@ func SetAdminAccess(w http.ResponseWriter, r *http.Request) {
 	ResetIPAuthFailure(clientIP)
 
 	err = store.DB.Transaction(func(tx *gorm.DB) error {
-		// upsert mfa enabled
+		// upsert admin session token
 		if res := tx.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "config_id"}},
 			DoUpdates: clause.AssignmentColumns([]string{"str_value"}),
 		}).Create(&store.Config{ConfigID: CNFAdminSession, StrValue: access}).Error; res != nil {
+			return res
+		}
+		// set session expiry (24 hours from now)
+		sessionTimeout := int64(24 * time.Hour / time.Second)
+		expiry := time.Now().Unix() + sessionTimeout
+		if res := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "config_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"num_value"}),
+		}).Create(&store.Config{ConfigID: CNFAdminSessionExpiry, NumValue: expiry}).Error; res != nil {
 			return res
 		}
 		return nil

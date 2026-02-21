@@ -1,6 +1,7 @@
 package databag
 
 import (
+	"bytes"
 	"databag/internal/store"
 	"encoding/json"
 	"errors"
@@ -78,13 +79,29 @@ func AddChannelTopicAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, _, err := r.FormFile("asset")
+	file, header, err := r.FormFile("asset")
 	if err != nil {
 		ErrResponse(w, http.StatusBadRequest, err)
 		return
 	}
 	defer file.Close()
-	crc, size, err := saveAsset(file, path)
+
+	mimeType, firstChunk, err := ValidateFileType(file, APPBodyLimit, DefaultFileConfig.AllowedMimeTypes)
+	if err != nil {
+		if errors.Is(err, ErrInvalidFileType) {
+			ErrResponse(w, http.StatusBadRequest, errors.New("file type not allowed: "+mimeType))
+		} else if errors.Is(err, ErrEmptyFile) {
+			ErrResponse(w, http.StatusBadRequest, errors.New("empty file not allowed"))
+		} else {
+			ErrResponse(w, http.StatusBadRequest, err)
+		}
+		return
+	}
+
+	combinedReader := io.MultiReader(bytes.NewReader(firstChunk), file)
+	LogMsg("file upload validated: " + header.Filename + " type: " + mimeType)
+
+	crc, size, err := saveAsset(combinedReader, path)
 	if err != nil {
 		ErrResponse(w, http.StatusInternalServerError, err)
 		return
@@ -162,16 +179,15 @@ func isStorageFull(act *store.Account) (full bool, err error) {
 		return
 	}
 
-	var assets []store.Asset
-	if err = store.DB.Where("account_id = ?", act.ID).Find(&assets).Error; err != nil {
+	var result struct{ Total int64 }
+	if err = store.DB.Model(&store.Asset{}).
+		Select("COALESCE(SUM(size), 0) as total").
+		Where("account_id = ?", act.ID).
+		Scan(&result).Error; err != nil {
 		return
 	}
 
-	var size int64
-	for _, asset := range assets {
-		size += asset.Size
-	}
-	if size >= storage {
+	if result.Total >= storage {
 		full = true
 	}
 

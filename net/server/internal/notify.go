@@ -6,13 +6,24 @@ import (
 	"databag/internal/store"
 	"encoding/json"
 	"errors"
-	"gorm.io/gorm"
 	"net/http"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 var notify = make(chan *store.Notification, APPNotifyBuffer)
 var notifyExit = make(chan bool)
+
+// httpClient is a shared HTTP client with connection pooling for notifications
+var httpClient = &http.Client{
+	Timeout: 30 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
+	},
+}
 
 // ExitNotifications stop forwarding notifications
 func ExitNotifications() {
@@ -126,8 +137,7 @@ func sendRemoteNotification(notification *store.Notification) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		req = req.WithContext(ctx)
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := httpClient.Do(req)
 		if err != nil {
 			ErrMsg(err)
 			return
@@ -152,8 +162,7 @@ func sendRemoteNotification(notification *store.Notification) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		req = req.WithContext(ctx)
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := httpClient.Do(req)
 		if err != nil {
 			ErrMsg(err)
 			return

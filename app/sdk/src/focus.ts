@@ -50,11 +50,11 @@ export class FocusModule implements Focus {
   private loadMore: boolean;
   private closeStaging: (()=>Promise<void>)[];
 
-  private static readonly RATE_LIMIT_WINDOW = 60000;
-  private static readonly RATE_LIMIT_MAX_FAILURES = 5;
-  private static failureCount: number = 0;
-  private static lastFailureTime: number = 0;
-  private static rateLimitedUntil: number = 0;
+  private readonly RATE_LIMIT_WINDOW = 60000;
+  private readonly RATE_LIMIT_MAX_FAILURES = 5;
+  private failureCount: number = 0;
+  private lastFailureTime: number = 0;
+  private rateLimitedUntil: number = 0;
   private unsealAll: boolean;
   private justAdded: boolean;
   private markRead: ()=>Promise<void>;

@@ -70,7 +70,12 @@ func isAllowedOrigin(origin string) bool {
 		return true
 	}
 
-	// 2. 环境变量白名单（优先于数据库配置）
+	// 2. 空Origin表示同源请求或测试环境，默认允许
+	if origin == "" {
+		return true
+	}
+
+	// 3. 环境变量白名单（优先于数据库配置）
 	if envOrigins := os.Getenv("DATABAG_WS_ALLOWED_ORIGINS"); envOrigins != "" {
 		for _, allowed := range strings.Split(envOrigins, ",") {
 			if strings.TrimSpace(allowed) == origin {
@@ -80,10 +85,7 @@ func isAllowedOrigin(origin string) bool {
 		return false
 	}
 
-	// 3. 回退到数据库配置
-	if origin == "" {
-		return false
-	}
+	// 4. 回退到数据库配置
 	allowedOrigin := getStrConfigValue(CNFDomain, "")
 	if allowedOrigin == "" {
 		return false
